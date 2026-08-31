@@ -19,18 +19,73 @@ body {
   min-height: 100vh;
 }
 
-/* Zero-work Dark Mode Filter */
+/* ─── Premium Dark Theme Engine ─── */
 html.dark {
-  filter: invert(1) hue-rotate(180deg);
+  color-scheme: dark;
 }
 
-/* Keep images, charts, and specified media in their natural light colors */
-html.dark img,
-html.dark video,
-html.dark iframe,
-html.dark svg:not(.nav-icon),
-html.dark [data-no-dark="true"],
-html.dark .no-dark {
-  filter: invert(1) hue-rotate(180deg);
+html.dark body {
+  background-color: #0b0f14 !important;
+  color: #f8fafc !important;
 }
 
+/* Base surface overrides in dark mode */
+html.dark .bg-white {
+  background-color: #121822 !important;
+  color: #f8fafc;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50,
+html.dark .bg-\[\#f0f7f4\],
+html.dark .bg-\[\#f4f4f4\] {
+  background-color: #0b0f14 !important;
+}
+
+/* Subtle crisp borders for dark containers */
+html.dark .border-gray-100,
+html.dark .border-gray-50,
+html.dark .border-slate-100,
+html.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* High-contrast text adaptations */
+html.dark .text-slate-850,
+html.dark .text-slate-855,
+html.dark .text-gray-800,
+html.dark .text-gray-900,
+html.dark .text-gray-700 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-gray-400,
+html.dark .text-slate-350 {
+  color: #64748b !important;
+}
+
+/* Prominently preserve sharp green brand backgrounds and accents */
+html.dark .bg-\[\#1a3a2a\] {
+  background-color: #1a3a2a !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-\[\#2d6a4f\] {
+  background-color: #2d6a4f !important;
+  color: #ffffff !important;
+}
+
+html.dark .text-\[\#2d6a4f\] {
+  color: #38a169 !important;
+}
+
+html.dark .text-\[\#1a3a2a\] {
+  color: #4ade80 !important;
+}
