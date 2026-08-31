@@ -28,7 +28,7 @@ export default function StocksPage() {
           Global Stocks Trading
         </h1>
         <p className="text-xs md:text-sm text-gray-400 leading-relaxed">
-          Access US, European, and emerging equity markets directly from Crest Capital. Trade shares in Apple, Tesla, Nvidia, and more with 0% commission.
+          Access US, European, and emerging equity markets directly from Alpha Rise Global. Trade shares in Apple, Tesla, Nvidia, and more with 0% commission.
         </p>
       </div>
 

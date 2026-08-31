@@ -22,14 +22,14 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h3 className="text-lg font-extrabold text-slate-850">1. Acceptance of Terms</h3>
             <p>
-              By creating a profile, passing KYC steps, and depositing capital on Crest Capital, you acknowledge that you have read, understood, and agreed to be bound by these Terms of Service. If you do not agree, do not register or deposit holdings.
+              By creating a profile, passing KYC steps, and depositing capital on Alpha Rise Global, you acknowledge that you have read, understood, and agreed to be bound by these Terms of Service. If you do not agree, do not register or deposit holdings.
             </p>
           </section>
 
           <section className="space-y-3">
             <h3 className="text-lg font-extrabold text-slate-850">2. Fixed-Yield Investment Programs</h3>
             <p>
-              Crest Capital offers fixed-yield packages (Bronze, Silver, Gold, Platinum). You acknowledge that:
+              Alpha Rise Global offers fixed-yield packages (Bronze, Silver, Gold, Platinum). You acknowledge that:
             </p>
             <ul className="list-disc pl-5 space-y-1.5 text-slate-500">
               <li>Yield rates compound daily according to plan percentages (from 2.5% to 7.5% Daily ROI).</li>
@@ -41,7 +41,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h3 className="text-lg font-extrabold text-slate-850">3. Margin Leverage Risks</h3>
             <p>
-              Opening leveraged LONG or SHORT positions carries significant capital risk. Leverage options up to 100x are available. Crest Capital reserves the right to liquidate open contracts when margin balances drop below maintenance requirements or general risk threshold flags.
+              Opening leveraged LONG or SHORT positions carries significant capital risk. Leverage options up to 100x are available. Alpha Rise Global reserves the right to liquidate open contracts when margin balances drop below maintenance requirements or general risk threshold flags.
             </p>
           </section>
 
@@ -60,7 +60,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h3 className="text-lg font-extrabold text-slate-850">5. Compliance & KYC</h3>
             <p>
-              Platform usage requires compliance verification. Users must upload valid government identification documents. Crest Capital reserves the right to block account login access, reject KYC, or freeze withdrawals in the event of compliance irregularities.
+              Platform usage requires compliance verification. Users must upload valid government identification documents. Alpha Rise Global reserves the right to block account login access, reject KYC, or freeze withdrawals in the event of compliance irregularities.
             </p>
           </section>
 

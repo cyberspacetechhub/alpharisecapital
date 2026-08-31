@@ -174,7 +174,7 @@ export default function ConnectWalletPage() {
 
             <div className="text-xs text-gray-500 space-y-3 leading-relaxed border-t border-gray-50 pt-4">
               <p>
-                Connecting your wallet allows the Crest Capital system to monitor custody liquidity allocations without giving withdrawal permission to third parties.
+                Connecting your wallet allows the Alpha Rise Global system to monitor custody liquidity allocations without giving withdrawal permission to third parties.
               </p>
               <div className="bg-amber-50/60 border border-amber-100/50 rounded-xl p-3.5 space-y-2 text-amber-900 text-[11px]">
                 <strong className="block text-amber-950 font-bold uppercase tracking-wider text-[9px]">⚠️ Security Notice</strong>

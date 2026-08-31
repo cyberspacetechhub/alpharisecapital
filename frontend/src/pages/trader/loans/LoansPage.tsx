@@ -420,7 +420,7 @@ export default function TraderLoansPage() {
             <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-2xl space-y-2">
               <span className="text-[10px] font-bold text-gray-500 uppercase block">Terms & Credit Agreement</span>
               <div className="text-[10px] text-gray-450 max-h-20 overflow-y-auto leading-relaxed bg-white p-2.5 rounded-xl border border-gray-100">
-                By applying for this credit facility, you agree to Crest Capital's borrowing parameters.
+                By applying for this credit facility, you agree to Alpha Rise Global's borrowing parameters.
                 Repayment installments are due on or before the maturation date of {selectedOffer.durationDays} days.
                 Outstanding balances will accrue standard late fees. You authorize the clearing house to restrict active trading or apply margin calls if default thresholds are reached.
               </div>

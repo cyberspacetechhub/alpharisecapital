@@ -302,7 +302,7 @@ export default function WithdrawalPage() {
               <strong>24-48 business hours</strong>.
             </li>
             <li>
-              Ensure your destination address or bank details match exactly. MoneyMax is not liable for transactions sent
+              Ensure your destination address or bank details match exactly. Alpha Rise Global is not liable for transactions sent
               to incorrect destination details supplied by the client.
             </li>
             <li>

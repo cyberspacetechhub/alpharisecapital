@@ -114,7 +114,7 @@ const MOCK_WITHDRAWALS = [
 
 const FAQS = [
   {
-    q: "How does Crest Capital secure my capital?",
+    q: "How does Alpha Rise Global secure my capital?",
     a: "We utilize cold storage multi-signature custodian wallets for all digital deposits. Cash holdings are insured and held inside verified institutional clearing houses, keeping client portfolios isolated from operational balances.",
   },
   {
@@ -174,7 +174,7 @@ export default function HomePage() {
               <span className="text-[#2d6a4f]">Borrow with Ease.</span>
             </h1>
             <p className="text-base md:text-lg text-slate-500 leading-relaxed max-w-xl">
-              Unlock access to institutional liquidity pools, fixed-yield investment contracts, and margin trading limits. Crest Capital is your gateway to diversified capital compounding.
+              Unlock access to institutional liquidity pools, fixed-yield investment contracts, and margin trading limits. Alpha Rise Global is your gateway to diversified capital compounding.
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
               <button
@@ -348,7 +348,7 @@ export default function HomePage() {
             <span className="text-xs font-extrabold text-[#52b788] uppercase tracking-wider bg-white/10 border border-white/15 px-4 py-1.5 rounded-full shadow-sm">
               Global Asset Channels
             </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white">Crest Capital Markets Portfolio</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-white">Alpha Rise Global Markets Portfolio</h2>
             <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto">Diverse high-yield products offering robust parameters for long-term equity growth.</p>
           </div>
 
@@ -564,7 +564,7 @@ export default function HomePage() {
               Chronology
             </span>
             <h2 className="text-3xl font-black text-slate-850">Platform Timeline</h2>
-            <p className="text-sm text-slate-550 max-w-sm mx-auto">Trace Crest Capital's evolution from conceptualization to global operations.</p>
+            <p className="text-sm text-slate-550 max-w-sm mx-auto">Trace Alpha Rise Global's evolution from conceptualization to global operations.</p>
           </div>
 
           <div className="relative border-l-2 border-emerald-250 ml-4 space-y-12 pb-4">
@@ -573,7 +573,7 @@ export default function HomePage() {
               <span className="absolute left-[-7px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#1a3a2a] border-2 border-white" />
               <div className="space-y-1.5">
                 <span className="text-sm font-black text-[#2d6a4f] font-mono block">Q1 2023 — Setup & Foundation</span>
-                <p className="text-xs text-gray-655 max-w-2xl leading-relaxed">Crest Capital incorporated. Initiated structural planning and cold storage vault architectures.</p>
+                <p className="text-xs text-gray-655 max-w-2xl leading-relaxed">Alpha Rise Global incorporated. Initiated structural planning and cold storage vault architectures.</p>
               </div>
             </div>
 

@@ -57,6 +57,16 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-[#f0f7f4] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[#1a3a2a] mb-6 transition-colors group"
+        >
+          <svg className="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to home
+        </Link>
+
         {/* Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1a3a2a] mb-4 shadow-lg">
@@ -64,7 +74,7 @@ const LoginPage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-[#1a3a2a]">Crest Capital Assets</h1>
+          <h1 className="text-2xl font-bold text-[#1a3a2a]">Alpha Rise Global</h1>
           <p className="text-gray-500 mt-1 text-sm">Welcome back — sign in to continue</p>
         </div>
 

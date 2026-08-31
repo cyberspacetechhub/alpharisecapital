@@ -46,7 +46,7 @@ export default function PolicyPage() {
           <section className="space-y-3">
             <h3 className="text-lg font-extrabold text-slate-850">3. Custody & Encryption Protocols</h3>
             <p>
-              Crest Capital does not share personal documents with marketing agencies or third parties. All KYC materials are uploaded directly into isolated encrypted filesystems. Cold storage custodian networks protect financial balances.
+              Alpha Rise Global does not share personal documents with marketing agencies or third parties. All KYC materials are uploaded directly into isolated encrypted filesystems. Cold storage custodian networks protect financial balances.
             </p>
           </section>
 

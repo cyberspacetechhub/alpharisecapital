@@ -17,7 +17,7 @@ export default function PublicHeader() {
           <div className="w-11 h-11 rounded-2xl bg-[#1a3a2a] flex items-center justify-center text-white font-black text-xl shadow-md shadow-[#1a3a2a]/10">
             C
           </div>
-          <span className="font-black text-slate-850 text-2xl tracking-tight">Crest Capital</span>
+          <span className="font-black text-slate-850 text-xl md:text-2xl tracking-tight">Alpha Rise Global</span>
         </div>
 
         {/* Desktop Nav links */}

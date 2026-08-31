@@ -13,7 +13,7 @@ export default function AboutPage() {
             Corporate Profile
           </span>
           <h1 className="text-4xl md:text-6xl font-black text-slate-850 leading-tight">
-            About Crest Capital
+            About Alpha Rise Global
           </h1>
           <p className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
             Pioneering the alignment of fixed-yield allocations, digital liquidity parameters, and secure decentralized custodian interfaces.

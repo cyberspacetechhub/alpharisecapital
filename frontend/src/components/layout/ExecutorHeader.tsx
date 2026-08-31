@@ -19,7 +19,7 @@ const ExecutorHeader = () => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <span className="lg:hidden font-bold text-[#1a3a2a] text-sm">Crest Capital</span>
+        <span className="lg:hidden font-bold text-[#1a3a2a] text-sm">Alpha Rise Global</span>
 
         {/* Desktop breadcrumb label */}
         <div className="hidden lg:flex items-center gap-2">

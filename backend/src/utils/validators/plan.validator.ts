@@ -59,6 +59,7 @@ export const positionSchema = z.object({
   stopLoss: z.number().positive().optional(),
   takeProfit: z.number().positive().optional(),
   durationMinutes: z.number().int().positive("Duration must be a positive integer"),
+  entryPrice: z.number().positive("Entry price must be positive"),
 });
 
 export const upgradePlanSchema = z.object({

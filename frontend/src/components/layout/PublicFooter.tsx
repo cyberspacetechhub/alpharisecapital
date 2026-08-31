@@ -13,7 +13,7 @@ export default function PublicFooter() {
             <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-white font-black text-xl">
               C
             </div>
-            <span className="font-extrabold text-white text-xl tracking-tight">Crest Capital</span>
+            <span className="font-extrabold text-white text-xl tracking-tight">Alpha Rise Global</span>
           </div>
           <p className="text-xs text-white/50 leading-relaxed">
             Institutional yield packages, digital credit facilities, and multi-asset margin positions management.
@@ -63,7 +63,7 @@ export default function PublicFooter() {
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-white/5 mt-16 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/45">
-        <span>&copy; {new Date().getFullYear()} Crest Capital Securities. All rights reserved.</span>
+        <span>&copy; {new Date().getFullYear()} Alpha Rise Global Securities. All rights reserved.</span>
         <span className="hover:text-white transition-colors cursor-pointer">Security Cleared clearance certificate 2026</span>
       </div>
     </footer>

@@ -145,7 +145,7 @@ const ExecutorSidebar = () => {
               </svg>
             </div>
             <div>
-              <span className="font-bold text-sm tracking-wide block">Crest Capital</span>
+              <span className="font-bold text-sm tracking-wide block">Alpha Rise Global</span>
               <span className="text-white/40 text-xs">Admin Panel</span>
             </div>
           </div>

@@ -29,7 +29,7 @@ const TraderHeader = () => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <span className="lg:hidden font-bold text-[#1a3a2a] text-sm">Crest Capital</span>
+        <span className="lg:hidden font-bold text-[#1a3a2a] text-sm">Alpha Rise Global</span>
       </div>
 
       {/* Right — notifications + avatar */}
