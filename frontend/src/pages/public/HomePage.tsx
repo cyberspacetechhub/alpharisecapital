@@ -315,7 +315,7 @@ export default function HomePage() {
           <p className="text-sm md:text-base text-slate-500 max-w-lg mx-auto">Get started in minutes with our transparent six-step pipeline.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 md:gap-6">
           {HOW_IT_WORKS.map((step, idx) => (
             <div key={idx} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-[0_15px_40px_rgba(45,106,79,0.02)] space-y-6 relative flex flex-col justify-between hover:translate-y-[-4px] transition-transform min-h-[220px]">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50/80 border border-emerald-100/50 flex items-center justify-center shadow-sm shrink-0">
