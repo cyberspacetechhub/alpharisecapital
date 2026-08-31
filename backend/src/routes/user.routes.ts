@@ -4,6 +4,7 @@ import { protect, authorize } from "../middlewares/auth.middleware";
 import { validate } from "../utils/validators/validate";
 import { updateProfileSchema, kycSubmitSchema } from "../utils/validators/user.validator";
 import { changePasswordSchema } from "../utils/validators/auth.validator";
+import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -13,7 +14,8 @@ router.use(protect);
 router.get("/me", userController.getMe);
 router.get("/dashboard", userController.getDashboard);
 router.patch("/me", validate(updateProfileSchema), userController.updateProfile);
-router.patch("/me/avatar", userController.updateAvatar);
+router.patch("/me/avatar", upload.single("avatar"), userController.updateAvatar);
+router.post("/me/upload", upload.single("file"), userController.uploadFile);
 router.patch("/me/password", validate(changePasswordSchema), userController.changePassword);
 router.post("/me/kyc", validate(kycSubmitSchema), userController.submitKyc);
 

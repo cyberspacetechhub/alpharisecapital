@@ -21,10 +21,17 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
 });
 
 export const updateAvatar = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const filePath = (req as AuthRequest & { file?: { path: string } }).file?.path;
-  if (!filePath) { res.status(400).json({ success: false, message: "No file uploaded" }); return; }
-  const result = await userService.updateAvatar(req.userId!, filePath);
+  const buffer = req.file?.buffer;
+  if (!buffer) { res.status(400).json({ success: false, message: "No file uploaded" }); return; }
+  const result = await userService.updateAvatar(req.userId!, buffer);
   res.json({ success: true, data: result });
+});
+
+export const uploadFile = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const buffer = req.file?.buffer;
+  if (!buffer) { res.status(400).json({ success: false, message: "No file uploaded" }); return; }
+  const url = await userService.uploadGeneralFile(buffer);
+  res.json({ success: true, url });
 });
 
 export const changePassword = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -40,8 +47,8 @@ export const submitKyc = asyncHandler(async (req: AuthRequest, res: Response) =>
 // ─── Executor: Trader Management ─────────────────────────────────────────────
 
 export const getAllTraders = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { page = "1", limit = "20", search } = req.query as Record<string, string>;
-  const result = await userService.getAllTraders(+page, +limit, search);
+  const { page = "1", limit = "20", search, kycStatus } = req.query as Record<string, string>;
+  const result = await userService.getAllTraders(+page, +limit, search, kycStatus);
   res.json({ success: true, ...result });
 });
 

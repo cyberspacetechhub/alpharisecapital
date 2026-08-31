@@ -8,6 +8,8 @@ export const userApi = {
     api.patch("/users/me/avatar", formData, { headers: { "Content-Type": "multipart/form-data" } }),
   changePassword: (data: object) => api.patch("/users/me/password", data),
   submitKyc: (data: object) => api.post("/users/me/kyc", data),
+  uploadFile: (formData: FormData) =>
+    api.post("/users/me/upload", formData, { headers: { "Content-Type": "multipart/form-data" } }),
   // executor
   getAllTraders: (params?: object) => api.get("/users/traders", { params }),
   getTraderDetails: (id: string) => api.get(`/users/traders/${id}`),

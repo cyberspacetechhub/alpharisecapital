@@ -32,6 +32,7 @@ import StocksPage from "../pages/trader/stocks/StocksPage";
 import TraderNotificationsPage from "../pages/trader/notifications/NotificationsPage";
 import TraderMessagesPage from "../pages/trader/messages/MessagesPage";
 import TraderProfilePage from "../pages/trader/profile/ProfilePage";
+import KycPage from "../pages/trader/kyc/KycPage";
 
 // Executor pages
 import ExecutorLayout from "../components/layout/ExecutorLayout";
@@ -48,6 +49,7 @@ import WalletsPage from "../pages/executor/wallets/WalletsPage";
 import ExecutorMessagesPage from "../pages/executor/messages/MessagesPage";
 import ResendInboxPage from "../pages/executor/inbox/ResendInboxPage";
 import ExecutorProfilePage from "../pages/executor/profile/ProfilePage";
+import KycReviewPage from "../pages/executor/kyc/KycReviewPage";
 
 const AppRouter = () => (
   <BrowserRouter>
@@ -85,6 +87,7 @@ const AppRouter = () => (
           <Route path="notifications" element={<TraderNotificationsPage />} />
           <Route path="messages" element={<TraderMessagesPage />} />
           <Route path="profile" element={<TraderProfilePage />} />
+          <Route path="kyc" element={<KycPage />} />
         </Route>
       </Route>
 
@@ -105,6 +108,7 @@ const AppRouter = () => (
           <Route path="messages" element={<ExecutorMessagesPage />} />
           <Route path="inbox" element={<ResendInboxPage />} />
           <Route path="profile" element={<ExecutorProfilePage />} />
+          <Route path="kyc" element={<KycReviewPage />} />
         </Route>
       </Route>
 

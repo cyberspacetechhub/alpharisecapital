@@ -7,7 +7,7 @@ import { Transaction } from "../models/transaction.model";
 import { Position } from "../models/position.model";
 import { LoanApplication } from "../models/loan.model";
 import { AppError } from "../utils/AppError";
-import { uploadImage } from "./cloudinary.service";
+import { uploadImage, uploadBuffer } from "./cloudinary.service";
 import { UpdateProfileInput, KycSubmitInput } from "../utils/validators/user.validator";
 
 // ─── Get My Full Profile ──────────────────────────────────────────────────────
@@ -79,14 +79,19 @@ export const updateMyProfile = async (userId: string, data: UpdateProfileInput) 
 
 // ─── Update Avatar ────────────────────────────────────────────────────────────
 
-export const updateAvatar = async (userId: string, filePath: string) => {
+export const updateAvatar = async (userId: string, fileBuffer: Buffer) => {
   const profile = await Profile.findOne({ user: userId });
   if (!profile) throw new AppError("Profile not found", 404);
 
-  const url = await uploadImage(filePath, "avatars");
+  const url = await uploadBuffer(fileBuffer, "avatars");
   profile.avatar = url;
   await profile.save();
   return { avatar: url };
+};
+
+export const uploadGeneralFile = async (fileBuffer: Buffer) => {
+  const url = await uploadBuffer(fileBuffer, "kyc_documents");
+  return url;
 };
 
 // ─── Change Password ──────────────────────────────────────────────────────────
@@ -118,13 +123,16 @@ export const submitKyc = async (userId: string, data: KycSubmitInput) => {
 
 // ─── Executor: Get All Traders ────────────────────────────────────────────────
 
-export const getAllTraders = async (page: number, limit: number, search?: string) => {
+export const getAllTraders = async (page: number, limit: number, search?: string, kycStatus?: string) => {
   const filter: Record<string, unknown> = {};
   if (search) {
     filter.$or = [
       { username: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
     ];
+  }
+  if (kycStatus) {
+    filter.kycStatus = kycStatus;
   }
 
   const userIds = await Profile.find({ type: "Trader" }).distinct("user");
