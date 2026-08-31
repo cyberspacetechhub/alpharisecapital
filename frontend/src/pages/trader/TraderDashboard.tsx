@@ -112,7 +112,7 @@ export default function TraderDashboard() {
     <div className="space-y-5 max-w-5xl mx-auto">
 
       {/* ── Welcome card ── */}
-      <div className="relative overflow-hidden bg-[#1a3a2a] rounded-2xl p-5 lg:p-6 text-white">
+      <div className="relative overflow-hidden bg-[#1a3a2a] rounded-2xl p-5 lg:p-6 text-white keep-dark">
         {/* decorative circles */}
         <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
         <div className="absolute -bottom-10 -right-4 w-28 h-28 rounded-full bg-white/5" />
@@ -153,7 +153,7 @@ export default function TraderDashboard() {
 
       {/* Mobile: total balance card + actions stacked */}
       <div className="lg:hidden space-y-3">
-        <div className="bg-[#2d6a4f] rounded-2xl p-5 text-white">
+        <div className="bg-[#2d6a4f] rounded-2xl p-5 text-white keep-dark">
           <p className="text-white/60 text-xs font-medium mb-1">Total Balance</p>
           {dashLoading
             ? <Skeleton className="h-8 w-36 bg-white/20" />
@@ -184,7 +184,7 @@ export default function TraderDashboard() {
       {/* Desktop: balance grid */}
       <div className="hidden lg:grid grid-cols-1 gap-4">
         {/* Total balance prominent */}
-        <div className="col-span-1 bg-[#2d6a4f] rounded-2xl p-5 text-white flex flex-col justify-between">
+        <div className="col-span-1 bg-[#2d6a4f] rounded-2xl p-5 text-white flex flex-col justify-between keep-dark">
           <p className="text-white/60 text-xs font-medium">Total Balance</p>
           {dashLoading
             ? <Skeleton className="h-8 w-36 bg-white/20 mt-2" />

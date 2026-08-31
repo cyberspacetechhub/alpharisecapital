@@ -18,3 +18,19 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* Zero-work Dark Mode Filter */
+html.dark {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Keep images, charts, and specified media in their natural light colors */
+html.dark img,
+html.dark video,
+html.dark iframe,
+html.dark svg:not(.nav-icon),
+html.dark [data-no-dark="true"],
+html.dark .no-dark {
+  filter: invert(1) hue-rotate(180deg);
+}
+

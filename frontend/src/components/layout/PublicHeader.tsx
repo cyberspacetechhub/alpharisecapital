@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function PublicHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem("theme") === "dark" || document.documentElement.classList.contains("dark");
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -17,7 +31,7 @@ export default function PublicHeader() {
           <div className="w-11 h-11 rounded-2xl bg-[#1a3a2a] flex items-center justify-center text-white font-black text-xl shadow-md shadow-[#1a3a2a]/10">
             C
           </div>
-          <span className="font-black text-slate-850 text-xl md:text-2xl tracking-tight">Alpha Rise Global</span>
+          <span className="font-black text-slate-850 text-lg md:text-2xl tracking-tight">Alpha Rise Global</span>
         </div>
 
         {/* Desktop Nav links */}
@@ -50,6 +64,23 @@ export default function PublicHeader() {
 
         {/* Desktop CTA Buttons / Mobile specific header */}
         <div className="flex items-center gap-3">
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setDarkMode((prev) => !prev)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-50 border border-slate-200 text-slate-500 transition-colors shrink-0"
+            aria-label="Toggle Dark Mode"
+          >
+            {darkMode ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
+
           {/* Desktop Only */}
           <button
             onClick={() => navigate("/login")}
