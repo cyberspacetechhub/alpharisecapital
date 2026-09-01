@@ -16,6 +16,6 @@ export const welcomeEmail = (username: string, dashboardUrl: string): string =>
       <li>Explore investment plans or open a trade position</li>
     </ul>
     ${emailButton("Go to Dashboard", dashboardUrl)}
-    ${emailParagraph(`If you have any questions, our support team is always available at <a href="mailto:support@verdextrade.com">support@verdextrade.com</a>.`)}
+    ${emailParagraph(`If you have any questions, our support team is always available at <a href="mailto:support@alphariseglobal.com">support@alphariseglobal.com</a>.`)}
     `
   );

@@ -1,9 +1,9 @@
-const BRAND_NAME = "VerdexTrade";
+const BRAND_NAME = "Alpha Rise Global";
 const BRAND_COLOR = "#1a3a2a";
 const BRAND_ACCENT = "#2d6a4f";
 const BRAND_LIGHT = "#f0f7f4";
-const SUPPORT_EMAIL = "support@verdextrade.com";
-const WEBSITE_URL = "https://verdextrade.com";
+const SUPPORT_EMAIL = "support@alphariseglobal.com";
+const WEBSITE_URL = "https://alphariseglobal.com";
 
 export const emailLayout = (title: string, content: string): string => `
 <!DOCTYPE html>

@@ -43,7 +43,7 @@ export const loanRejectedEmail = (
       emailInfoRow("Status", "Rejected")
     )}
     ${emailAlert("You may reapply after resolving the issue or contact support for assistance.", "danger")}
-    ${emailButton("Contact Support", "mailto:support@verdextrade.com")}
+    ${emailButton("Contact Support", "support@alphariseglobal.com")}
     `
   );
 
