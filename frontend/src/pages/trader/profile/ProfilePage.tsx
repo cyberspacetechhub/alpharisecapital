@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { userApi } from "../../../api/user.api";
+import { useAuthStore } from "../../../store/auth.store";
 import PageLoader from "../../../components/common/PageLoader";
 
 interface ProfileFormInput {
@@ -21,6 +22,7 @@ interface PasswordFormInput {
 }
 
 export default function ProfilePage() {
+  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"info" | "security">("info");
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState("");
@@ -29,7 +31,7 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState("");
 
   const { data: profile, isLoading, refetch } = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["my-profile"],
     queryFn: () => userApi.getMe().then((r) => r.data.data),
   });
 
@@ -73,6 +75,7 @@ export default function ProfilePage() {
     try {
       await userApi.updateProfile(data);
       setProfileSuccess("Profile updated successfully!");
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
       refetch();
     } catch (err: any) {
       setProfileError(err?.response?.data?.message || "Failed to update profile.");
@@ -104,8 +107,12 @@ export default function ProfilePage() {
     setAvatarLoading(true);
     setProfileError("");
     try {
-      await userApi.updateAvatar(formData);
+      const res = await userApi.updateAvatar(formData);
+      if (res.data?.data?.avatar) {
+        useAuthStore.getState().setAvatar(res.data.data.avatar);
+      }
       setProfileSuccess("Avatar updated successfully!");
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
       refetch();
     } catch (err: any) {
       setProfileError(err?.response?.data?.message || "Failed to upload avatar.");

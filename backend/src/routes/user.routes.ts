@@ -14,8 +14,8 @@ router.use(protect);
 router.get("/me", userController.getMe);
 router.get("/dashboard", userController.getDashboard);
 router.patch("/me", validate(updateProfileSchema), userController.updateProfile);
-router.patch("/me/avatar", upload.single("avatar"), userController.updateAvatar);
-router.post("/me/upload", upload.single("file"), userController.uploadFile);
+router.patch("/me/avatar", upload.any(), userController.updateAvatar);
+router.post("/me/upload", upload.any(), userController.uploadFile);
 router.patch("/me/password", validate(changePasswordSchema), userController.changePassword);
 router.post("/me/kyc", validate(kycSubmitSchema), userController.submitKyc);
 

@@ -6,6 +6,7 @@ export interface AuthUser {
   username: string;
   email: string;
   type: "Trader" | "Executor";
+  avatar?: string;
 }
 
 interface AuthState {
@@ -15,6 +16,8 @@ interface AuthState {
   impersonatorAdmin: { user: AuthUser; accessToken: string } | null;
   setAuth: (user: AuthUser, accessToken: string) => void;
   setAccessToken: (token: string) => void;
+  setAvatar: (avatar: string) => void;
+  updateUser: (partial: Partial<AuthUser>) => void;
   setImpersonation: (traderUser: AuthUser, traderAccessToken: string, adminUser: AuthUser, adminAccessToken: string) => void;
   stopImpersonation: () => { adminUser: AuthUser | null };
   clearAuth: () => void;
@@ -29,6 +32,8 @@ export const useAuthStore = create<AuthState>()(
       impersonatorAdmin: null,
       setAuth: (user, accessToken) => set({ user, accessToken, isAuthenticated: true }),
       setAccessToken: (accessToken) => set({ accessToken }),
+      setAvatar: (avatar) => set((s) => ({ user: s.user ? { ...s.user, avatar } : null })),
+      updateUser: (partial) => set((s) => ({ user: s.user ? { ...s.user, ...partial } : null })),
       setImpersonation: (traderUser, traderAccessToken, adminUser, adminAccessToken) =>
         set({
           user: traderUser,

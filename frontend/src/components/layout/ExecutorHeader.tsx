@@ -1,11 +1,21 @@
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useUIStore } from "../../store/ui.store";
 import { useAuth } from "../../hooks/useAuth";
+import { userApi } from "../../api/user.api";
 
 const ExecutorHeader = () => {
   const { toggleSidebar } = useUIStore();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const { data: profileData } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => userApi.getMe().then((r) => r.data.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const avatarUrl = profileData?.profile?.avatar || user?.avatar;
 
   return (
     <header className="h-16 bg-[#121822] border-b border-white/10 flex items-center justify-between px-4 lg:px-6 shrink-0">
@@ -48,9 +58,13 @@ const ExecutorHeader = () => {
         {/* Avatar */}
         <button
           onClick={() => navigate("/executor/profile")}
-          className="w-9 h-9 rounded-full bg-[#00c076] text-[#080c10] flex items-center justify-center text-sm font-black uppercase shadow-sm shadow-[#00c076]/20 hover:bg-[#00e676] transition-colors"
+          className="w-9 h-9 rounded-full bg-[#00c076] text-[#080c10] flex items-center justify-center text-sm font-black uppercase shadow-sm shadow-[#00c076]/20 hover:bg-[#00e676] transition-colors overflow-hidden border border-white/10"
         >
-          {user?.username?.charAt(0) ?? "E"}
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={user?.username || "Avatar"} className="w-full h-full object-cover" />
+          ) : (
+            user?.username?.charAt(0) ?? "E"
+          )}
         </button>
       </div>
     </header>

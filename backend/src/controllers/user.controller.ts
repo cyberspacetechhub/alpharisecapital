@@ -20,15 +20,25 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
   res.json({ success: true, data: profile });
 });
 
+const getFileBuffer = (req: AuthRequest): Buffer | undefined => {
+  if (req.file?.buffer) return req.file.buffer;
+  if (req.files) {
+    if (Array.isArray(req.files) && req.files.length > 0) return req.files[0].buffer;
+    const values = Object.values(req.files) as Express.Multer.File[][];
+    if (values.length > 0 && values[0].length > 0) return values[0][0].buffer;
+  }
+  return undefined;
+};
+
 export const updateAvatar = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const buffer = req.file?.buffer;
+  const buffer = getFileBuffer(req);
   if (!buffer) { res.status(400).json({ success: false, message: "No file uploaded" }); return; }
   const result = await userService.updateAvatar(req.userId!, buffer);
   res.json({ success: true, data: result });
 });
 
 export const uploadFile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const buffer = req.file?.buffer;
+  const buffer = getFileBuffer(req);
   if (!buffer) { res.status(400).json({ success: false, message: "No file uploaded" }); return; }
   const url = await userService.uploadGeneralFile(buffer);
   res.json({ success: true, url });

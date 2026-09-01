@@ -1,8 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../hooks/useAuth";
 import { useUIStore } from "../../store/ui.store";
 import { useAuthStore } from "../../store/auth.store";
 import { authApi } from "../../api/auth.api";
+import { userApi } from "../../api/user.api";
 
 const navLinks = [
   {
@@ -130,6 +132,14 @@ const ExecutorSidebar = () => {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const navigate = useNavigate();
 
+  const { data: profileData } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => userApi.getMe().then((r) => r.data.data),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const avatarUrl = profileData?.profile?.avatar || user?.avatar;
+
   const handleLogout = async () => {
     try { await authApi.logout(); } catch { /* silent */ }
     clearAuth();
@@ -177,8 +187,12 @@ const ExecutorSidebar = () => {
         {/* User info */}
         <div className="px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#00c076]/20 border border-[#00c076]/30 flex items-center justify-center text-sm font-black text-[#00e676] uppercase shrink-0">
-              {user?.username?.charAt(0) ?? "E"}
+            <div className="w-10 h-10 rounded-full bg-[#00c076]/20 border border-[#00c076]/30 flex items-center justify-center text-sm font-black text-[#00e676] uppercase shrink-0 overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={user?.username || "Avatar"} className="w-full h-full object-cover" />
+              ) : (
+                user?.username?.charAt(0) ?? "E"
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-white truncate">{user?.username ?? "Executor"}</p>
