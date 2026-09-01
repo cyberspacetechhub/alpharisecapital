@@ -25,10 +25,11 @@ export const getMyProfile = async (userId: string) => {
 // ─── Get My Dashboard Summary ─────────────────────────────────────────────────
 
 export const getMyDashboard = async (userId: string) => {
-  const [user, activeInvestments, openPositions, activeLoans] = await Promise.all([
+  const [user, profile, activeInvestments, openPositions, activeLoans] = await Promise.all([
     User.findById(userId)
       .select("username email balance investedBalance pendingWithdrawal totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified")
       .lean(),
+    Profile.findOne({ user: userId }).lean(),
     Transaction.countDocuments({ user: userId, type: { $in: ["investment", "reinvestment"] }, status: "approved" }),
     Position.countDocuments({ user: userId, status: "open" }),
     LoanApplication.countDocuments({ user: userId, status: "active" }),
@@ -39,6 +40,9 @@ export const getMyDashboard = async (userId: string) => {
   return {
     ...user,
     bonus: user.bonus || 0,
+    referralCode: (profile as any)?.referralCode || user.username,
+    referredBy: (profile as any)?.referredBy || null,
+    totalReferrals: (profile as any)?.totalReferrals || 0,
     activeInvestments,
     openPositions,
     activeLoans,
@@ -167,6 +171,33 @@ export const getTraderDetails = async (userId: string) => {
   const profile = await Profile.findOne({ user: userId }).lean();
   if (!profile || profile.type !== "Trader") throw new AppError("Trader not found", 404);
 
+  const traderProfile = profile as any;
+
+  // Find who referred this user
+  let referredByDetails = null;
+  if (traderProfile?.referredBy) {
+    referredByDetails = await User.findOne({
+      $or: [{ username: traderProfile.referredBy }, { referralCode: traderProfile.referredBy }],
+    })
+      .select("username email fullName createdAt isVerified")
+      .populate({ path: "profile", select: "avatar" })
+      .lean();
+  }
+
+  // Find all traders referred by this user
+  const referredTraderProfiles = await TraderProfile.find({
+    referredBy: { $in: [user.username, traderProfile.referralCode].filter(Boolean) },
+  })
+    .select("user")
+    .lean();
+
+  const referredUserIds = referredTraderProfiles.map((p) => p.user);
+  const referrals = await User.find({ _id: { $in: referredUserIds } })
+    .select("username email fullName createdAt isVerified totalDeposited balance bonus")
+    .populate({ path: "profile", select: "avatar" })
+    .sort({ createdAt: -1 })
+    .lean();
+
   const [recentTransactions, openPositions, activeInvestments, activeLoans] = await Promise.all([
     Transaction.find({ user: userId }).sort({ createdAt: -1 }).limit(10).lean(),
     Position.find({ user: userId, status: "open" }).lean(),
@@ -174,7 +205,16 @@ export const getTraderDetails = async (userId: string) => {
     LoanApplication.find({ user: userId, status: "active" }).populate("offer", "title interestRate").lean(),
   ]);
 
-  return { user, recentTransactions, openPositions, activeInvestments, activeLoans };
+  return {
+    user,
+    recentTransactions,
+    openPositions,
+    activeInvestments,
+    activeLoans,
+    referredByDetails,
+    referrals,
+    referralsCount: referrals.length,
+  };
 };
 
 // ─── Executor: Update KYC Status ─────────────────────────────────────────────

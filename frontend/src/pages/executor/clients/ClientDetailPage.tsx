@@ -6,6 +6,7 @@ import { loanApi } from "../../../api/loan.api";
 import { walletLinkApi } from "../../../api/walletLink.api";
 import { useAuthStore } from "../../../store/auth.store";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,10 @@ export default function ClientDetailPage() {
 
   // Impersonate state
   const [isImpersonating, setIsImpersonating] = useState(false);
+
+  // Pagination states for sub-tables
+  const [refPage, setRefPage] = useState(1);
+  const [txPage, setTxPage] = useState(1);
 
   // Edit limit modal state
   const [limitModalOpen, setLimitModalOpen] = useState(false);
@@ -192,7 +197,16 @@ export default function ClientDetailPage() {
     );
   }
 
-  const { user, recentTransactions = [], openPositions = [], activeInvestments = [], activeLoans = [] } = detailData;
+  const {
+    user,
+    recentTransactions = [],
+    openPositions = [],
+    activeInvestments = [],
+    activeLoans = [],
+    referredByDetails = null,
+    referrals = [],
+    referralsCount = 0,
+  } = detailData;
   const profileDetails = user.profile ?? {};
 
   const handleSaveLimit = (e: React.FormEvent) => {
@@ -382,6 +396,161 @@ export default function ClientDetailPage() {
           >
             Clear All Balances
           </button>
+        </div>
+      </div>
+
+      {/* ─── REFERRAL & NETWORK PROFILE CARD ─── */}
+      <div className="bg-[#121822] border border-white/10 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Referral & Network Profile</h3>
+              <span className="bg-[#00c076]/20 text-[#00e676] border border-[#00c076]/30 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase">
+                5% Commission Active
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">Sponsorship attribution and downline client registrations for this trader.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-400">Total Downline:</span>
+            <span className="text-xs font-mono font-bold bg-white/5 border border-white/10 px-3 py-1 rounded-xl text-white">
+              {referralsCount} {referralsCount === 1 ? "Client" : "Clients"}
+            </span>
+          </div>
+        </div>
+
+        {/* Top Referral Overview: 2 Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Card 1: Referred By (Sponsor) */}
+          <div className="bg-[#0e1520] border border-white/10 rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Referred By (Sponsor)</span>
+            </span>
+
+            {referredByDetails ? (
+              <div className="flex items-center justify-between gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-lg shrink-0 overflow-hidden">
+                    {referredByDetails.profile?.avatar ? (
+                      <img src={referredByDetails.profile.avatar} alt="Referrer" className="w-full h-full object-cover" />
+                    ) : (
+                      referredByDetails.username.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{referredByDetails.username}</p>
+                    <p className="text-xs text-slate-400 font-mono truncate">{referredByDetails.email}</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] text-slate-400 block font-mono">Registered</span>
+                  <span className="text-xs text-slate-300 font-bold">{formatDate(referredByDetails.createdAt)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3.5 p-4 bg-white/5 rounded-2xl border border-white/5 text-slate-400">
+                <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 shrink-0">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Direct Registration</p>
+                  <p className="text-xs text-slate-400 mt-0.5">No referrer code attached (Organic signup)</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Card 2: Client Referral Parameters */}
+          <div className="bg-[#0e1520] border border-white/10 rounded-3xl p-6 space-y-4 flex flex-col justify-between">
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>Client Affiliate Parameters</span>
+            </span>
+
+            <div className="grid grid-cols-2 gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase block font-bold">Referral Code</span>
+                <span className="text-base font-mono font-black text-[#00c076] mt-0.5 block">
+                  {profileDetails.referralCode || user.username}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-400 uppercase block font-bold">Bonus Accrued</span>
+                <span className="text-base font-mono font-black text-[#00e676] mt-0.5 block">
+                  {formatCurrency(user.bonus ?? 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Downline Traders Table */}
+        <div className="space-y-3 pt-2">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Referred Clients ({referrals.length})</h4>
+          {referrals.length === 0 ? (
+            <div className="p-6 bg-[#0e1520] border border-white/10 rounded-2xl text-center text-xs text-slate-500">
+              No clients have registered using this trader's referral link yet.
+            </div>
+          ) : (
+            <div className="overflow-hidden bg-[#0e1520] border border-white/10 rounded-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#080c10] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                      <th className="px-4 py-3">Client</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Joined Date</th>
+                      <th className="px-4 py-3">KYC Status</th>
+                      <th className="px-4 py-3 text-right">Balance</th>
+                      <th className="px-4 py-3 text-right">Total Deposited</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {referrals.slice((refPage - 1) * 5, refPage * 5).map((refUser: any) => (
+                      <tr key={refUser._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-4 py-3 font-bold text-white flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-[#00c076]/20 text-[#00e676] flex items-center justify-center text-[10px] font-black shrink-0">
+                            {refUser.username.charAt(0).toUpperCase()}
+                          </div>
+                          <span>{refUser.username}</span>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-slate-400">{refUser.email}</td>
+                        <td className="px-4 py-3 text-slate-300">{formatDate(refUser.createdAt)}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                            refUser.isVerified
+                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                              : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                          }`}>
+                            {refUser.isVerified ? "Verified" : "Unverified"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-white">{formatCurrency(refUser.balance ?? 0)}</td>
+                        <td className="px-4 py-3 text-right font-mono font-bold text-[#00e676]">{formatCurrency(refUser.totalDeposited ?? 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <Pagination
+                compact
+                currentPage={refPage}
+                totalPages={Math.ceil(referrals.length / 5) || 1}
+                totalItems={referrals.length}
+                pageSize={5}
+                onPageChange={setRefPage}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -688,37 +857,49 @@ export default function ClientDetailPage() {
             {recentTransactions.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-500">No history found.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead>
-                    <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                      <th className="px-5 py-3">Type</th>
-                      <th className="px-5 py-3 text-right">Amount</th>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {recentTransactions.map((tx: any) => (
-                      <tr key={tx._id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-5 py-3.5 text-xs text-white uppercase font-bold">{tx.type}</td>
-                        <td className="px-5 py-3.5 text-right font-bold text-white">{formatCurrency(tx.amount)}</td>
-                        <td className="px-5 py-3.5 text-xs text-slate-400">{formatDate(tx.createdAt)}</td>
-                        <td className="px-5 py-3.5">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
-                            tx.status === "completed" || tx.status === "approved"
-                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
-                              : tx.status === "pending"
-                              ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                          }`}>
-                            {tx.status}
-                          </span>
-                        </td>
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                        <th className="px-5 py-3">Type</th>
+                        <th className="px-5 py-3 text-right">Amount</th>
+                        <th className="px-5 py-3">Date</th>
+                        <th className="px-5 py-3">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {recentTransactions.slice((txPage - 1) * 5, txPage * 5).map((tx: any) => (
+                        <tr key={tx._id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-5 py-3.5 text-xs text-white uppercase font-bold">{tx.type}</td>
+                          <td className="px-5 py-3.5 text-right font-bold text-white">{formatCurrency(tx.amount)}</td>
+                          <td className="px-5 py-3.5 text-xs text-slate-400">{formatDate(tx.createdAt)}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                              tx.status === "completed" || tx.status === "approved"
+                                ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                                : tx.status === "pending"
+                                ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                                : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                            }`}>
+                              {tx.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <Pagination
+                  compact
+                  currentPage={txPage}
+                  totalPages={Math.ceil(recentTransactions.length / 5) || 1}
+                  totalItems={recentTransactions.length}
+                  pageSize={5}
+                  onPageChange={setTxPage}
+                />
               </div>
             )}
           </div>

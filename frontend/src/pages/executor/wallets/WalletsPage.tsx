@@ -3,11 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { walletLinkApi } from "../../../api/walletLink.api";
 import { formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 export default function WalletsPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [filterQuery, setFilterQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [expandedWalletId, setExpandedWalletId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -72,7 +75,10 @@ export default function WalletsPage() {
         <input
           type="text"
           value={filterQuery}
-          onChange={(e) => setFilterQuery(e.target.value)}
+          onChange={(e) => {
+            setFilterQuery(e.target.value);
+            setPage(1);
+          }}
           placeholder="Search by client name, email, or wallet brand (e.g. MetaMask)..."
           className="w-full bg-[#0e1520] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00c076]"
         />
@@ -85,19 +91,20 @@ export default function WalletsPage() {
             No linked wallets matching filters found.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                  <th className="px-6 py-4">Client Info</th>
-                  <th className="px-6 py-4">Wallet Info</th>
-                  <th className="px-6 py-4">Linked Date</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-300">
-                {filteredWallets.map((wallet: any) => {
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                    <th className="px-6 py-4">Client Info</th>
+                    <th className="px-6 py-4">Wallet Info</th>
+                    <th className="px-6 py-4">Linked Date</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-slate-300">
+                  {filteredWallets.slice((page - 1) * pageSize, page * pageSize).map((wallet: any) => {
                   const isExpanded = expandedWalletId === wallet._id;
                   const detailsMap = wallet.details instanceof Map ? Object.fromEntries(wallet.details) : wallet.details || {};
                   
@@ -190,8 +197,22 @@ export default function WalletsPage() {
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={page}
+            totalPages={Math.ceil(filteredWallets.length / pageSize) || 1}
+            totalItems={filteredWallets.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(sz) => {
+              setPageSize(sz);
+              setPage(1);
+            }}
+          />
+        </div>
+      )}
+    </div>
 
     </div>
   );

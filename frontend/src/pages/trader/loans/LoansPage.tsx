@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { loanApi } from "../../../api/loan.api";
 import { userApi } from "../../../api/user.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 interface LoanOffer {
   _id: string;
@@ -64,6 +65,7 @@ export default function TraderLoansPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [loanPage, setLoanPage] = useState(1);
 
   // Queries
   const { data: userData } = useQuery({
@@ -297,92 +299,103 @@ export default function TraderLoansPage() {
         ) : loansList.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-500">No borrowing records found.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                  <th className="px-6 py-3.5">Applied Date</th>
-                  <th className="px-6 py-3.5">Offer Title</th>
-                  <th className="px-6 py-3.5 text-right">Requested</th>
-                  <th className="px-6 py-3.5 text-right">Total Due</th>
-                  <th className="px-6 py-3.5 text-right">Repaid</th>
-                  <th className="px-6 py-3.5">Due Date</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
-                {loansList.map((loan) => {
-                  const remaining = loan.amountDue - loan.repaidAmount;
-                  const isPending = loan.status === "pending";
-                  const isActive = loan.status === "active";
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                    <th className="px-6 py-3.5">Applied Date</th>
+                    <th className="px-6 py-3.5">Offer Title</th>
+                    <th className="px-6 py-3.5 text-right">Requested</th>
+                    <th className="px-6 py-3.5 text-right">Total Due</th>
+                    <th className="px-6 py-3.5 text-right">Repaid</th>
+                    <th className="px-6 py-3.5">Due Date</th>
+                    <th className="px-6 py-3.5">Status</th>
+                    <th className="px-6 py-3.5 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
+                  {loansList.slice((loanPage - 1) * 6, loanPage * 6).map((loan) => {
+                    const remaining = loan.amountDue - loan.repaidAmount;
+                    const isPending = loan.status === "pending";
+                    const isActive = loan.status === "active";
 
-                  return (
-                    <tr key={loan._id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
-                        {formatDate(loan.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-sans">
-                        <span className="font-bold text-white">{loan.offer?.title ?? "Loan Offer"}</span>
-                        <div className="text-[10px] text-slate-500 font-mono">
-                          {loan.interestRate}% ({loan.interestType}) • {loan.durationDays} Days
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right font-bold text-white whitespace-nowrap">
-                        {formatCurrency(loan.requestedAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-right font-bold text-white whitespace-nowrap">
-                        {formatCurrency(loan.amountDue)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-[#00e676] font-bold whitespace-nowrap">
-                        {formatCurrency(loan.repaidAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
-                        {loan.dueDate ? formatDate(loan.dueDate) : "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-sans">
-                        <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            loan.status === "active"
-                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
-                              : loan.status === "pending"
-                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                              : loan.status === "repaid"
-                              ? "bg-blue-500/15 text-blue-300 border border-blue-500/30"
-                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                          }`}
-                        >
-                          {loan.status}
-                        </span>
-                        {loan.status === "rejected" && loan.rejectionReason && (
-                          <div className="text-[9px] text-rose-400 italic mt-0.5">
-                            "{loan.rejectionReason}"
+                    return (
+                      <tr key={loan._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
+                          {formatDate(loan.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-sans">
+                          <span className="font-bold text-white">{loan.offer?.title ?? "Loan Offer"}</span>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {loan.interestRate}% ({loan.interestType}) • {loan.durationDays} Days
                           </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap font-sans">
-                        {isActive && remaining > 0 ? (
-                          <button
-                            onClick={() => {
-                              setRepayTarget(loan);
-                              setRepayAmount("");
-                              setErrorMsg("");
-                            }}
-                            className="text-xs px-3 py-1.5 rounded-xl font-bold bg-[#00c076] hover:bg-[#00e676] text-[#080c10] shadow-sm transition-all cursor-pointer"
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-white whitespace-nowrap">
+                          {formatCurrency(loan.requestedAmount)}
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-white whitespace-nowrap">
+                          {formatCurrency(loan.amountDue)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-[#00e676] font-bold whitespace-nowrap">
+                          {formatCurrency(loan.repaidAmount)}
+                        </td>
+                        <td className="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">
+                          {loan.dueDate ? formatDate(loan.dueDate) : "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-sans">
+                          <span
+                            className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              loan.status === "active"
+                                ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                                : loan.status === "pending"
+                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                                : loan.status === "repaid"
+                                ? "bg-blue-500/15 text-blue-300 border border-blue-500/30"
+                                : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                            }`}
                           >
-                            Repay
-                          </button>
-                        ) : isPending ? (
-                          <span className="text-[10px] text-slate-500">Awaiting Approval</span>
-                        ) : (
-                          <span className="text-[10px] text-slate-500">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {loan.status}
+                          </span>
+                          {loan.status === "rejected" && loan.rejectionReason && (
+                            <div className="text-[9px] text-rose-400 italic mt-0.5">
+                              "{loan.rejectionReason}"
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap font-sans">
+                          {isActive && remaining > 0 ? (
+                            <button
+                              onClick={() => {
+                                setRepayTarget(loan);
+                                setRepayAmount("");
+                                setErrorMsg("");
+                              }}
+                              className="text-xs px-3 py-1.5 rounded-xl font-bold bg-[#00c076] hover:bg-[#00e676] text-[#080c10] shadow-sm transition-all cursor-pointer"
+                            >
+                              Repay
+                            </button>
+                          ) : isPending ? (
+                            <span className="text-[10px] text-slate-500">Awaiting Approval</span>
+                          ) : (
+                            <span className="text-[10px] text-slate-500">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={loanPage}
+              totalPages={Math.ceil(loansList.length / 6) || 1}
+              totalItems={loansList.length}
+              pageSize={6}
+              onPageChange={setLoanPage}
+            />
           </div>
         )}
       </div>

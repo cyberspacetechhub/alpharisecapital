@@ -3,6 +3,7 @@ import { User } from "../models/user.model";
 import { Transaction } from "../models/transaction.model";
 import { DepositMethod } from "../models/depositMethod.model";
 import { WithdrawalMethod } from "../models/withdrawalMethod.model";
+import { TraderProfile } from "../models/trader.profile.model";
 import { AppError } from "../utils/AppError";
 import { generateReference } from "../utils/tokens";
 import { sendEmail } from "./email.service";
@@ -63,6 +64,52 @@ export const approveDeposit = async (txId: string, executorId: string) => {
     tx.reviewedBy = new mongoose.Types.ObjectId(executorId);
     tx.reviewedAt = new Date();
 
+    // Check for 5% referral bonus
+    let referrerUserToNotify: { id: string; username: string; bonusAmount: number } | null = null;
+    const traderProfile = await TraderProfile.findOne({ user: user._id }).session(session);
+    if (traderProfile?.referredBy) {
+      const referrerUser = await User.findOne({
+        $or: [{ username: traderProfile.referredBy }, { referralCode: traderProfile.referredBy }],
+      }).session(session);
+
+      if (referrerUser && String(referrerUser._id) !== String(user._id)) {
+        const bonusAmount = Number((tx.amount * 0.05).toFixed(2));
+        if (bonusAmount > 0) {
+          referrerUser.bonus = (referrerUser.bonus || 0) + bonusAmount;
+          referrerUser.balance += bonusAmount;
+          await referrerUser.save({ session });
+
+          const bonusRef = `BON-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+          await Transaction.create(
+            [
+              {
+                user: referrerUser._id,
+                type: "bonus",
+                amount: bonusAmount,
+                status: "approved",
+                reference: bonusRef,
+                isReinvestment: false,
+                meta: {
+                  referredUser: user.username,
+                  referredUserId: user._id,
+                  depositAmount: tx.amount,
+                  depositTxId: tx._id,
+                  commissionRate: "5%",
+                },
+              },
+            ],
+            { session }
+          );
+
+          referrerUserToNotify = {
+            id: String(referrerUser._id),
+            username: referrerUser.username,
+            bonusAmount,
+          };
+        }
+      }
+    }
+
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
@@ -78,7 +125,16 @@ export const approveDeposit = async (txId: string, executorId: string) => {
       `Your deposit of $${tx.amount} has been approved and added to your available balance.`,
       "Transaction",
       String(tx._id)
-    ).catch(e => console.error("Deposit system notification failed", e));
+    ).catch((e) => console.error("Deposit system notification failed", e));
+
+    if (referrerUserToNotify) {
+      sendSystemMessage(
+        referrerUserToNotify.id,
+        "Referral Commission Earned! 🎉",
+        `You received a $${referrerUserToNotify.bonusAmount} referral bonus (5% commission) from ${user.username}'s deposit of $${tx.amount}!`,
+        "Transaction"
+      ).catch((e) => console.error("Referral bonus system notification failed", e));
+    }
 
     return tx;
   } catch (err) {

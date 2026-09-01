@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { transactionApi } from "../../../api/transaction.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 import type { Transaction, ApiResponse } from "../../../types";
 
 const TYPE_OPTS = ["", "deposit", "withdrawal", "investment", "reinvestment", "loan_disbursement", "loan_repayment"];
@@ -136,27 +137,13 @@ export default function TraderTransactionsPage() {
         )}
 
         {/* Pagination */}
-        {pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-3.5 border-t border-white/10 bg-[#0e1520]">
-            <span className="text-[10px] font-mono text-slate-400 uppercase">Page {page} of {pages}</span>
-            <div className="flex gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 text-xs font-bold border border-white/10 rounded-xl text-slate-300 disabled:opacity-30 hover:bg-white/5 cursor-pointer"
-              >
-                Prev
-              </button>
-              <button
-                disabled={page === pages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 text-xs font-bold border border-white/10 rounded-xl text-slate-300 disabled:opacity-30 hover:bg-white/5 cursor-pointer"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={page}
+          totalPages={pages}
+          totalItems={data?.total}
+          pageSize={20}
+          onPageChange={setPage}
+        />
       </div>
 
       {/* Detail Modal */}

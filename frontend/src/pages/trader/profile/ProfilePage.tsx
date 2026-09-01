@@ -172,6 +172,36 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
+
+          {/* Referral Card */}
+          <div className="w-full mt-2 pt-4 border-t border-white/10 text-left space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Referral Link</span>
+              <span className="text-[10px] font-bold text-[#00e676] bg-[#00c076]/15 border border-[#00c076]/30 px-2 py-0.5 rounded-full">
+                5% Bonus
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-[#0e1520] border border-white/10 rounded-xl p-1.5">
+              <span className="flex-1 text-[11px] font-mono text-slate-300 truncate px-1">
+                {profile?.profile?.referralCode || profile?.username}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/register?ref=${profile?.profile?.referralCode || profile?.username}`;
+                  navigator.clipboard.writeText(url);
+                  alert("Referral link copied!");
+                }}
+                className="shrink-0 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-[10px] font-black px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                Copy Link
+              </button>
+            </div>
+            <div className="flex justify-between text-[11px] text-slate-400 pt-1">
+              <span>Total Referrals:</span>
+              <span className="font-bold text-white font-mono">{profile?.profile?.totalReferrals || 0}</span>
+            </div>
+          </div>
         </div>
 
         {/* Right Side: Tab Forms */}

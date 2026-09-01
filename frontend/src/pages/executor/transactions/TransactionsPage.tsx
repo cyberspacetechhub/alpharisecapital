@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { transactionApi } from "../../../api/transaction.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 import type { Transaction, User, ApiResponse } from "../../../types";
 
 type TxWithUser = Omit<Transaction, "user"> & { user: User };
@@ -164,27 +165,13 @@ export default function ExecutorTransactionsPage() {
         </div>
 
         {/* Pagination */}
-        {pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 text-xs">
-            <span className="text-slate-400">Page {page} of {pages}</span>
-            <div className="flex gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1.5 border border-white/10 text-slate-300 rounded-xl disabled:opacity-40 hover:bg-white/5 cursor-pointer font-bold"
-              >
-                Prev
-              </button>
-              <button
-                disabled={page === pages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1.5 border border-white/10 text-slate-300 rounded-xl disabled:opacity-40 hover:bg-white/5 cursor-pointer font-bold"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={page}
+          totalPages={pages}
+          totalItems={data?.total}
+          pageSize={20}
+          onPageChange={setPage}
+        />
       </div>
 
       {/* Detail Modal */}
@@ -250,6 +237,47 @@ export default function ExecutorTransactionsPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Payment Proof / Receipt Box */}
+              {(selected.meta?.proofUrl || (selected as any).proofUrl) && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Payment Proof Document</span>
+                    <span className="text-[9px] font-bold text-[#00c076] bg-[#00c076]/15 border border-[#00c076]/30 px-2 py-0.5 rounded-full">
+                      Attached
+                    </span>
+                  </p>
+                  <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={String(selected.meta?.proofUrl || (selected as any).proofUrl)}
+                        alt="Proof document"
+                        className="w-16 h-16 rounded-xl object-cover border border-white/10 bg-black/40 shrink-0"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = "none";
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white">Payment Receipt / Screenshot</p>
+                        <p className="text-[10px] font-mono text-slate-400 break-all truncate">
+                          {String(selected.meta?.proofUrl || (selected as any).proofUrl)}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={String(selected.meta?.proofUrl || (selected as any).proofUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 bg-[#00c076]/15 hover:bg-[#00c076]/25 border border-[#00c076]/30 text-[#00e676] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all block text-center"
+                    >
+                      <svg className="w-3.5 h-3.5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Open Full Size Proof ↗
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Meta (proof URL, method name, etc.) */}
               {selected.meta && Object.keys(selected.meta).length > 0 && (

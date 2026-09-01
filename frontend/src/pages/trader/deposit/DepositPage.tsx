@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { depositMethodApi } from "../../../api/methods.api";
 import { transactionApi } from "../../../api/transaction.api";
+import { userApi } from "../../../api/user.api";
 import { formatCurrency } from "../../../utils";
 import type { DepositMethod } from "../../../types";
 
@@ -35,6 +36,9 @@ export default function DepositPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [success, setSuccess] = useState<{ reference: string; amount: number } | null>(null);
   const [serverError, setServerError] = useState("");
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [uploadedProofUrl, setUploadedProofUrl] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   const { data, isLoading } = useQuery<DepositMethod[]>({
     queryKey: ["deposit-methods-active"],
@@ -43,7 +47,7 @@ export default function DepositPage() {
 
   const methods = data ?? [];
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<DepositForm>();
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<DepositForm>();
 
   const depositMutation = useMutation({
     mutationFn: (payload: { amount: number; methodId: string; proofUrl?: string }) =>
@@ -56,13 +60,34 @@ export default function DepositPage() {
     onError: (e: any) => setServerError(e?.response?.data?.message ?? "Deposit request failed. Please try again."),
   });
 
+  const handleProofFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError("");
+    setUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await userApi.uploadFile(formData);
+      const url = res.data?.url;
+      if (url) {
+        setUploadedProofUrl(url);
+        setValue("proofUrl", url);
+      }
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message || "Failed to upload payment proof receipt.");
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   const onSubmit = (data: DepositForm) => {
     if (!selectedMethod) return;
     setServerError("");
     depositMutation.mutate({
       amount: Number(data.amount),
       methodId: selectedMethod._id,
-      ...(data.proofUrl ? { proofUrl: data.proofUrl } : {}),
+      proofUrl: uploadedProofUrl || data.proofUrl || undefined,
     });
   };
 
@@ -70,6 +95,8 @@ export default function DepositPage() {
     setSelectedMethod(m);
     setStep(2);
     reset();
+    setUploadedProofUrl("");
+    setUploadError("");
     setServerError("");
   };
 
@@ -77,6 +104,8 @@ export default function DepositPage() {
     setSelectedMethod(null);
     setStep(1);
     setSuccess(null);
+    setUploadedProofUrl("");
+    setUploadError("");
     setServerError("");
     reset();
   };
@@ -269,22 +298,99 @@ export default function DepositPage() {
                   }
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
-                    Proof of payment URL <span className="text-slate-500 font-normal lowercase">(optional)</span>
+                {/* Payment Proof Upload Section */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 flex items-center justify-between">
+                    <span>Payment Proof / Receipt Screenshot <span className="text-[#00c076] font-bold">(Recommended)</span></span>
+                    {uploadedProofUrl && (
+                      <span className="text-[10px] font-bold text-[#00e676] bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        Uploaded ✓
+                      </span>
+                    )}
                   </label>
-                  <input
-                    {...register("proofUrl", {
-                      pattern: { value: /^https?:\/\/.+/, message: "Must be a valid URL starting with http(s)://" },
-                    })}
-                    type="url"
-                    placeholder="https://imgur.com/your-receipt.png"
-                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
-                  />
-                  {errors.proofUrl
-                    ? <p className="text-xs text-rose-400 mt-1">{errors.proofUrl.message}</p>
-                    : <p className="text-[10px] text-slate-500 mt-1">Paste a screenshot or transaction hash link to accelerate review.</p>
-                  }
+
+                  {/* Upload Box */}
+                  {uploadedProofUrl ? (
+                    <div className="flex items-center justify-between gap-3 p-3.5 bg-[#080c10] border border-emerald-500/30 rounded-2xl">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={uploadedProofUrl}
+                          alt="Proof preview"
+                          className="w-12 h-12 rounded-xl object-cover border border-white/10 bg-[#0e1520] shrink-0"
+                          onError={(e) => {
+                            // In case it's a non-image file (e.g. PDF)
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white truncate">Receipt Attached</p>
+                          <a
+                            href={uploadedProofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-[#00e676] hover:underline font-mono truncate block"
+                          >
+                            View Uploaded File ↗
+                          </a>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUploadedProofUrl("");
+                          setValue("proofUrl", "");
+                        }}
+                        className="px-3 py-1.5 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative border-2 border-dashed border-white/15 hover:border-[#00c076]/50 rounded-2xl p-5 bg-[#0e1520] text-center transition-all">
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={handleProofFileUpload}
+                        disabled={uploadingProof}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                      />
+                      {uploadingProof ? (
+                        <div className="flex flex-col items-center justify-center gap-2 py-2">
+                          <div className="w-7 h-7 rounded-full border-3 border-[#00c076]/20 border-t-[#00c076] animate-spin" />
+                          <p className="text-xs text-[#00c076] font-bold">Uploading proof to settlement server…</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#00e676]">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-white">Click or drag & drop to upload payment screenshot / receipt</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">Supports PNG, JPG, WEBP, PDF up to 10MB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {uploadError && (
+                    <p className="text-xs text-rose-400 font-medium">{uploadError}</p>
+                  )}
+
+                  {/* Fallback URL input */}
+                  <div className="pt-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+                      Or paste transaction hash / image URL:
+                    </label>
+                    <input
+                      {...register("proofUrl")}
+                      type="text"
+                      placeholder="e.g. 0x8f7c... or https://..."
+                      className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-[#080c10] text-white text-xs font-mono focus:outline-none focus:border-[#00c076]"
+                    />
+                  </div>
                 </div>
               </div>
 

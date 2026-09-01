@@ -410,6 +410,65 @@ export default function TraderDashboard() {
         </div>
 
       </div>
+
+      {/* ── Referral Program Card ── */}
+      <div className="bg-[#121418] border border-gray-800/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <span className="w-10 h-10 rounded-2xl bg-[#00c076]/15 text-[#00e676] flex items-center justify-center shrink-0 border border-[#00c076]/30">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+              </svg>
+            </span>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-base font-bold text-white">Refer & Earn 5% Commission</h3>
+                <span className="bg-[#00c076]/20 text-[#00e676] border border-[#00c076]/40 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                  5% Bonus
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
+                Invite fellow traders to Alpha Rise Global. Earn an instant 5% cash bonus on every approved deposit made by your referrals.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick counters */}
+          <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
+            <div className="bg-[#0e1520] border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+              <span className="text-[10px] uppercase font-bold text-gray-400 block">Total Referrals</span>
+              <span className="text-base font-black text-white font-mono">{dashData?.totalReferrals ?? 0}</span>
+            </div>
+            <div className="bg-[#0e1520] border border-white/10 rounded-2xl px-3.5 py-2 text-center">
+              <span className="text-[10px] uppercase font-bold text-gray-400 block">Bonus Earned</span>
+              <span className="text-base font-black text-[#00e676] font-mono">{formatCurrency((dashData as any)?.bonus ?? 0)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Link input + Copy button */}
+        <div className="flex items-center gap-2 bg-[#0e1520] border border-white/10 rounded-2xl p-2 sm:p-2.5">
+          <div className="flex-1 min-w-0 px-2 font-mono text-xs text-gray-300 truncate">
+            {typeof window !== "undefined"
+              ? `${window.location.origin}/register?ref=${dashData?.referralCode || user?.username || ""}`
+              : `https://alphariseglobal.com/register?ref=${dashData?.referralCode || user?.username || ""}`}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `${window.location.origin}/register?ref=${dashData?.referralCode || user?.username || ""}`;
+              navigator.clipboard.writeText(url);
+              alert("Referral link copied to clipboard!");
+            }}
+            className="shrink-0 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] px-4 py-2 rounded-xl text-xs font-black shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.849a2.25 2.25 0 00-3.332 0l-4.5 4.5a2.25 2.25 0 000 3.182l.884.884m6.564-6.564l4.5 4.5a2.25 2.25 0 010 3.182l-4.5 4.5a2.25 2.25 0 01-3.182 0l-.884-.884m0 0l-4.5-4.5a2.25 2.25 0 010-3.182l4.5-4.5a2.25 2.25 0 013.182 0z" />
+            </svg>
+            <span>Copy Link</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

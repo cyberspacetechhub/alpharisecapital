@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { messageApi } from "../../../api/message.api";
 import { userApi } from "../../../api/user.api";
 import { formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 interface InAppMessage {
   _id: string;
@@ -20,6 +21,8 @@ export default function ExecutorMessagesPage() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"inbox" | "send">("inbox");
   const [selectedMsg, setSelectedMsg] = useState<InAppMessage | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
 
   // Send message form state
   const [recipientId, setRecipientId] = useState("");
@@ -155,7 +158,7 @@ export default function ExecutorMessagesPage() {
                   Your notifications inbox is currently empty.
                 </div>
               ) : (
-                notifications.map((n) => (
+                notifications.slice((page - 1) * pageSize, page * pageSize).map((n) => (
                   <button
                     key={n._id}
                     onClick={() => handleSelectNotification(n)}
@@ -183,6 +186,16 @@ export default function ExecutorMessagesPage() {
                 ))
               )}
             </div>
+
+            {/* Pagination */}
+            <Pagination
+              compact
+              currentPage={page}
+              totalPages={Math.ceil(notifications.length / pageSize) || 1}
+              totalItems={notifications.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
           </div>
 
           {/* Details */}

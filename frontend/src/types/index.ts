@@ -53,7 +53,7 @@ export interface ExecutorProfile extends Profile {
 export interface Transaction {
   _id: string;
   user: string | User;
-  type: "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment";
+  type: "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment" | "bonus" | "adjustment" | "admin_credit" | "admin_debit";
   amount: number;
   status: "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested";
   reference: string;
@@ -189,6 +189,10 @@ export interface DashboardSummary {
   totalWithdrawn: number;
   totalInvested: number;
   totalEarnings: number;
+  bonus?: number;
+  referralCode?: string;
+  referredBy?: string | null;
+  totalReferrals?: number;
   creditScore: number;
   loanLimit: number;
   kycStatus: string;

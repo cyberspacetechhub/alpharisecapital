@@ -203,28 +203,30 @@ export const matureInvestment = async (transactionId: string) => {
     const user = await User.findById(tx.user).session(session);
     if (!user) throw new AppError("User not found", 404);
 
-    const roiPercent = tx.planSnapshot?.roiPercent ?? 0;
-    const totalROI = (tx.amount * roiPercent) / 100;
+    const dailyRoiPercent = tx.planSnapshot?.roiPercent ?? 0;
+    const durationDays = tx.planSnapshot?.durationDays ?? 30;
+    const totalROI = Number((tx.amount * (dailyRoiPercent / 100) * durationDays).toFixed(2));
 
-    const meta = tx.meta as Record<string, any>;
+    const meta = (tx.meta || {}) as Record<string, any>;
     const distributedDailyROI = (meta?.profitLogs || [])
-      .filter((l: any) => l.note === "Daily yield distribution")
-      .reduce((sum: number, l: any) => sum + l.amount, 0);
+      .filter((l: any) => l.note?.startsWith("Daily yield distribution"))
+      .reduce((sum: number, l: any) => sum + (Number(l.amount) || 0), 0);
 
     const remainingROI = Math.max(0, totalROI - distributedDailyROI);
-    const earnings = remainingROI;
-    const totalReturn = tx.amount + remainingROI;
+    const earnings = totalROI;
+    const totalReturn = tx.amount + totalROI;
 
     // Keep fund in invested balance with profit during the 48-hour reinvestment decision window
-    // Add remaining profit to totalEarnings
-    user.totalEarnings += remainingROI;
+    if (remainingROI > 0) {
+      user.totalEarnings += remainingROI;
+    }
     
     tx.status = "matured";
     
     if (!tx.meta) tx.meta = {};
-    meta.completedAt = new Date();
-    meta.payoutAmount = tx.amount + totalROI;
-    meta.payoutReleaseAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours payout release window
+    (tx.meta as Record<string, any>).completedAt = new Date();
+    (tx.meta as Record<string, any>).payoutAmount = totalReturn;
+    (tx.meta as Record<string, any>).payoutReleaseAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours payout release window
     tx.markModified("meta");
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
@@ -493,9 +495,10 @@ export const approveInvestment = async (transactionId: string, executorId: strin
     
     if (!tx.meta) tx.meta = {};
     const meta = tx.meta as Record<string, any>;
+    meta.cycleStartAt = new Date();
     meta.profitLogs = [];
     meta.daysProcessed = 0;
-    meta.lastProcessedDate = null;
+    meta.lastProfitDropAt = null;
     tx.markModified("meta");
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
@@ -503,7 +506,8 @@ export const approveInvestment = async (transactionId: string, executorId: strin
 
     // Send email notification
     const maturityDate = expiresAt.toDateString();
-    const earnings = ((tx.amount * (tx.planSnapshot?.roiPercent ?? plan.roiPercent)) / 100).toFixed(2);
+    const dailyRoi = tx.planSnapshot?.roiPercent ?? plan.roiPercent;
+    const totalEarnings = ((tx.amount * (dailyRoi / 100) * durationDays)).toFixed(2);
     await sendEmail(
       user.email,
       "Investment Activated",
@@ -511,7 +515,7 @@ export const approveInvestment = async (transactionId: string, executorId: strin
         user.username,
         tx.planSnapshot?.name ?? plan.name,
         `$${tx.amount}`,
-        `${tx.planSnapshot?.roiPercent ?? plan.roiPercent}% ($${earnings})`,
+        `${dailyRoi}% Daily ($${totalEarnings} Total ROI)`,
         durationDays,
         maturityDate,
         `${process.env.CLIENT_URL}/dashboard/investments`
@@ -570,20 +574,35 @@ export const distributeDailyProfits = async () => {
   const activeTxs = await Transaction.find({
     type: { $in: ["investment", "reinvestment"] },
     status: "approved",
-    expiresAt: { $gt: new Date() },
   });
 
-  const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const now = Date.now();
 
   for (const tx of activeTxs) {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
+      if (!tx.meta) tx.meta = {};
       const meta = tx.meta as Record<string, any>;
-      if (meta?.lastProcessedDate === todayStr) {
+      const cycleStart = new Date(meta.cycleStartAt || tx.reviewedAt || tx.createdAt).getTime();
+      const durationDays = tx.planSnapshot?.durationDays ?? 30;
+      const currentDaysProcessed = meta.daysProcessed || 0;
+
+      // Check if all cycle days have already completed
+      if (currentDaysProcessed >= durationDays) {
         await session.abortTransaction();
         session.endSession();
-        continue; // already processed today
+        continue;
+      }
+
+      // Next profit drop target is strictly 24 hours after previous cycle step
+      const nextDropTargetTime = cycleStart + (currentDaysProcessed + 1) * 24 * 60 * 60 * 1000;
+
+      // Do not process unless full 24-hour cycle has elapsed
+      if (now < nextDropTargetTime) {
+        await session.abortTransaction();
+        session.endSession();
+        continue;
       }
 
       const user = await User.findById(tx.user).session(session);
@@ -593,28 +612,30 @@ export const distributeDailyProfits = async () => {
         continue;
       }
 
-      const roiPercent = tx.planSnapshot?.roiPercent ?? 0;
-      const durationDays = tx.planSnapshot?.durationDays ?? 30;
-      
-      // Calculate daily share: (amount * ROI) / durationDays
-      const dailyProfit = (tx.amount * (roiPercent / 100)) / durationDays;
+      const dailyRoiPercent = tx.planSnapshot?.roiPercent ?? 0;
+      // Exact Daily Profit = amount * (dailyRoiPercent / 100)
+      const dailyProfit = Number((tx.amount * (dailyRoiPercent / 100)).toFixed(2));
 
-      // Accumulate only in total earnings, not available balance immediately
+      // Credit daily profit into user's total earnings
       user.totalEarnings += dailyProfit;
 
       if (!meta.profitLogs) meta.profitLogs = [];
+      const newDayIndex = currentDaysProcessed + 1;
       meta.profitLogs.push({
+        day: newDayIndex,
         amount: dailyProfit,
         date: new Date(),
-        note: "Daily yield distribution",
+        note: `Daily yield distribution (Day ${newDayIndex}/${durationDays})`,
       });
 
-      meta.lastProcessedDate = todayStr;
-      meta.daysProcessed = (meta.daysProcessed || 0) + 1;
+      meta.daysProcessed = newDayIndex;
+      meta.lastProfitDropAt = new Date();
       tx.markModified("meta");
 
       await Promise.all([user.save({ session }), tx.save({ session })]);
       await session.commitTransaction();
+
+      console.log(`[DailyProfitJob] Disbursed Day ${newDayIndex}/${durationDays} profit $${dailyProfit} to ${user.username} for tx ${tx._id}`);
     } catch (err) {
       await session.abortTransaction();
       console.error(`[DailyProfitJob] Error processing transaction ${tx._id}:`, err);

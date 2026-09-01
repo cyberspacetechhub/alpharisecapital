@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { positionApi } from "../../../api/position.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 import type { Position as PositionType } from "../../../types";
 
 const Modal = ({
@@ -243,27 +244,13 @@ export default function ExecutorPositionsPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 text-xs">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1.5 border border-white/10 rounded-xl hover:bg-white/5 text-slate-300 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer font-bold"
-              >
-                Previous
-              </button>
-              <span className="text-xs text-slate-400">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1.5 border border-white/10 rounded-xl hover:bg-white/5 text-slate-300 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer font-bold"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={data?.total}
+            pageSize={12}
+            onPageChange={setPage}
+          />
         </div>
       )}
 

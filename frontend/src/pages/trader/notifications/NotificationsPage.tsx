@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { messageApi } from "../../../api/message.api";
 import { formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 interface InAppMessage {
   _id: string;
@@ -15,6 +16,8 @@ interface InAppMessage {
 export default function TraderNotificationsPage() {
   const qc = useQueryClient();
   const [selectedMsg, setSelectedMsg] = useState<InAppMessage | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
 
   // Get notifications
   const { data: inboxData, isLoading } = useQuery<InAppMessage[]>({
@@ -95,7 +98,7 @@ export default function TraderNotificationsPage() {
                 Your notifications drawer is empty.
               </div>
             ) : (
-              notifications.map((n) => (
+              notifications.slice((page - 1) * pageSize, page * pageSize).map((n) => (
                 <button
                   key={n._id}
                   onClick={() => handleSelectNotification(n)}
@@ -123,6 +126,16 @@ export default function TraderNotificationsPage() {
               ))
             )}
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            compact
+            currentPage={page}
+            totalPages={Math.ceil(notifications.length / pageSize) || 1}
+            totalItems={notifications.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+          />
         </div>
 
         {/* Right Detail Pane */}

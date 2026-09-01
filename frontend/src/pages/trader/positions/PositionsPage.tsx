@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { positionApi } from "../../../api/position.api";
 import { userApi } from "../../../api/user.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 import type { Position as PositionType } from "../../../types";
 
 const PAIRS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "XRP/USDT"];
@@ -25,6 +26,7 @@ export default function TraderPositionsPage() {
   const [duration, setDuration] = useState(15);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [historyPage, setHistoryPage] = useState(1);
 
   // Live Price ticks
   const [livePrices, setLivePrices] = useState<Record<string, number>>({
@@ -446,57 +448,69 @@ export default function TraderPositionsPage() {
             ) : closedPositions.length === 0 ? (
               <div className="p-12 text-center text-xs text-slate-500">No trading history found.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                      <th className="px-5 py-3.5">Closed Date</th>
-                      <th className="px-5 py-3.5">Asset</th>
-                      <th className="px-5 py-3.5 text-right">Entry / Exit</th>
-                      <th className="px-5 py-3.5 text-right">Realized PnL</th>
-                      <th className="px-5 py-3.5">Closed By</th>
-                      <th className="px-5 py-3.5">Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
-                    {closedPositions.map((pos) => {
-                      const pnl = pos.realizedPnL ?? 0;
-                      return (
-                        <tr key={pos._id} className="hover:bg-white/5 transition-colors">
-                          <td className="px-5 py-4 text-xs text-slate-400 whitespace-nowrap font-mono">
-                            {formatDate(pos.closedAt ?? pos.updatedAt ?? pos.openedAt)}
-                          </td>
-                          <td className="px-5 py-4 whitespace-nowrap font-sans">
-                            <span className="font-bold text-white block">{pos.pair}</span>
-                            <span
-                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                                pos.direction === "long" ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                              }`}
-                            >
-                              {pos.direction} {pos.leverage}x
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-right font-mono text-xs text-slate-400 whitespace-nowrap">
-                            <div>En: ${pos.entryPrice?.toLocaleString()}</div>
-                            <div>Ex: ${pos.exitPrice?.toLocaleString()}</div>
-                          </td>
-                          <td className="px-5 py-4 text-right whitespace-nowrap">
-                            <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
-                              {pnl >= 0 ? "+" : ""}
-                              {pnl.toFixed(2)}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-xs text-slate-400 uppercase whitespace-nowrap font-sans font-bold">
-                            {pos.closedBy || "system"}
-                          </td>
-                          <td className="px-5 py-4 text-xs text-slate-500 max-w-[120px] truncate italic font-sans">
-                            {pos.meta?.remarks || "—"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                        <th className="px-5 py-3.5">Closed Date</th>
+                        <th className="px-5 py-3.5">Asset</th>
+                        <th className="px-5 py-3.5 text-right">Entry / Exit</th>
+                        <th className="px-5 py-3.5 text-right">Realized PnL</th>
+                        <th className="px-5 py-3.5">Closed By</th>
+                        <th className="px-5 py-3.5">Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
+                      {closedPositions.slice((historyPage - 1) * 8, historyPage * 8).map((pos) => {
+                        const pnl = pos.realizedPnL ?? 0;
+                        return (
+                          <tr key={pos._id} className="hover:bg-white/5 transition-colors">
+                            <td className="px-5 py-4 text-xs text-slate-400 whitespace-nowrap font-mono">
+                              {formatDate(pos.closedAt ?? pos.updatedAt ?? pos.openedAt)}
+                            </td>
+                            <td className="px-5 py-4 whitespace-nowrap font-sans">
+                              <span className="font-bold text-white block">{pos.pair}</span>
+                              <span
+                                className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                  pos.direction === "long" ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                                }`}
+                              >
+                                {pos.direction} {pos.leverage}x
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 text-right font-mono text-xs text-slate-400 whitespace-nowrap">
+                              <div>En: ${pos.entryPrice?.toLocaleString()}</div>
+                              <div>Ex: ${pos.exitPrice?.toLocaleString()}</div>
+                            </td>
+                            <td className="px-5 py-4 text-right whitespace-nowrap">
+                              <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
+                                {pnl >= 0 ? "+" : ""}
+                                {pnl.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 text-xs text-slate-400 uppercase whitespace-nowrap font-sans font-bold">
+                              {pos.closedBy || "system"}
+                            </td>
+                            <td className="px-5 py-4 text-xs text-slate-500 max-w-[120px] truncate italic font-sans">
+                              {pos.meta?.remarks || "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <Pagination
+                  compact
+                  currentPage={historyPage}
+                  totalPages={Math.ceil(closedPositions.length / 8) || 1}
+                  totalItems={closedPositions.length}
+                  pageSize={8}
+                  onPageChange={setHistoryPage}
+                />
               </div>
             )}
           </div>

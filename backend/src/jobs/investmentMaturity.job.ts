@@ -36,8 +36,8 @@ export const startInvestmentMaturityJob = () => {
     }
   });
 
-  // every minute — check and distribute daily profits & process matured payouts
-  cron.schedule("* * * * *", async () => {
+  // every 10 minute — check and distribute daily profits & process matured payouts
+  cron.schedule("*/10 * * * *", async () => {
     try {
       await distributeDailyProfits();
 

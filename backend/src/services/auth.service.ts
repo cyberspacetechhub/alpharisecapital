@@ -52,6 +52,18 @@ export const registerUser = async (data: RegisterInput, type: ProfileType, ip: s
       referralCode: data.username,
       referredBy: data.referredBy,
     });
+
+    if (data.referredBy) {
+      const referrerUser = await User.findOne({
+        $or: [{ username: data.referredBy }, { referralCode: data.referredBy }],
+      });
+      if (referrerUser) {
+        await TraderProfile.findOneAndUpdate(
+          { user: referrerUser._id },
+          { $inc: { totalReferrals: 1 } }
+        );
+      }
+    }
   } else {
     profile = await ExecutorProfile.create({ user: user._id, type: "Executor" });
   }

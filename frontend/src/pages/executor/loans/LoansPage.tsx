@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { loanApi } from "../../../api/loan.api";
 import { userApi } from "../../../api/user.api";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 interface LoanOffer {
   _id: string;
@@ -86,6 +87,8 @@ const inputClass = "w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e
 export default function ExecutorLoansPage() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<"offers" | "applications" | "limits">("offers");
+  const [appPage, setAppPage] = useState(1);
+  const [traderPage, setTraderPage] = useState(1);
   const [offerModal, setOfferModal] = useState(false);
   const [limitModal, setLimitModal] = useState<{ _id: string; username: string; loanLimit: number; creditScore: number } | null>(null);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
@@ -308,92 +311,103 @@ export default function ExecutorLoansPage() {
           ) : applications.length === 0 ? (
             <div className="p-12 text-center text-xs text-slate-500">No applications found.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                    <th className="px-5 py-3">Applied</th>
-                    <th className="px-5 py-3">Client</th>
-                    <th className="px-5 py-3">Offer / Terms</th>
-                    <th className="px-5 py-3 text-right">Requested</th>
-                    <th className="px-5 py-3 text-right">Total Due</th>
-                    <th className="px-5 py-3 text-right">Repaid</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 text-slate-300">
-                  {applications.map((app) => {
-                    const u = app.user ?? {};
-                    const isPending = app.status === "pending";
+            <div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                      <th className="px-5 py-3">Applied</th>
+                      <th className="px-5 py-3">Client</th>
+                      <th className="px-5 py-3">Offer / Terms</th>
+                      <th className="px-5 py-3 text-right">Requested</th>
+                      <th className="px-5 py-3 text-right">Total Due</th>
+                      <th className="px-5 py-3 text-right">Repaid</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-slate-300">
+                    {applications.slice((appPage - 1) * 10, appPage * 10).map((app) => {
+                      const u = app.user ?? {};
+                      const isPending = app.status === "pending";
 
-                    return (
-                      <tr key={app._id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-5 py-4 text-xs text-slate-400 font-mono whitespace-nowrap">
-                          {formatDate(app.createdAt)}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-bold text-white">{u.username ?? "Unknown"}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">
-                            Score: {u.creditScore} • Limit: {formatCurrency(u.loanLimit ?? 0)}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-bold text-white">{app.offer?.title ?? "Loan"}</div>
-                          <div className="text-[10px] text-[#00e676] font-mono">
-                            {app.interestRate}% ({app.interestType}) • {app.durationDays} Days
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
-                          {formatCurrency(app.requestedAmount)}
-                        </td>
-                        <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
-                          {formatCurrency(app.amountDue)}
-                        </td>
-                        <td className="px-5 py-4 text-right text-[#00e676] font-bold font-mono whitespace-nowrap">
-                          {formatCurrency(app.repaidAmount)}
-                        </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            app.status === "active"
-                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
-                              : app.status === "pending"
-                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
-                              : app.status === "repaid"
-                              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
-                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                          }`}>
-                            {app.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-center whitespace-nowrap">
-                          {isPending ? (
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => approveLoanMutation.mutate(app._id)}
-                                className="text-xs px-3 py-1 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl font-black transition-all cursor-pointer shadow-sm"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setRejectTarget(app._id);
-                                  setRejectReason("");
-                                }}
-                                className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 rounded-xl font-bold transition-all cursor-pointer"
-                              >
-                                Reject
-                              </button>
+                      return (
+                        <tr key={app._id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-5 py-4 text-xs text-slate-400 font-mono whitespace-nowrap">
+                            {formatDate(app.createdAt)}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <div className="font-bold text-white">{u.username ?? "Unknown"}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              Score: {u.creditScore} • Limit: {formatCurrency(u.loanLimit ?? 0)}
                             </div>
-                          ) : (
-                            <span className="text-xs text-slate-600">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <div className="font-bold text-white">{app.offer?.title ?? "Loan"}</div>
+                            <div className="text-[10px] text-[#00e676] font-mono">
+                              {app.interestRate}% ({app.interestType}) • {app.durationDays} Days
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
+                            {formatCurrency(app.requestedAmount)}
+                          </td>
+                          <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
+                            {formatCurrency(app.amountDue)}
+                          </td>
+                          <td className="px-5 py-4 text-right text-[#00e676] font-bold font-mono whitespace-nowrap">
+                            {formatCurrency(app.repaidAmount)}
+                          </td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              app.status === "active"
+                                ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                                : app.status === "pending"
+                                ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                                : app.status === "repaid"
+                                ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
+                                : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                            }`}>
+                              {app.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-center whitespace-nowrap">
+                            {isPending ? (
+                              <div className="flex justify-center gap-2">
+                                <button
+                                  onClick={() => approveLoanMutation.mutate(app._id)}
+                                  className="text-xs px-3 py-1 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl font-black transition-all cursor-pointer shadow-sm"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setRejectTarget(app._id);
+                                    setRejectReason("");
+                                  }}
+                                  className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 rounded-xl font-bold transition-all cursor-pointer"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-600">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={appPage}
+                totalPages={Math.ceil(applications.length / 10) || 1}
+                totalItems={applications.length}
+                pageSize={10}
+                onPageChange={setAppPage}
+              />
             </div>
           )}
         </div>
@@ -459,49 +473,60 @@ export default function ExecutorLoansPage() {
                 <div className="h-10 bg-white/5 animate-pulse rounded-2xl" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                      <th className="px-5 py-3">Client</th>
-                      <th className="px-5 py-3 text-center">Credit Score</th>
-                      <th className="px-5 py-3 text-right">Loan Limit</th>
-                      <th className="px-5 py-3 text-center">Status</th>
-                      <th className="px-5 py-3 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-slate-300">
-                    {traders.map((u: any) => (
-                      <tr key={u._id} className="hover:bg-white/5 transition-colors">
-                        <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-bold text-white">{u.username}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">{u.email}</div>
-                        </td>
-                        <td className="px-5 py-4 text-center font-mono font-bold text-blue-400 whitespace-nowrap">
-                          {u.creditScore ?? 100}
-                        </td>
-                        <td className="px-5 py-4 text-right font-mono font-bold text-[#00e676] whitespace-nowrap">
-                          {formatCurrency(u.loanLimit ?? 0)}
-                        </td>
-                        <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                            u.isCustomLoanLimit ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10"
-                          }`}>
-                            {u.isCustomLoanLimit ? "Custom" : "Default"}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <button
-                            onClick={() => handleOpenLimitModal(u)}
-                            className="text-xs px-2.5 py-1 text-[#00e676] font-bold hover:underline cursor-pointer"
-                          >
-                            Edit
-                          </button>
-                        </td>
+              <div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                        <th className="px-5 py-3">Client</th>
+                        <th className="px-5 py-3 text-center">Credit Score</th>
+                        <th className="px-5 py-3 text-right">Loan Limit</th>
+                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-center">Action</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-slate-300">
+                      {traders.slice((traderPage - 1) * 10, traderPage * 10).map((u: any) => (
+                        <tr key={u._id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <div className="font-bold text-white">{u.username}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">{u.email}</div>
+                          </td>
+                          <td className="px-5 py-4 text-center font-mono font-bold text-blue-400 whitespace-nowrap">
+                            {u.creditScore ?? 100}
+                          </td>
+                          <td className="px-5 py-4 text-right font-mono font-bold text-[#00e676] whitespace-nowrap">
+                            {formatCurrency(u.loanLimit ?? 0)}
+                          </td>
+                          <td className="px-5 py-4 text-center whitespace-nowrap">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              u.isCustomLoanLimit ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10"
+                            }`}>
+                              {u.isCustomLoanLimit ? "Custom" : "Default"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 text-center whitespace-nowrap">
+                            <button
+                              onClick={() => handleOpenLimitModal(u)}
+                              className="text-xs px-2.5 py-1 text-[#00e676] font-bold hover:underline cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <Pagination
+                  currentPage={traderPage}
+                  totalPages={Math.ceil(traders.length / 10) || 1}
+                  totalItems={traders.length}
+                  pageSize={10}
+                  onPageChange={setTraderPage}
+                />
               </div>
             )}
           </div>

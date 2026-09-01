@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "../../../api/user.api";
 import PageLoader from "../../../components/common/PageLoader";
+import Pagination from "../../../components/common/Pagination";
 
 interface TraderUser {
   _id: string;
@@ -17,6 +18,8 @@ export default function KycReviewPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
 
   const { data: responseData, isLoading, refetch } = useQuery({
     queryKey: ["pending-kyc"],
@@ -87,7 +90,7 @@ export default function KycReviewPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {users.map((trader) => (
+          {users.slice((page - 1) * pageSize, page * pageSize).map((trader) => (
             <div key={trader._id} className="bg-[#121822] rounded-3xl border border-white/10 p-6 flex flex-col md:flex-row gap-6 items-stretch shadow-sm">
               
               {/* User details */}
@@ -147,7 +150,7 @@ export default function KycReviewPage() {
                 <button
                   onClick={() => handleUpdateStatus(trader._id, "approved")}
                   disabled={actionLoadingId !== null}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black transition-all text-center disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-[#00c076]/20"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black transition-all text-center disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-[#00c076]/20 cursor-pointer"
                 >
                   {actionLoadingId === trader._id ? (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-900 border-t-transparent animate-spin" />
@@ -157,7 +160,7 @@ export default function KycReviewPage() {
                 <button
                   onClick={() => handleUpdateStatus(trader._id, "rejected")}
                   disabled={actionLoadingId !== null}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 text-xs font-bold transition-colors text-center disabled:opacity-60 flex items-center justify-center gap-2 border border-rose-500/30"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 text-xs font-bold transition-colors text-center disabled:opacity-60 flex items-center justify-center gap-2 border border-rose-500/30 cursor-pointer"
                 >
                   {actionLoadingId === trader._id ? (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-rose-400 border-t-transparent animate-spin" />
@@ -168,6 +171,21 @@ export default function KycReviewPage() {
 
             </div>
           ))}
+
+          {/* Pagination */}
+          <div className="bg-[#121822] rounded-2xl border border-white/10 overflow-hidden">
+            <Pagination
+              currentPage={page}
+              totalPages={Math.ceil(users.length / pageSize) || 1}
+              totalItems={users.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(sz) => {
+                setPageSize(sz);
+                setPage(1);
+              }}
+            />
+          </div>
         </div>
       )}
 

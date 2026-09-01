@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { investmentApi } from "../../../api/investment.api";
 import { formatCurrency, formatDate, getStatusColor } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 import type { InvestmentPlan, Transaction, User, ApiResponse } from "../../../types";
 
 type TxWithUser = Omit<Transaction, "user"> & { user: User };
@@ -267,31 +268,42 @@ export default function ExecutorInvestmentsPage() {
                   <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                     <th className="px-6 py-4">Plan Name</th>
                     <th className="px-6 py-4">Limits (Min / Max)</th>
-                    <th className="px-6 py-4">ROI %</th>
-                    <th className="px-6 py-4">Duration</th>
+                    <th className="px-6 py-4">Daily ROI / Total ROI</th>
+                    <th className="px-6 py-4">Duration & Frequency</th>
                     <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 text-xs text-slate-300">
-                  {plansData.map((plan) => (
-                    <tr key={plan._id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 font-bold text-white">{plan.name}</td>
-                      <td className="px-6 py-4 font-mono">
-                        {formatCurrency(plan.minAmount)} – {formatCurrency(plan.maxAmount)}
-                      </td>
-                      <td className="px-6 py-4 text-[#00e676] font-bold font-mono">+{plan.roiPercent}%</td>
-                      <td className="px-6 py-4">{plan.durationDays} Days</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          plan.isActive
-                            ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
-                            : "bg-white/5 text-slate-400 border border-white/10"
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${plan.isActive ? "bg-[#00e676]" : "bg-slate-500"}`} />
-                          {plan.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </td>
+                  {plansData.map((plan) => {
+                    const totalRoi = plan.roiPercent * plan.durationDays;
+                    return (
+                      <tr key={plan._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-4 font-bold text-white">
+                          <div>{plan.name}</div>
+                          <span className="text-[10px] text-slate-400 font-normal">Fixed-Yield Compound</span>
+                        </td>
+                        <td className="px-6 py-4 font-mono">
+                          {formatCurrency(plan.minAmount)} – {formatCurrency(plan.maxAmount)}
+                        </td>
+                        <td className="px-6 py-4 font-mono">
+                          <span className="text-[#00e676] font-bold block">+{plan.roiPercent}% / Day</span>
+                          <span className="text-[10px] text-slate-400">+{totalRoi}% Total</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-white block">{plan.durationDays} Days</span>
+                          <span className="text-[10px] text-emerald-400 font-medium">Daily Drop (24h)</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            plan.isActive
+                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                              : "bg-white/5 text-slate-400 border border-white/10"
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${plan.isActive ? "bg-[#00e676]" : "bg-slate-500"}`} />
+                            {plan.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
                           onClick={() => togglePlanMutation.mutate(plan._id)}
@@ -321,7 +333,8 @@ export default function ExecutorInvestmentsPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -375,7 +388,9 @@ export default function ExecutorInvestmentsPage() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="font-bold text-white">{tx.planSnapshot?.name}</div>
-                            <div className="text-[10px] text-[#00e676] font-mono font-bold">ROI: +{tx.planSnapshot?.roiPercent}%</div>
+                            <div className="text-[10px] text-[#00e676] font-mono font-bold">
+                              +{tx.planSnapshot?.roiPercent}% / Day (+{(tx.planSnapshot?.roiPercent ?? 0) * (tx.planSnapshot?.durationDays ?? 30)}% Total)
+                            </div>
                           </td>
                           <td className="px-6 py-4 font-bold text-white font-mono">
                             {formatCurrency(tx.amount)}
@@ -461,25 +476,13 @@ export default function ExecutorInvestmentsPage() {
               </div>
             )}
             {/* Pagination */}
-            {investData && investData.pages > 1 && (
-              <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 text-xs">
-                <button
-                  disabled={investPage === 1}
-                  onClick={() => setInvestPage(p => p - 1)}
-                  className="px-3 py-1.5 border border-white/10 rounded-xl font-bold text-slate-300 hover:bg-white/5 disabled:opacity-30 cursor-pointer"
-                >
-                  Previous
-                </button>
-                <span className="text-slate-400">Page {investPage} of {investData.pages}</span>
-                <button
-                  disabled={investPage === investData.pages}
-                  onClick={() => setInvestPage(p => p + 1)}
-                  className="px-3 py-1.5 border border-white/10 rounded-xl font-bold text-slate-300 hover:bg-white/5 disabled:opacity-30 cursor-pointer"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            <Pagination
+              currentPage={investPage}
+              totalPages={investData?.pages ?? 1}
+              totalItems={investData?.total}
+              pageSize={15}
+              onPageChange={setInvestPage}
+            />
           </div>
         </div>
       )}
@@ -529,7 +532,7 @@ export default function ExecutorInvestmentsPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">ROI %</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Daily ROI % (Per 24h)</label>
                   <input
                     type="number"
                     required
@@ -537,6 +540,7 @@ export default function ExecutorInvestmentsPage() {
                     min={0}
                     value={planForm.roiPercent || ""}
                     onChange={(e) => setPlanForm({ ...planForm, roiPercent: parseFloat(e.target.value) })}
+                    placeholder="e.g. 20"
                     className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
@@ -548,10 +552,32 @@ export default function ExecutorInvestmentsPage() {
                     min={1}
                     value={planForm.durationDays || ""}
                     onChange={(e) => setPlanForm({ ...planForm, durationDays: parseInt(e.target.value) })}
+                    placeholder="e.g. 7"
                     className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
               </div>
+              {/* Daily ROI Calculation Preview */}
+              {planForm.roiPercent > 0 && planForm.durationDays > 0 && (
+                <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-3.5 space-y-1.5 font-mono text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Daily Profit Drop:</span>
+                    <span className="text-[#00e676] font-bold">
+                      +{planForm.roiPercent}% / Day (Every 24h)
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Total Compound Yield:</span>
+                    <span className="text-white font-bold">
+                      +{planForm.roiPercent * planForm.durationDays}% in {planForm.durationDays} Days
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-sans leading-relaxed pt-1 border-t border-white/5">
+                    💡 <em>Active contracts under this plan will receive <strong>{planForm.roiPercent}%</strong> daily profit distribution every 24 hours for {planForm.durationDays} days (Total: <strong>{planForm.roiPercent * planForm.durationDays}%</strong>).</em>
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 py-2">
                 <input
                   type="checkbox"
@@ -841,9 +867,10 @@ export default function ExecutorInvestmentsPage() {
                   {[
                     ["Package Name", selectedTx.planSnapshot?.name],
                     ["Principal Invested", formatCurrency(selectedTx.amount)],
-                    ["ROI Percentage", `+${selectedTx.planSnapshot?.roiPercent}%`],
+                    ["Daily ROI Rate", `+${selectedTx.planSnapshot?.roiPercent}% / Day`],
+                    ["Total Contract Yield", `+${(selectedTx.planSnapshot?.roiPercent ?? 0) * (selectedTx.planSnapshot?.durationDays ?? 30)}% Total`],
                     ["Contract Duration", `${selectedTx.planSnapshot?.durationDays} Days`],
-                    ["Maturity Yield", formatCurrency(selectedTx.amount + (selectedTx.amount * (selectedTx.planSnapshot?.roiPercent ?? 0)) / 100)],
+                    ["Est. Maturity Yield", formatCurrency(selectedTx.amount + (selectedTx.amount * (selectedTx.planSnapshot?.roiPercent ?? 0) * (selectedTx.planSnapshot?.durationDays ?? 30)) / 100)],
                     ["Start Date", formatDate(selectedTx.createdAt)],
                     ["Maturity Date", selectedTx.expiresAt ? formatDate(selectedTx.expiresAt) : "N/A"],
                     ["Status", selectedTx.status.toUpperCase()],

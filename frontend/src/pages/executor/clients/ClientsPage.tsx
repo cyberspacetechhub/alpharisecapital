@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { userApi } from "../../../api/user.api";
 import { useAuthStore } from "../../../store/auth.store";
 import { formatCurrency, formatDate } from "../../../utils";
+import Pagination from "../../../components/common/Pagination";
 
 export default function ClientsPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [kycFilter, setKycFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
   const [impersonateError, setImpersonateError] = useState("");
 
@@ -59,6 +62,9 @@ export default function ClientsPage() {
     return matchesSearch && matchesKyc;
   });
 
+  const totalPages = Math.ceil(filteredTraders.length / pageSize) || 1;
+  const paginatedTraders = filteredTraders.slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div className="max-w-6xl mx-auto space-y-5">
       {/* Header */}
@@ -80,7 +86,10 @@ export default function ClientsPage() {
             type="text"
             placeholder="Search clients by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-[#0e1520] text-slate-200 text-xs focus:outline-none focus:border-[#00c076] transition-colors placeholder:text-slate-500"
           />
           <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -92,7 +101,10 @@ export default function ClientsPage() {
           {["", "pending", "approved", "rejected"].map((status) => (
             <button
               key={status}
-              onClick={() => setKycFilter(status)}
+              onClick={() => {
+                setKycFilter(status);
+                setPage(1);
+              }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                 kycFilter === status
                   ? "bg-[#00c076] text-[#080c10] border-transparent font-bold"
@@ -132,7 +144,7 @@ export default function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredTraders.map((u: any) => (
+                {paginatedTraders.map((u: any) => (
                   <tr key={u._id} className="hover:bg-white/5 transition-colors">
                     <td className="px-5 py-4 whitespace-nowrap">
                       <div className="font-bold text-white">{u.username}</div>
@@ -201,6 +213,19 @@ export default function ClientsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={filteredTraders.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(sz) => {
+              setPageSize(sz);
+              setPage(1);
+            }}
+          />
         </div>
       )}
     </div>
