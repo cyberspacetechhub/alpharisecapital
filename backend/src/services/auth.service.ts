@@ -15,7 +15,7 @@ import { RegisterInput } from "../utils/validators/auth.validator";
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
 };
 
 export const registerUser = async (data: RegisterInput, type: ProfileType, ip: string, userAgent: string) => {

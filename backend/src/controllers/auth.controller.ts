@@ -8,7 +8,7 @@ const REFRESH_COOKIE = "refreshToken";
 const cookieOpts = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -39,7 +39,7 @@ export const refresh = asyncHandler(async (req: AuthRequest, res: Response) => {
 
 export const logout = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (req.userId) await authService.logoutUser(req.userId);
-  res.clearCookie(REFRESH_COOKIE);
+  res.clearCookie(REFRESH_COOKIE, cookieOpts);
   res.json({ success: true, message: "Logged out" });
 });
 

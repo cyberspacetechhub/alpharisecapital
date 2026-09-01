@@ -20,16 +20,27 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry) {
+    const isAuthEndpoint =
+      original?.url?.includes("/auth/login") ||
+      original?.url?.includes("/auth/register") ||
+      original?.url?.includes("/auth/refresh") ||
+      original?.url?.includes("/auth/forgot-password") ||
+      original?.url?.includes("/auth/reset-password");
+
+    if (error.response?.status === 401 && !original?._retry && !isAuthEndpoint) {
       original._retry = true;
       try {
         const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-        useAuthStore.getState().setAccessToken(data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(original);
-      } catch {
+        if (data?.accessToken) {
+          useAuthStore.getState().setAccessToken(data.accessToken);
+          original.headers.Authorization = `Bearer ${data.accessToken}`;
+          return api(original);
+        }
+      } catch (refreshErr) {
         useAuthStore.getState().clearAuth();
-        window.location.href = "/login";
+        if (window.location.pathname.startsWith("/trader") || window.location.pathname.startsWith("/executor")) {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

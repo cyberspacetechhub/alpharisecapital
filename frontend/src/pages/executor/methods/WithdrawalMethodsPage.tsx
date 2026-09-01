@@ -136,14 +136,14 @@ export default function WithdrawalMethodsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Withdrawal Methods</h1>
           <p className="text-xs text-slate-400 mt-0.5">Manage payment systems available to traders for withdrawals.</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 cursor-pointer shrink-0 w-fit"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -167,8 +167,8 @@ export default function WithdrawalMethodsPage() {
         <div className="space-y-3">
           {methods.map((m) => (
             <div key={m._id} className="bg-[#121822] rounded-3xl border border-white/10 p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3.5">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="flex items-start gap-3.5 min-w-0 flex-1">
                   <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                     m.type === "crypto" ? "bg-amber-500/15 border border-amber-500/30" : "bg-blue-500/15 border border-blue-500/30"
                   }`}>
@@ -179,9 +179,9 @@ export default function WithdrawalMethodsPage() {
                       }
                     </svg>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-white">{m.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-white truncate">{m.name}</p>
                       <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
                         m.type === "crypto" ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                       }`}>
@@ -194,16 +194,16 @@ export default function WithdrawalMethodsPage() {
                       </span>
                     </div>
 
-                    <div className="mt-1 flex gap-4 text-xs font-mono text-slate-400">
+                    <div className="mt-1 flex flex-wrap gap-4 text-xs font-mono text-slate-400">
                       <span>Limits: {formatCurrency(m.minAmount)} - {formatCurrency(m.maxAmount)}</span>
                     </div>
 
-                    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 bg-[#0e1520] p-2.5 rounded-xl border border-white/5">
+                    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 bg-[#0e1520] p-2.5 rounded-xl border border-white/5">
                       {Object.entries(m.details).map(([k, v]) => (
-                        <div key={k} className="text-xs text-slate-400 flex items-center gap-1.5">
-                          <span className="font-bold text-slate-300">{k}:</span>{" "}
+                        <div key={k} className="text-xs text-slate-400 flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
+                          <span className="font-bold text-slate-300 shrink-0">{k}:</span>{" "}
                           {v === "" ? (
-                            <span className="text-[9px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase">
+                            <span className="text-[9px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase shrink-0">
                               Trader Input Field
                             </span>
                           ) : (
@@ -215,7 +215,7 @@ export default function WithdrawalMethodsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-0 border-white/5 shrink-0">
                   <button
                     onClick={() => toggleMutation.mutate(m._id)}
                     className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
@@ -264,7 +264,7 @@ export default function WithdrawalMethodsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Min Amount ($) <span className="text-rose-400">*</span></label>
                   <input
@@ -300,7 +300,7 @@ export default function WithdrawalMethodsPage() {
                 <div className="space-y-3">
                   {fields.map((field, i) => (
                     <div key={field.id} className="space-y-2.5 p-3.5 bg-[#0e1520] border border-white/10 rounded-2xl">
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <input
                           {...register(`details.${i}.key`, { required: true })}
                           placeholder="Field name (e.g. BTC Address or Network)"
@@ -318,7 +318,7 @@ export default function WithdrawalMethodsPage() {
                           />
                         )}
                       </div>
-                      <div className="flex items-center justify-between pt-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                         <label className="flex items-center gap-2 text-xs text-slate-300 font-bold select-none cursor-pointer">
                           <input
                             type="checkbox"

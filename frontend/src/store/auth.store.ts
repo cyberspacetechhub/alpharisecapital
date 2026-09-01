@@ -56,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
       name: "auth",
       partialize: (s) => ({
         user: s.user,
+        accessToken: s.accessToken,
         isAuthenticated: s.isAuthenticated,
         impersonatorAdmin: s.impersonatorAdmin,
       }),

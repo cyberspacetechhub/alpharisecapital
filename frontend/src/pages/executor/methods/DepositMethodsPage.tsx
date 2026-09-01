@@ -116,14 +116,14 @@ export default function DepositMethodsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Deposit Methods</h1>
           <p className="text-xs text-slate-400 mt-0.5">Manage payment methods available to traders for deposits.</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 cursor-pointer shrink-0 w-fit"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -147,8 +147,8 @@ export default function DepositMethodsPage() {
         <div className="space-y-3">
           {methods.map((m) => (
             <div key={m._id} className="bg-[#121822] rounded-3xl border border-white/10 p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3.5">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="flex items-start gap-3.5 min-w-0 flex-1">
                   <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                     m.type === "crypto" ? "bg-amber-500/15 border border-amber-500/30" : "bg-blue-500/15 border border-blue-500/30"
                   }`}>
@@ -159,9 +159,9 @@ export default function DepositMethodsPage() {
                       }
                     </svg>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-white">{m.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-white truncate">{m.name}</p>
                       <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
                         m.type === "crypto" ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                       }`}>
@@ -173,9 +173,9 @@ export default function DepositMethodsPage() {
                         {m.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 bg-[#0e1520] p-2.5 rounded-xl border border-white/5">
+                    <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 bg-[#0e1520] p-2.5 rounded-xl border border-white/5">
                       {Object.entries(m.details).map(([k, v]) => (
-                        <div key={k} className="text-xs text-slate-400">
+                        <div key={k} className="text-xs text-slate-400 min-w-0 max-w-full">
                           <span className="font-bold text-slate-300">{k}:</span>{" "}
                           <span className="font-mono text-white break-all">{v}</span>
                         </div>
@@ -184,7 +184,7 @@ export default function DepositMethodsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-0 border-white/5 shrink-0">
                   <button
                     onClick={() => toggleMutation.mutate(m._id)}
                     className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
@@ -247,7 +247,7 @@ export default function DepositMethodsPage() {
                 <p className="text-[11px] text-slate-400 mb-2">Add key-value pairs e.g. "Wallet Address" → "0x123..."</p>
                 <div className="space-y-2">
                   {fields.map((field, i) => (
-                    <div key={field.id} className="flex gap-2">
+                    <div key={field.id} className="flex flex-col sm:flex-row gap-2 items-center">
                       <input
                         {...register(`details.${i}.key`, { required: true })}
                         placeholder="Label (e.g. Wallet Address)"
@@ -259,7 +259,7 @@ export default function DepositMethodsPage() {
                         className={`${inputClass} flex-1`}
                       />
                       {fields.length > 1 && (
-                        <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-300 px-1 cursor-pointer">
+                        <button type="button" onClick={() => remove(i)} className="self-end sm:self-center text-rose-400 hover:text-rose-300 px-1 py-1 cursor-pointer">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                           </svg>
