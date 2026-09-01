@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import TraderSidebar from "./TraderSidebar";
 import TraderHeader from "./TraderHeader";
 import ImpersonationBanner from "./ImpersonationBanner";
+import SmartsuppChat from "../ui/SmartsuppChat";
 
 export default function TraderLayout() {
   return (
@@ -14,6 +15,7 @@ export default function TraderLayout() {
           <Outlet />
         </main>
       </div>
+      <SmartsuppChat />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import PublicHeader from "./PublicHeader";
 import PublicTicker from "./PublicTicker";
 import PublicFooter from "./PublicFooter";
 import ScrollToTopButton from "../common/ScrollToTopButton";
+import SmartsuppChat from "../ui/SmartsuppChat";
 
 export default function PublicLayout() {
   return (
@@ -14,6 +15,7 @@ export default function PublicLayout() {
       </main>
       <ScrollToTopButton />
       <PublicFooter />
+      <SmartsuppChat />
     </div>
   );
 }
