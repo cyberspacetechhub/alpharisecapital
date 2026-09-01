@@ -22,14 +22,14 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",
-    "multer": "^2.3.0",
+    "multer": "^1.4.5-lts.1",
+    "@types/multer": "^1.4.11",
     "node-cron": "^4.6.0",
     "resend": "^6.25.0",
     "typescript": "^5.4.5",
     "zod": "^4.5.4"
   },
   "devDependencies": {
-    "@types/multer": "^2.2.0",
     "ts-node-dev": "^2.0.0"
   }
 }

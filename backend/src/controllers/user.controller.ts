@@ -21,11 +21,14 @@ export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response
 });
 
 const getFileBuffer = (req: AuthRequest): Buffer | undefined => {
-  if (req.file?.buffer) return req.file.buffer;
-  if (req.files) {
-    if (Array.isArray(req.files) && req.files.length > 0) return req.files[0].buffer;
-    const values = Object.values(req.files) as Express.Multer.File[][];
-    if (values.length > 0 && values[0].length > 0) return values[0][0].buffer;
+  const reqAny = req as any;
+  if (reqAny.file?.buffer) return reqAny.file.buffer;
+  if (reqAny.files) {
+    if (Array.isArray(reqAny.files) && reqAny.files.length > 0) return reqAny.files[0].buffer;
+    const values = Object.values(reqAny.files) as any[][];
+    if (values.length > 0 && Array.isArray(values[0]) && values[0].length > 0) {
+      return values[0][0]?.buffer;
+    }
   }
   return undefined;
 };
