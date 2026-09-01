@@ -93,7 +93,9 @@ export const reinvest = async (userId: string, transactionId: string) => {
 
     // Mark original matured transaction as reinvested to prevent double actions
     original.status = "reinvested";
-    await original.save({ session });
+    // Deduct original principal from invested balance so when new reinvestment is approved, it credits back
+    user.investedBalance = Math.max(0, user.investedBalance - reinvestAmount);
+    await Promise.all([original.save({ session }), user.save({ session })]);
 
     const earnings = (user.totalEarnings > 0)
       ? (original.amount * (original.planSnapshot?.roiPercent ?? 0)) / 100
@@ -213,9 +215,8 @@ export const matureInvestment = async (transactionId: string) => {
     const earnings = remainingROI;
     const totalReturn = tx.amount + remainingROI;
 
-    // Deduct from invested balance immediately on maturity, locking it inside matured status
-    user.investedBalance = Math.max(0, user.investedBalance - tx.amount);
-    // Add remaining profit to totalEarnings, but do NOT add total return to available balance yet.
+    // Keep fund in invested balance with profit during the 48-hour reinvestment decision window
+    // Add remaining profit to totalEarnings
     user.totalEarnings += remainingROI;
     
     tx.status = "matured";
@@ -293,7 +294,8 @@ export const processMaturedPayout = async (transactionId: string) => {
 
     const payoutAmount = (tx.meta as Record<string, any>)?.payoutAmount || tx.amount;
 
-    // Finally credit available balance after 48 hours without reinvestment
+    // After 48 hours without reinvestment, deduct from invested balance and return full payout to main balance
+    user.investedBalance = Math.max(0, user.investedBalance - tx.amount);
     user.balance += payoutAmount;
     tx.status = "completed";
     
@@ -310,6 +312,35 @@ export const processMaturedPayout = async (transactionId: string) => {
     console.error(`[PayoutJob] Error processing matured payout for ${transactionId}:`, err);
   } finally {
     session.endSession();
+  }
+};
+
+// ─── Reconcile Matured Investments (Startup self-healing) ─────────────
+
+export const reconcileMaturedInvestments = async () => {
+  try {
+    const activeMatured = await Transaction.find({
+      type: { $in: ["investment", "reinvestment"] },
+      status: "matured",
+      "meta.payoutReleaseAt": { $gt: new Date() },
+    });
+
+    for (const tx of activeMatured) {
+      const meta = tx.meta as Record<string, any>;
+      if (!meta?.balanceRestoredToInvested) {
+        const user = await User.findById(tx.user);
+        if (user) {
+          user.investedBalance += tx.amount;
+          if (!tx.meta) tx.meta = {};
+          (tx.meta as Record<string, any>).balanceRestoredToInvested = true;
+          tx.markModified("meta");
+          await Promise.all([user.save(), tx.save()]);
+          console.log(`[Reconciliation] Restored $${tx.amount} to investedBalance for user ${user.username}`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[Reconciliation] Error reconciling matured investments:", err);
   }
 };
 

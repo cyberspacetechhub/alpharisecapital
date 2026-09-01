@@ -66,11 +66,11 @@ const Modal = ({
   children: React.ReactNode;
 }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-    <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto z-10">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto z-10 text-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -81,7 +81,7 @@ const Modal = ({
   </div>
 );
 
-const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent";
+const inputClass = "w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]";
 
 export default function ExecutorLoansPage() {
   const qc = useQueryClient();
@@ -197,24 +197,23 @@ export default function ExecutorLoansPage() {
       creditScore: u.creditScore,
     });
   };
-
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-gray-800">Loans & Risk Management</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Control credit limits, approve trader loans, and manage terms.</p>
+          <h1 className="text-xl font-bold text-white">Loans & Risk Management</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Control credit limits, approve trader loans, and manage terms.</p>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex bg-gray-100 rounded-xl p-1 shrink-0 border border-gray-200">
+        <div className="flex bg-[#0e1520] rounded-2xl p-1 shrink-0 border border-white/10">
           {(["offers", "applications", "limits"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase ${
-                activeTab === tab ? "bg-white text-gray-800 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase cursor-pointer ${
+                activeTab === tab ? "bg-[#00c076] text-[#080c10] shadow-sm font-black" : "text-slate-400 hover:text-white"
               }`}
             >
               {tab}
@@ -227,52 +226,52 @@ export default function ExecutorLoansPage() {
       {activeTab === "offers" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase">Registered Packages</h2>
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Packages</h2>
             <button
               onClick={() => {
                 setOfferModal(true);
                 setServerError("");
               }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#1a3a2a] text-white text-xs font-semibold rounded-xl hover:bg-[#2d6a4f] transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#00c076] text-[#080c10] text-xs font-black rounded-xl hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 cursor-pointer"
             >
-              Create Loan Offer
+              + Create Loan Offer
             </button>
           </div>
 
           {offersLoading ? (
-            <div className="h-32 bg-gray-200 animate-pulse rounded-2xl" />
+            <div className="h-32 bg-white/5 animate-pulse rounded-3xl" />
           ) : offers.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-sm text-gray-400">
+            <div className="bg-[#121822] rounded-3xl border border-white/10 py-16 text-center text-xs text-slate-500">
               No packages found. Create one above to get started.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {offers.map((o) => (
-                <div key={o._id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
+                <div key={o._id} className="bg-[#121822] rounded-3xl border border-white/10 p-5 shadow-sm flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-gray-800">{o.title}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        o.isActive ? "bg-green-50 text-green-700 border border-green-150" : "bg-gray-100 text-gray-500"
+                      <span className="text-sm font-bold text-white">{o.title}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                        o.isActive ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-white/5 text-slate-400 border border-white/10"
                       }`}>
                         {o.isActive ? "Active" : "Disabled"}
                       </span>
                     </div>
-                    {o.description && <p className="text-xs text-gray-400 mb-3">{o.description}</p>}
-                    <div className="text-xs text-gray-500 space-y-1 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 mb-4">
+                    {o.description && <p className="text-xs text-slate-400 mb-3">{o.description}</p>}
+                    <div className="text-xs text-slate-300 space-y-1.5 bg-[#0e1520] p-3 rounded-2xl border border-white/10 mb-4">
                       <div className="flex justify-between">
-                        <span>Term:</span>
-                        <strong className="text-gray-700">{o.durationDays} Days</strong>
+                        <span className="text-slate-400">Term:</span>
+                        <strong className="text-white font-mono">{o.durationDays} Days</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Interest:</span>
-                        <strong className="text-gray-700">
+                        <span className="text-slate-400">Interest:</span>
+                        <strong className="text-[#00e676] font-mono">
                           {o.interestRate}% ({o.interestType})
                         </strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Limits:</span>
-                        <strong className="text-gray-700">
+                        <span className="text-slate-400">Limits:</span>
+                        <strong className="text-white font-mono">
                           {formatCurrency(o.minAmount)} - {formatCurrency(o.maxAmount)}
                         </strong>
                       </div>
@@ -280,13 +279,13 @@ export default function ExecutorLoansPage() {
                   </div>
                   <button
                     onClick={() => toggleOfferMutation.mutate(o._id)}
-                    className={`w-full py-2 rounded-xl text-xs font-semibold border transition-all ${
+                    className={`w-full py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                       o.isActive
-                        ? "bg-gray-100 border-gray-250 text-gray-600 hover:bg-gray-200"
-                        : "bg-green-50 border-green-150 text-green-700 hover:bg-green-100"
+                        ? "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                        : "bg-emerald-500/15 border-emerald-500/30 text-[#00e676] hover:bg-emerald-500/25"
                     }`}
                   >
-                    {o.isActive ? "Disable package" : "Enable package"}
+                    {o.isActive ? "Disable Package" : "Enable Package"}
                   </button>
                 </div>
               ))}
@@ -297,22 +296,22 @@ export default function ExecutorLoansPage() {
 
       {/* Applications Tab */}
       {activeTab === "applications" && (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-50">
-            <h2 className="text-sm font-semibold text-gray-800">Borrow Applications</h2>
+        <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+            <h2 className="text-sm font-bold text-white">Borrow Applications</h2>
           </div>
 
           {appsLoading ? (
             <div className="p-6 space-y-2">
-              <div className="h-10 bg-gray-200 animate-pulse rounded-xl" />
+              <div className="h-10 bg-white/5 animate-pulse rounded-2xl" />
             </div>
           ) : applications.length === 0 ? (
-            <div className="p-12 text-center text-sm text-gray-400">No applications found.</div>
+            <div className="p-12 text-center text-xs text-slate-500">No applications found.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm border-collapse">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                  <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                     <th className="px-5 py-3">Applied</th>
                     <th className="px-5 py-3">Client</th>
                     <th className="px-5 py-3">Offer / Terms</th>
@@ -323,56 +322,56 @@ export default function ExecutorLoansPage() {
                     <th className="px-5 py-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-white/5 text-slate-300">
                   {applications.map((app) => {
                     const u = app.user ?? {};
                     const isPending = app.status === "pending";
 
                     return (
-                      <tr key={app._id} className="hover:bg-gray-50/40">
-                        <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                      <tr key={app._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-5 py-4 text-xs text-slate-400 font-mono whitespace-nowrap">
                           {formatDate(app.createdAt)}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-semibold text-gray-800">{u.username ?? "Unknown"}</div>
-                          <div className="text-[10px] text-gray-400 font-mono">
-                            Cred: {u.creditScore} • Limit: {formatCurrency(u.loanLimit ?? 0)}
+                          <div className="font-bold text-white">{u.username ?? "Unknown"}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            Score: {u.creditScore} • Limit: {formatCurrency(u.loanLimit ?? 0)}
                           </div>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-800">{app.offer?.title ?? "Loan"}</div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="font-bold text-white">{app.offer?.title ?? "Loan"}</div>
+                          <div className="text-[10px] text-[#00e676] font-mono">
                             {app.interestRate}% ({app.interestType}) • {app.durationDays} Days
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-right font-bold text-gray-800 whitespace-nowrap">
+                        <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
                           {formatCurrency(app.requestedAmount)}
                         </td>
-                        <td className="px-5 py-4 text-right font-bold text-gray-800 whitespace-nowrap">
+                        <td className="px-5 py-4 text-right font-bold text-white font-mono whitespace-nowrap">
                           {formatCurrency(app.amountDue)}
                         </td>
-                        <td className="px-5 py-4 text-right text-emerald-600 font-medium whitespace-nowrap">
+                        <td className="px-5 py-4 text-right text-[#00e676] font-bold font-mono whitespace-nowrap">
                           {formatCurrency(app.repaidAmount)}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${
+                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                             app.status === "active"
-                              ? "bg-green-50 text-green-700"
+                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
                               : app.status === "pending"
-                              ? "bg-yellow-50 text-yellow-700"
+                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
                               : app.status === "repaid"
-                              ? "bg-blue-50 text-blue-700"
-                              : "bg-red-50 text-red-700"
+                              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
+                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                           }`}>
                             {app.status}
                           </span>
                         </td>
                         <td className="px-5 py-4 text-center whitespace-nowrap">
                           {isPending ? (
-                            <div className="flex justify-center gap-1.5">
+                            <div className="flex justify-center gap-2">
                               <button
                                 onClick={() => approveLoanMutation.mutate(app._id)}
-                                className="text-xs px-2.5 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-bold"
+                                className="text-xs px-3 py-1 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl font-black transition-all cursor-pointer shadow-sm"
                               >
                                 Approve
                               </button>
@@ -381,13 +380,13 @@ export default function ExecutorLoansPage() {
                                   setRejectTarget(app._id);
                                   setRejectReason("");
                                 }}
-                                className="text-xs px-2.5 py-1.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg font-bold"
+                                className="text-xs px-3 py-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 rounded-xl font-bold transition-all cursor-pointer"
                               >
                                 Reject
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-slate-600">—</span>
                           )}
                         </td>
                       </tr>
@@ -404,15 +403,15 @@ export default function ExecutorLoansPage() {
       {activeTab === "limits" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* General Limits Form */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4 h-fit">
-            <h3 className="text-sm font-semibold text-gray-800 border-b border-gray-50 pb-2">Global Limit Settings</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 shadow-sm space-y-4 h-fit">
+            <h3 className="text-sm font-bold text-white border-b border-white/10 pb-3">Global Limit Settings</h3>
 
-            <div className="bg-[#f0f7f4] border border-green-100 text-xs text-[#2d6a4f] p-3.5 rounded-2xl space-y-1">
-              <div>Current Default Limit:</div>
-              <strong className="text-sm font-mono block text-[#1a3a2a]">
+            <div className="bg-[#0e1520] border border-[#00c076]/30 text-xs text-slate-300 p-4 rounded-2xl space-y-1.5">
+              <div className="text-slate-400">Current Default Limit:</div>
+              <strong className="text-base font-mono block text-[#00e676]">
                 {generalLimitLoading ? "..." : formatCurrency(generalLoanLimit)}
               </strong>
-              <div className="text-[10px] text-gray-400 pt-1 border-t border-emerald-100/50 mt-1.5">
+              <div className="text-[10px] text-slate-400 pt-1.5 border-t border-white/10 mt-1.5 leading-relaxed">
                 Note: Updating updates the limit of all clients who do not have custom settings.
               </div>
             </div>
@@ -425,10 +424,10 @@ export default function ExecutorLoansPage() {
                   updateGeneralLimitMutation.mutate(amt);
                 }
               }}
-              className="space-y-3"
+              className="space-y-4"
             >
               <div>
-                <label className="block text-xs text-gray-500 font-semibold mb-1">Set General Loan Limit ($)</label>
+                <label className="block text-xs text-slate-300 font-bold mb-1">Set General Loan Limit ($)</label>
                 <input
                   type="number"
                   required
@@ -442,7 +441,7 @@ export default function ExecutorLoansPage() {
               <button
                 type="submit"
                 disabled={updateGeneralLimitMutation.isPending || !generalLimitInput}
-                className="w-full py-2.5 bg-[#1a3a2a] hover:bg-[#2d6a4f] text-white text-xs font-semibold rounded-xl transition-all"
+                className="w-full py-3 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all shadow-md shadow-[#00c076]/20 cursor-pointer disabled:opacity-50"
               >
                 {updateGeneralLimitMutation.isPending ? "Updating..." : "Update Global Default"}
               </button>
@@ -450,20 +449,20 @@ export default function ExecutorLoansPage() {
           </div>
 
           {/* User Limits Table */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50">
-              <h3 className="text-sm font-semibold text-gray-800">Client Settings</h3>
+          <div className="lg:col-span-2 bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h3 className="text-sm font-bold text-white">Client Settings</h3>
             </div>
 
             {tradersLoading ? (
               <div className="p-6 space-y-2">
-                <div className="h-10 bg-gray-200 animate-pulse rounded-xl" />
+                <div className="h-10 bg-white/5 animate-pulse rounded-2xl" />
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Client</th>
                       <th className="px-5 py-3 text-center">Credit Score</th>
                       <th className="px-5 py-3 text-right">Loan Limit</th>
@@ -471,22 +470,22 @@ export default function ExecutorLoansPage() {
                       <th className="px-5 py-3 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5 text-slate-300">
                     {traders.map((u: any) => (
-                      <tr key={u._id} className="hover:bg-gray-50/40">
+                      <tr key={u._id} className="hover:bg-white/5 transition-colors">
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="font-semibold text-gray-800">{u.username}</div>
-                          <div className="text-[10px] text-gray-400 font-mono">{u.email}</div>
+                          <div className="font-bold text-white">{u.username}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{u.email}</div>
                         </td>
-                        <td className="px-5 py-4 text-center font-bold text-gray-700 whitespace-nowrap">
+                        <td className="px-5 py-4 text-center font-mono font-bold text-blue-400 whitespace-nowrap">
                           {u.creditScore ?? 100}
                         </td>
-                        <td className="px-5 py-4 text-right font-bold text-[#2d6a4f] whitespace-nowrap">
+                        <td className="px-5 py-4 text-right font-mono font-bold text-[#00e676] whitespace-nowrap">
                           {formatCurrency(u.loanLimit ?? 0)}
                         </td>
                         <td className="px-5 py-4 text-center whitespace-nowrap">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                            u.isCustomLoanLimit ? "bg-orange-50 text-orange-600 border border-orange-100" : "bg-gray-50 text-gray-400"
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            u.isCustomLoanLimit ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10"
                           }`}>
                             {u.isCustomLoanLimit ? "Custom" : "Default"}
                           </span>
@@ -494,7 +493,7 @@ export default function ExecutorLoansPage() {
                         <td className="px-5 py-4 text-center whitespace-nowrap">
                           <button
                             onClick={() => handleOpenLimitModal(u)}
-                            className="text-xs px-2.5 py-1 text-[#2d6a4f] font-semibold hover:underline"
+                            className="text-xs px-2.5 py-1 text-[#00e676] font-bold hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -514,23 +513,23 @@ export default function ExecutorLoansPage() {
         <Modal title="Create Loan Offer" onClose={() => setOfferModal(false)}>
           <form onSubmit={handleOfferSubmit(onOfferSubmit)} className="space-y-4" noValidate>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Package Title <span className="text-red-400">*</span></label>
-              <input {...registerOffer("title", { required: "Title is required" })} placeholder="e.g. Bronze Business Credit" className={inputClass} />
-              {offerErrors.title && <p className="text-xs text-red-500 mt-1">{offerErrors.title.message}</p>}
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Package Title <span className="text-rose-400">*</span></label>
+              <input {...registerOffer("title", { required: "Title is required" })} placeholder="e.g. Tier 1 Business Credit" className={inputClass} />
+              {offerErrors.title && <p className="text-xs text-rose-400 mt-1">{offerErrors.title.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Description</label>
               <input {...registerOffer("description")} placeholder="Short summary" className={inputClass} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Interest Rate (%) <span className="text-red-400">*</span></label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Interest Rate (%) <span className="text-rose-400">*</span></label>
                 <input type="number" step="0.01" {...registerOffer("interestRate", { required: true, min: 0.1 })} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Interest Type <span className="text-red-400">*</span></label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Interest Type <span className="text-rose-400">*</span></label>
                 <select {...registerOffer("interestType")} className={inputClass}>
                   <option value="flat">Flat Rate</option>
                   <option value="compound">Compound</option>
@@ -540,38 +539,38 @@ export default function ExecutorLoansPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Min Amount ($) <span className="text-red-400">*</span></label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Min Amount ($) <span className="text-rose-400">*</span></label>
                 <input type="number" {...registerOffer("minAmount", { required: true, min: 1 })} className={inputClass} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Max Amount ($) <span className="text-red-400">*</span></label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Max Amount ($) <span className="text-rose-400">*</span></label>
                 <input type="number" {...registerOffer("maxAmount", { required: true, min: 1 })} className={inputClass} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Duration (Days) <span className="text-red-400">*</span></label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Duration (Days) <span className="text-rose-400">*</span></label>
               <input type="number" {...registerOffer("durationDays", { required: true, min: 1 })} className={inputClass} />
             </div>
 
             {serverError && (
-              <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-600 rounded-xl">
-                {serverError}
+              <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-2xl font-bold">
+                ✕ {serverError}
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setOfferModal(false)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={createOfferMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl bg-[#1a3a2a] text-white text-xs font-semibold hover:bg-[#2d6a4f] transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-md shadow-[#00c076]/20 cursor-pointer"
               >
                 {createOfferMutation.isPending ? "Creating..." : "Create Offer"}
               </button>
@@ -585,45 +584,45 @@ export default function ExecutorLoansPage() {
         <Modal title={`Edit limit: ${limitModal.username}`} onClose={() => setLimitModal(null)}>
           <form onSubmit={handleLimitSubmit(onLimitSubmit)} className="space-y-4" noValidate>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Credit Score <span className="text-red-400">*</span></label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Credit Score <span className="text-rose-400">*</span></label>
               <input
                 type="number"
                 {...registerLimit("creditScore", { required: "Credit score is required", min: 0, max: 1000 })}
                 className={inputClass}
               />
-              {limitErrors.creditScore && <p className="text-xs text-red-500 mt-1">{limitErrors.creditScore.message}</p>}
+              {limitErrors.creditScore && <p className="text-xs text-rose-400 mt-1">{limitErrors.creditScore.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Custom Loan Limit ($) <span className="text-red-400">*</span></label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Custom Loan Limit ($) <span className="text-rose-400">*</span></label>
               <input
                 type="number"
                 {...registerLimit("loanLimit", { required: "Limit is required", min: 0 })}
                 className={inputClass}
               />
-              {limitErrors.loanLimit && <p className="text-xs text-red-500 mt-1">{limitErrors.loanLimit.message}</p>}
+              {limitErrors.loanLimit && <p className="text-xs text-rose-400 mt-1">{limitErrors.loanLimit.message}</p>}
             </div>
 
             {serverError && (
-              <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-600 rounded-xl">
-                {serverError}
+              <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-2xl font-bold">
+                ✕ {serverError}
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setLimitModal(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={updateLimitMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl bg-[#2d6a4f] text-white text-xs font-semibold hover:bg-[#1a3a2a] transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all disabled:opacity-60 flex items-center justify-center gap-1.5 shadow-md shadow-[#00c076]/20 cursor-pointer"
               >
-                {updateLimitMutation.isPending ? "Saving..." : "Save limit settings"}
+                {updateLimitMutation.isPending ? "Saving..." : "Save Limit Settings"}
               </button>
             </div>
           </form>
@@ -635,7 +634,7 @@ export default function ExecutorLoansPage() {
         <Modal title="Reject Loan Application" onClose={() => setRejectTarget(null)}>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Reason for rejection</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Reason for rejection</label>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
@@ -644,17 +643,17 @@ export default function ExecutorLoansPage() {
                 className={inputClass}
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-3 border-t border-white/10">
               <button
                 onClick={() => setRejectTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => rejectLoanMutation.mutate({ id: rejectTarget, reason: rejectReason })}
                 disabled={rejectLoanMutation.isPending || !rejectReason.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 transition-colors disabled:opacity-60 cursor-pointer"
               >
                 Reject Application
               </button>

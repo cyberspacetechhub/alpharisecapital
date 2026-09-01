@@ -9,6 +9,7 @@ import { LoanApplication } from "../models/loan.model";
 import { AppError } from "../utils/AppError";
 import { uploadImage, uploadBuffer } from "./cloudinary.service";
 import { UpdateProfileInput, KycSubmitInput } from "../utils/validators/user.validator";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
 
 // ─── Get My Full Profile ──────────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ export const getMyProfile = async (userId: string) => {
 export const getMyDashboard = async (userId: string) => {
   const [user, activeInvestments, openPositions, activeLoans] = await Promise.all([
     User.findById(userId)
-      .select("username email balance investedBalance pendingWithdrawal totalDeposited totalWithdrawn totalInvested totalEarnings creditScore loanLimit kycStatus isVerified")
+      .select("username email balance investedBalance pendingWithdrawal totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified")
       .lean(),
     Transaction.countDocuments({ user: userId, type: { $in: ["investment", "reinvestment"] }, status: "approved" }),
     Position.countDocuments({ user: userId, status: "open" }),
@@ -37,6 +38,7 @@ export const getMyDashboard = async (userId: string) => {
 
   return {
     ...user,
+    bonus: user.bonus || 0,
     activeInvestments,
     openPositions,
     activeLoans,
@@ -261,5 +263,200 @@ export const getExecutorDashboardStats = async () => {
     pendingInvestmentsCount: invStatsMap["pending"] || 0,
     totalPendingTransactions: pendingTxCount,
     pendingKycCount: kycStats,
+  };
+};
+
+// ─── Executor: Impersonate Trader Account ────────────────────────────────────
+
+export const impersonateTrader = async (traderId: string, executorId: string, ip: string, userAgent: string) => {
+  const [executor, trader] = await Promise.all([
+    User.findById(executorId).populate("profile"),
+    User.findById(traderId).populate("profile").select("+refreshToken"),
+  ]);
+
+  if (!executor) throw new AppError("Executor session not found", 401);
+  const execProfile = executor.profile as any;
+  if (!execProfile || execProfile.type !== "Executor") {
+    throw new AppError("Unauthorized: Only Executors can impersonate traders", 403);
+  }
+
+  if (!trader) throw new AppError("Trader account not found", 404);
+  const traderProfile = trader.profile as any;
+  if (!traderProfile || traderProfile.type !== "Trader") {
+    throw new AppError("Can only impersonate trader accounts", 400);
+  }
+
+  const accessToken = generateAccessToken(String(trader._id));
+  const refreshToken = generateRefreshToken(String(trader._id));
+
+  trader.refreshToken = await bcrypt.hash(refreshToken, 10);
+  trader.lastLogin = new Date();
+  trader.lastIp = ip;
+  trader.loginHistory.push({ ip, userAgent: `[Admin Impersonation] ${userAgent}`, at: new Date() });
+  if (trader.loginHistory.length > 20) trader.loginHistory = trader.loginHistory.slice(-20);
+  await trader.save();
+
+  return {
+    accessToken,
+    refreshToken,
+    user: {
+      id: String(trader._id),
+      username: trader.username,
+      email: trader.email,
+      type: "Trader" as const,
+    },
+  };
+};
+
+// ─── Executor: Unverify Trader ───────────────────────────────────────────────
+
+export const unverifyTrader = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("Trader not found", 404);
+  user.isVerified = false;
+  user.kycStatus = "none";
+  await user.save();
+  return { isVerified: user.isVerified, kycStatus: user.kycStatus };
+};
+
+// ─── Executor: Balance Actions & Debits ──────────────────────────────────────
+
+export type BalanceActionType =
+  | "credit_balance"
+  | "credit_profit"
+  | "credit_bonus"
+  | "clear_available_balance"
+  | "clear_all_balances"
+  | "debit";
+
+export interface ManageBalanceInput {
+  action: BalanceActionType;
+  amount?: number;
+  targetBalance?: "main" | "trading" | "profit" | "bonus";
+  memo?: string;
+}
+
+export const manageTraderBalance = async (
+  userId: string,
+  executorId: string,
+  data: ManageBalanceInput
+) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("Trader not found", 404);
+
+  const { action, amount = 0, targetBalance = "main", memo = "" } = data;
+  const numAmount = Math.abs(Number(amount));
+  const reference = `ADM-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  let txType: "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment" | "bonus" | "adjustment" | "admin_credit" | "admin_debit" = "adjustment";
+  let txAmount: number = numAmount;
+  let txDescription: string = memo || action;
+
+  switch (action) {
+    case "credit_balance": {
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new AppError("Amount must be greater than 0", 400);
+      }
+      user.balance += numAmount;
+      user.totalDeposited += numAmount;
+      txType = "admin_credit";
+      txDescription = memo || `Admin balance credit of $${numAmount.toLocaleString()}`;
+      break;
+    }
+    case "credit_profit": {
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new AppError("Amount must be greater than 0", 400);
+      }
+      user.totalEarnings += numAmount;
+      txType = "bonus";
+      txDescription = memo || `Admin profit credit of $${numAmount.toLocaleString()}`;
+      break;
+    }
+    case "credit_bonus": {
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new AppError("Amount must be greater than 0", 400);
+      }
+      user.bonus = (user.bonus || 0) + numAmount;
+      txType = "bonus";
+      txDescription = memo || `Admin bonus credit of $${numAmount.toLocaleString()}`;
+      break;
+    }
+    case "clear_available_balance": {
+      const cleared = user.balance;
+      user.balance = 0;
+      txType = "adjustment";
+      txAmount = cleared;
+      txDescription = memo || `Admin cleared available balance (was $${cleared.toLocaleString()})`;
+      break;
+    }
+    case "clear_all_balances": {
+      const prevSummary = `Balance: $${user.balance}, Trading: $${user.investedBalance}, Profit: $${user.totalEarnings}, Bonus: $${user.bonus || 0}`;
+      user.balance = 0;
+      user.investedBalance = 0;
+      user.totalEarnings = 0;
+      user.bonus = 0;
+      txType = "adjustment";
+      txAmount = 0;
+      txDescription = memo || `Admin cleared all balances (${prevSummary})`;
+      break;
+    }
+    case "debit": {
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new AppError("Debit amount must be greater than 0", 400);
+      }
+      txType = "admin_debit";
+      if (targetBalance === "main") {
+        user.balance = Math.max(0, user.balance - numAmount);
+        txDescription = memo || `Admin debited main balance by $${numAmount.toLocaleString()}`;
+      } else if (targetBalance === "trading") {
+        user.investedBalance = Math.max(0, user.investedBalance - numAmount);
+        txDescription = memo || `Admin debited trading balance by $${numAmount.toLocaleString()}`;
+      } else if (targetBalance === "profit") {
+        user.totalEarnings = Math.max(0, user.totalEarnings - numAmount);
+        txDescription = memo || `Admin debited profit balance by $${numAmount.toLocaleString()}`;
+      } else if (targetBalance === "bonus") {
+        user.bonus = Math.max(0, (user.bonus || 0) - numAmount);
+        txDescription = memo || `Admin debited bonus balance by $${numAmount.toLocaleString()}`;
+      } else {
+        throw new AppError("Invalid target balance for debit", 400);
+      }
+      break;
+    }
+    default:
+      throw new AppError("Invalid balance action", 400);
+  }
+
+  await user.save();
+
+  // Create audit transaction record
+  const transaction = await Transaction.create({
+    user: user._id,
+    type: txType,
+    amount: txAmount,
+    status: "approved",
+    reference,
+    meta: {
+      action,
+      targetBalance,
+      memo: txDescription,
+      performedBy: executorId,
+      timestamp: new Date(),
+    },
+    reviewedBy: new mongoose.Types.ObjectId(executorId),
+    reviewedAt: new Date(),
+  });
+
+  return {
+    user: {
+      id: String(user._id),
+      username: user.username,
+      balance: user.balance,
+      investedBalance: user.investedBalance,
+      totalEarnings: user.totalEarnings,
+      bonus: user.bonus || 0,
+      totalDeposited: user.totalDeposited,
+      totalWithdrawn: user.totalWithdrawn,
+    },
+    transaction,
   };
 };

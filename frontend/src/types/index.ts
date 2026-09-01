@@ -55,7 +55,7 @@ export interface Transaction {
   user: string | User;
   type: "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment";
   amount: number;
-  status: "pending" | "approved" | "rejected" | "completed";
+  status: "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested";
   reference: string;
   methodId?: string;
   planId?: string;

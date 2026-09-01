@@ -8,84 +8,215 @@
   box-sizing: border-box;
 }
 
+html,
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  background-color: #f4f4f4;
-  color: #222;
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background-color: #0b0f14;
+  color: #f8fafc;
+  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
 
 #root {
   min-height: 100vh;
+  background-color: #0b0f14;
+  color: #f8fafc;
 }
 
-/* ─── Premium Dark Theme Engine ─── */
-html.dark {
-  color-scheme: dark;
+/* Custom modern dark scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
 }
 
-html.dark body {
-  background-color: #0b0f14 !important;
-  color: #f8fafc !important;
+/* Selection highlight */
+::selection {
+  background-color: rgba(0, 192, 118, 0.25);
+  color: #00e676;
 }
 
-/* Base surface overrides in dark mode */
-html.dark .bg-white {
+/* ─── Base Surface & Container Dark Overrides ─── */
+.bg-white {
   background-color: #121822 !important;
   color: #f8fafc;
 }
 
-html.dark .bg-gray-50,
-html.dark .bg-slate-50,
-html.dark .bg-\[\#f0f7f4\],
-html.dark .bg-\[\#f4f4f4\] {
+.bg-gray-50,
+.bg-slate-50,
+.bg-\[\#f0f7f4\],
+.bg-\[\#f5f8f5\],
+.bg-\[\#f4f4f4\] {
   background-color: #0b0f14 !important;
 }
 
-/* Subtle crisp borders for dark containers */
-html.dark .border-gray-100,
-html.dark .border-gray-50,
-html.dark .border-slate-100,
-html.dark .border-slate-200 {
+.bg-gray-100,
+.bg-slate-100 {
+  background-color: #182232 !important;
+}
+
+.bg-gray-200,
+.bg-slate-200 {
+  background-color: #233044 !important;
+}
+
+/* Crisp subtle borders for dark containers */
+.border-gray-50,
+.border-gray-100,
+.border-gray-200,
+.border-slate-50,
+.border-slate-100,
+.border-slate-150,
+.border-slate-200 {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* High-contrast text adaptations */
-html.dark .text-slate-850,
-html.dark .text-slate-855,
-html.dark .text-gray-800,
-html.dark .text-gray-900,
-html.dark .text-gray-700 {
+.border-gray-300,
+.border-slate-300,
+.border-slate-350 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.divide-gray-50,
+.divide-gray-100,
+.divide-slate-100,
+.divide-slate-200 {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* High-contrast typography */
+.text-slate-850,
+.text-slate-855,
+.text-gray-800,
+.text-gray-900,
+.text-gray-700 {
   color: #f8fafc !important;
 }
 
-html.dark .text-gray-600,
-html.dark .text-gray-500,
-html.dark .text-slate-500,
-html.dark .text-slate-400 {
+.text-gray-600,
+.text-gray-500,
+.text-slate-500,
+.text-slate-400,
+.text-slate-450 {
   color: #94a3b8 !important;
 }
 
-html.dark .text-gray-400,
-html.dark .text-slate-350 {
+.text-gray-400,
+.text-slate-350 {
   color: #64748b !important;
 }
 
-/* Prominently preserve sharp green brand backgrounds and accents */
-html.dark .bg-\[\#1a3a2a\] {
-  background-color: #1a3a2a !important;
-  color: #ffffff !important;
+/* Form Controls (inputs, selects, textareas) */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background-color: #0e1520 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-html.dark .bg-\[\#2d6a4f\] {
-  background-color: #2d6a4f !important;
-  color: #ffffff !important;
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #00c076 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(0, 192, 118, 0.25) !important;
 }
 
-html.dark .text-\[\#2d6a4f\] {
-  color: #38a169 !important;
+input::placeholder,
+textarea::placeholder {
+  color: #475569 !important;
 }
 
-html.dark .text-\[\#1a3a2a\] {
-  color: #4ade80 !important;
+option {
+  background-color: #121822 !important;
+  color: #f8fafc !important;
+}
+
+/* ─── UPGRADED SHARP GREEN SYSTEM ─── */
+
+/* 1. Sharp text greens */
+.text-\[\#2d6a4f\],
+.text-\[\#1a3a2a\],
+.text-emerald-600,
+.text-emerald-700,
+.text-green-600,
+.text-green-700,
+.text-green-800 {
+  color: #00e676 !important;
+}
+
+/* 2. Primary sharp green action buttons and accents */
+button.bg-\[\#1a3a2a\],
+a.bg-\[\#1a3a2a\],
+div.bg-\[\#1a3a2a\],
+button.bg-\[\#2d6a4f\],
+a.bg-\[\#2d6a4f\] {
+  background-color: #00c076 !important;
+  color: #080c10 !important;
+  font-weight: 700 !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+}
+
+button.bg-\[\#1a3a2a\]:hover,
+a.bg-\[\#1a3a2a\]:hover,
+button.bg-\[\#2d6a4f\]:hover,
+a.bg-\[\#2d6a4f\]:hover,
+.hover\:bg-\[\#2d6a4f\]:hover,
+.hover\:bg-\[\#3a8a65\]:hover,
+.hover\:bg-\[\#388463\]:hover {
+  background-color: #00e676 !important;
+  color: #080c10 !important;
+}
+
+/* 3. Badges, tags, and soft green container highlights */
+.bg-\[\#e6f4ea\],
+.bg-emerald-50,
+.bg-green-50 {
+  background-color: rgba(0, 230, 118, 0.12) !important;
+  color: #00e676 !important;
+  border-color: rgba(0, 230, 118, 0.25) !important;
+}
+
+.border-\[\#c4e1ce\],
+.border-emerald-100,
+.border-emerald-200,
+.border-green-100,
+.border-green-200 {
+  border-color: rgba(0, 230, 118, 0.25) !important;
+}
+
+/* 4. Alert & status boxes */
+.bg-green-50.border-green-100 {
+  background-color: rgba(0, 230, 118, 0.1) !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+  color: #00e676 !important;
+}
+
+.bg-red-50.border-red-100 {
+  background-color: rgba(244, 63, 94, 0.1) !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
+  color: #fb7185 !important;
+}
+
+.bg-yellow-50.border-yellow-100,
+.bg-amber-50.border-amber-100 {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  color: #fbbf24 !important;
+}
+
+.bg-blue-50.border-blue-100 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  color: #60a5fa !important;
 }

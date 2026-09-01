@@ -1,8 +1,10 @@
 import cron from "node-cron";
 import { Transaction } from "../models/transaction.model";
-import { matureInvestment, expireUninvestedFunds, distributeDailyProfits, processMaturedPayout } from "../services/investment.service";
+import { matureInvestment, expireUninvestedFunds, distributeDailyProfits, processMaturedPayout, reconcileMaturedInvestments } from "../services/investment.service";
 
 export const startInvestmentMaturityJob = () => {
+  // Reconcile any active matured investments on startup
+  reconcileMaturedInvestments();
   // every 5 minutes — check for matured investments
   cron.schedule("*/5 * * * *", async () => {
     try {

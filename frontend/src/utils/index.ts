@@ -11,19 +11,19 @@ export const cn = (...classes: (string | undefined | false | null)[]) =>
   classes.filter(Boolean).join(" ");
 
 export const getPnLColor = (value: number) =>
-  value >= 0 ? "text-green-600" : "text-red-500";
+  value >= 0 ? "text-[#00e676]" : "text-rose-400";
 
 export const getStatusColor = (status: string) => {
   const map: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    approved: "bg-green-100 text-green-700",
-    completed: "bg-blue-100 text-blue-700",
-    rejected: "bg-red-100 text-red-700",
-    active: "bg-emerald-100 text-emerald-700",
-    repaid: "bg-gray-100 text-gray-600",
-    open: "bg-blue-100 text-blue-700",
-    closed: "bg-gray-100 text-gray-600",
-    liquidated: "bg-red-100 text-red-700",
+    pending: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
+    approved: "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30",
+    completed: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
+    rejected: "bg-rose-500/15 text-rose-300 border border-rose-500/30",
+    active: "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30",
+    repaid: "bg-slate-700/30 text-slate-300 border border-slate-600/30",
+    open: "bg-blue-500/15 text-blue-300 border border-blue-500/30",
+    closed: "bg-slate-700/30 text-slate-400 border border-slate-700/50",
+    liquidated: "bg-rose-500/15 text-rose-300 border border-rose-500/30",
   };
-  return map[status] ?? "bg-gray-100 text-gray-600";
+  return map[status] ?? "bg-slate-800 text-slate-300 border border-slate-700/50";
 };

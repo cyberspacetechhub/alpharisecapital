@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { transactionApi } from "../../../api/transaction.api";
-import { formatCurrency, formatDate, getStatusColor } from "../../../utils";
+import { formatCurrency, formatDate } from "../../../utils";
 import type { Transaction, User, ApiResponse } from "../../../types";
 
 type TxWithUser = Omit<Transaction, "user"> & { user: User };
@@ -69,11 +69,11 @@ export default function ExecutorTransactionsPage() {
   const isPending = (tx: TxWithUser) => tx.status === "pending" && (tx.type === "deposit" || tx.type === "withdrawal");
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-brand">Transactions</h1>
-        <p className="text-sm text-gray-500 mt-1">Review and manage all platform transactions</p>
+        <h1 className="text-xl font-bold text-white">Transactions Management</h1>
+        <p className="text-xs text-slate-400 mt-0.5">Review, approve, and audit platform deposits and withdrawals.</p>
       </div>
 
       {/* Filters */}
@@ -81,16 +81,16 @@ export default function ExecutorTransactionsPage() {
         <select
           value={type}
           onChange={(e) => { setType(e.target.value); setPage(1); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+          className="bg-[#0e1520] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#00c076]"
         >
           {TYPE_OPTS.map((t) => (
-            <option key={t} value={t}>{t ? typeLabel[t] ?? t : "All Types"}</option>
+            <option key={t} value={t}>{t ? typeLabel[t] ?? t : "All Transaction Types"}</option>
           ))}
         </select>
         <select
           value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+          className="bg-[#0e1520] border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-[#00c076]"
         >
           {STATUS_OPTS.map((s) => (
             <option key={s} value={s}>{s ? s.charAt(0).toUpperCase() + s.slice(1) : "All Statuses"}</option>
@@ -99,56 +99,62 @@ export default function ExecutorTransactionsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-[#121822] rounded-3xl border border-white/10 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-xs border-collapse">
+            <thead className="bg-[#0e1520] border-b border-white/10">
               <tr>
-                {["Reference", "Trader", "Type", "Amount", "Status", "Date", ""].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                {["Reference", "Trader", "Type", "Amount", "Status", "Date", "Action"].map((h) => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-white/5 text-slate-300">
               {isLoading
                 ? Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i}>
                       {Array.from({ length: 7 }).map((_, j) => (
-                        <td key={j} className="px-4 py-3"><div className="h-4 bg-gray-100 rounded animate-pulse w-24" /></td>
+                        <td key={j} className="px-5 py-4"><div className="h-4 bg-white/5 rounded animate-pulse w-24" /></td>
                       ))}
                     </tr>
                   ))
                 : txs.length === 0
                 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-400">No transactions found</td>
+                    <td colSpan={7} className="px-5 py-16 text-center text-slate-500 text-xs">No transactions found</td>
                   </tr>
                 )
                 : txs.map((tx) => (
-                  <tr key={tx._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600">{tx.reference}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-gray-800">{tx.user?.username ?? "—"}</div>
-                      <div className="text-xs text-gray-400">{tx.user?.email ?? ""}</div>
+                  <tr key={tx._id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-5 py-4 font-mono text-xs text-slate-400">{tx.reference}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="font-bold text-white">{tx.user?.username ?? "—"}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">{tx.user?.email ?? ""}</div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-light text-brand">
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white/5 border border-white/10 text-slate-300">
                         {typeLabel[tx.type] ?? tx.type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{formatCurrency(tx.amount)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(tx.status)}`}>
+                    <td className="px-5 py-4 font-bold text-white font-mono whitespace-nowrap">{formatCurrency(tx.amount)}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        tx.status === "approved" || tx.status === "completed"
+                          ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                          : tx.status === "pending"
+                          ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                          : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                      }`}>
                         {tx.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(tx.createdAt)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4 text-slate-400 text-xs font-mono whitespace-nowrap">{formatDate(tx.createdAt)}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
                       <button
                         onClick={() => setSelected(tx)}
-                        className="text-brand hover:underline text-xs font-medium"
+                        className="text-[#00e676] hover:underline text-xs font-bold cursor-pointer"
                       >
-                        View
+                        Inspect
                       </button>
                     </td>
                   </tr>
@@ -159,20 +165,20 @@ export default function ExecutorTransactionsPage() {
 
         {/* Pagination */}
         {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <span className="text-xs text-gray-500">Page {page} of {pages}</span>
+          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 text-xs">
+            <span className="text-slate-400">Page {page} of {pages}</span>
             <div className="flex gap-2">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                className="px-3 py-1.5 border border-white/10 text-slate-300 rounded-xl disabled:opacity-40 hover:bg-white/5 cursor-pointer font-bold"
               >
                 Prev
               </button>
               <button
                 disabled={page === pages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 text-xs border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                className="px-3 py-1.5 border border-white/10 text-slate-300 rounded-xl disabled:opacity-40 hover:bg-white/5 cursor-pointer font-bold"
               >
                 Next
               </button>
@@ -183,47 +189,53 @@ export default function ExecutorTransactionsPage() {
 
       {/* Detail Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-brand">Transaction Details</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto text-white">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <h2 className="text-base font-bold text-white">Transaction Details</h2>
+              <button onClick={() => setSelected(null)} className="text-slate-400 hover:text-white cursor-pointer text-xl leading-none">&times;</button>
             </div>
 
             <div className="p-6 space-y-5">
               {/* Status banner */}
-              <div className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium ${getStatusColor(selected.status)}`}>
-                <span className="capitalize">{selected.status}</span>
-                <span className="ml-auto font-mono text-xs">{selected.reference}</span>
+              <div className={`flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold ${
+                selected.status === "approved" || selected.status === "completed"
+                  ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                  : selected.status === "pending"
+                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                  : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+              }`}>
+                <span className="uppercase">{selected.status}</span>
+                <span className="font-mono text-slate-400">{selected.reference}</span>
               </div>
 
               {/* Trader info */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Trader</p>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Username</span>
-                    <span className="font-medium">{selected.user?.username ?? "—"}</span>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Client Overview</p>
+                <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Username</span>
+                    <span className="font-bold text-white">{selected.user?.username ?? "—"}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Email</span>
-                    <span className="font-medium">{selected.user?.email ?? "—"}</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Email</span>
+                    <span className="font-mono text-slate-300">{selected.user?.email ?? "—"}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Balance</span>
-                    <span className="font-medium">{selected.user?.balance != null ? formatCurrency(selected.user.balance) : "—"}</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Available Balance</span>
+                    <span className="font-bold text-[#00e676] font-mono">{selected.user?.balance != null ? formatCurrency(selected.user.balance) : "—"}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total Deposited</span>
-                    <span className="font-medium">{selected.user?.totalDeposited != null ? formatCurrency(selected.user.totalDeposited) : "—"}</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Total Deposited</span>
+                    <span className="font-mono text-white">{selected.user?.totalDeposited != null ? formatCurrency(selected.user.totalDeposited) : "—"}</span>
                   </div>
                 </div>
               </div>
 
               {/* Transaction info */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Transaction</p>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Transaction Details</p>
+                <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-2">
                   {[
                     ["Type", typeLabel[selected.type] ?? selected.type],
                     ["Amount", formatCurrency(selected.amount)],
@@ -231,9 +243,9 @@ export default function ExecutorTransactionsPage() {
                     ...(selected.reviewedAt ? [["Reviewed At", formatDate(selected.reviewedAt)]] : []),
                     ...(selected.rejectionReason ? [["Rejection Reason", selected.rejectionReason]] : []),
                   ].map(([label, value]) => (
-                    <div key={label} className="flex justify-between text-sm">
-                      <span className="text-gray-500">{label}</span>
-                      <span className="font-medium text-right max-w-[60%]">{value}</span>
+                    <div key={label} className="flex justify-between text-xs">
+                      <span className="text-slate-400">{label}</span>
+                      <span className="font-bold text-white text-right max-w-[60%]">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -242,12 +254,12 @@ export default function ExecutorTransactionsPage() {
               {/* Meta (proof URL, method name, etc.) */}
               {selected.meta && Object.keys(selected.meta).length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Additional Info</p>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Method Payload</p>
+                  <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-2 font-mono text-xs">
                     {Object.entries(selected.meta).map(([k, v]) => (
-                      <div key={k} className="flex justify-between text-sm">
-                        <span className="text-gray-500 capitalize">{k.replace(/([A-Z])/g, " $1")}</span>
-                        <span className="font-medium text-right max-w-[60%] break-all">{String(v ?? "—")}</span>
+                      <div key={k} className="flex justify-between text-xs">
+                        <span className="text-slate-400 capitalize">{k.replace(/([A-Z])/g, " $1")}</span>
+                        <span className="text-white font-bold text-right max-w-[60%] break-all">{String(v ?? "—")}</span>
                       </div>
                     ))}
                   </div>
@@ -257,16 +269,16 @@ export default function ExecutorTransactionsPage() {
               {/* Plan snapshot */}
               {selected.planSnapshot && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Plan</p>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Plan Details</p>
+                  <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-2">
                     {[
                       ["Name", selected.planSnapshot.name],
                       ["ROI", `${selected.planSnapshot.roiPercent}%`],
                       ["Duration", `${selected.planSnapshot.durationDays} days`],
                     ].map(([label, value]) => (
-                      <div key={label} className="flex justify-between text-sm">
-                        <span className="text-gray-500">{label}</span>
-                        <span className="font-medium">{value}</span>
+                      <div key={label} className="flex justify-between text-xs">
+                        <span className="text-slate-400">{label}</span>
+                        <span className="font-bold text-white">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -275,19 +287,19 @@ export default function ExecutorTransactionsPage() {
 
               {/* Actions */}
               {isPending(selected) && (
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-3 border-t border-white/10">
                   <button
                     onClick={() => handleApprove(selected)}
                     disabled={approveDeposit.isPending || approveWithdrawal.isPending}
-                    className="flex-1 bg-brand text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-accent transition-colors disabled:opacity-60"
+                    className="flex-1 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] py-3 rounded-xl text-xs font-black shadow-md shadow-[#00c076]/20 transition-all disabled:opacity-60 cursor-pointer"
                   >
-                    {approveDeposit.isPending || approveWithdrawal.isPending ? "Approving…" : "Approve"}
+                    {approveDeposit.isPending || approveWithdrawal.isPending ? "Approving…" : "Approve Transaction"}
                   </button>
                   <button
                     onClick={() => setRejectModal({ tx: selected, kind: selected.type as "deposit" | "withdrawal" })}
-                    className="flex-1 border border-red-200 text-red-600 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors"
+                    className="flex-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer"
                   >
-                    Reject
+                    Reject Transaction
                   </button>
                 </div>
               )}
@@ -298,35 +310,35 @@ export default function ExecutorTransactionsPage() {
 
       {/* Reject Modal */}
       {rejectModal && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
-            <h3 className="text-lg font-bold text-gray-800">Reject Transaction</h3>
-            <p className="text-sm text-gray-500">
-              Rejecting <span className="font-semibold">{rejectModal.tx.reference}</span> — {formatCurrency(rejectModal.tx.amount)}
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4 text-white">
+            <h3 className="text-base font-bold text-white">Reject Transaction</h3>
+            <p className="text-xs text-slate-400">
+              Rejecting <span className="font-bold text-white font-mono">{rejectModal.tx.reference}</span> — {formatCurrency(rejectModal.tx.amount)}
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Reason <span className="text-red-500">*</span></label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Reason for rejection <span className="text-rose-400">*</span></label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
-                placeholder="Provide a reason for rejection…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                placeholder="Provide a clear reason for rejection…"
+                className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-xs bg-[#0e1520] text-white focus:outline-none focus:border-[#00c076] resize-none"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={() => { setRejectModal(null); setReason(""); }}
-                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50"
+                className="flex-1 border border-white/10 text-slate-400 py-2.5 rounded-xl text-xs font-bold hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRejectSubmit}
                 disabled={!reason.trim() || rejectDeposit.isPending || rejectWithdrawal.isPending}
-                className="flex-1 bg-red-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-60"
+                className="flex-1 bg-rose-500 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-rose-600 disabled:opacity-60 transition-colors cursor-pointer"
               >
-                {rejectDeposit.isPending || rejectWithdrawal.isPending ? "Rejecting…" : "Confirm Reject"}
+                {rejectDeposit.isPending || rejectWithdrawal.isPending ? "Rejecting…" : "Confirm Rejection"}
               </button>
             </div>
           </div>

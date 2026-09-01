@@ -71,3 +71,28 @@ export const getExecutorStats = asyncHandler(async (req: AuthRequest, res: Respo
   const stats = await userService.getExecutorDashboardStats();
   res.json({ success: true, data: stats });
 });
+
+export const impersonateTrader = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const ip = req.ip ?? "unknown";
+  const userAgent = req.headers["user-agent"] ?? "unknown";
+  const result = await userService.impersonateTrader(req.params.id, req.userId!, ip, userAgent);
+  
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.json({ success: true, accessToken: result.accessToken, user: result.user });
+});
+
+export const unverifyTrader = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await userService.unverifyTrader(req.params.id);
+  res.json({ success: true, data: result });
+});
+
+export const manageTraderBalance = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await userService.manageTraderBalance(req.params.id, req.userId!, req.body);
+  res.json({ success: true, data: result });
+});

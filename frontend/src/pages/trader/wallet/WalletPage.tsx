@@ -164,17 +164,17 @@ export default function WalletPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Ticker tape header */}
-      <div className="bg-[#1a3a2a] text-white rounded-2xl p-3 overflow-hidden border border-white/5 shadow-sm">
+      <div className="bg-[#0e1520] text-white rounded-2xl p-3 overflow-hidden border border-white/10 shadow-sm">
         <div className="flex items-center gap-6 animate-pulse text-xs font-mono whitespace-nowrap overflow-x-auto scrollbar-none">
-          <span className="font-bold text-[10px] text-emerald-400 uppercase tracking-wider shrink-0">Live Ticker:</span>
+          <span className="font-bold text-[10px] text-[#00e676] uppercase tracking-wider shrink-0">Live Index:</span>
           {ASSETS.map((asset) => {
             const currentPrice = livePrices[asset.symbol] ?? asset.basePrice;
             const diffPercent = ((currentPrice - asset.basePrice) / asset.basePrice) * 100;
             return (
               <div key={asset.symbol} className="inline-flex items-center gap-1.5 shrink-0">
-                <span className="font-semibold text-white/80">{asset.symbol}</span>
+                <span className="font-bold text-slate-300">{asset.symbol}</span>
                 <span className="text-white">${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
-                <span className={`text-[10px] font-bold ${diffPercent >= 0 ? "text-green-400" : "text-red-400"}`}>
+                <span className={`text-[10px] font-bold ${diffPercent >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                   {diffPercent >= 0 ? "▲" : "▼"}{Math.abs(diffPercent).toFixed(2)}%
                 </span>
               </div>
@@ -186,26 +186,26 @@ export default function WalletPage() {
       {/* Header and Portfolio Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
-          <h1 className="text-xl font-bold text-gray-800">Markets & Crypto Assets</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Track live asset valuations derived from your account deposits.</p>
+          <h1 className="text-xl font-bold text-white">Markets & Crypto Custody</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Track real-time asset valuations and connected Web3 liquidity sources.</p>
         </div>
 
         {/* Portfolio Stats Card */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-3 shrink-0">
+        <div className="bg-[#121822] border border-white/10 rounded-3xl p-5 shadow-sm space-y-3 shrink-0 text-white">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400 font-bold uppercase">Live Portfolio Value</span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              netReturn >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Live Portfolio Valuation</span>
+            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+              netReturn >= 0 ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
             }`}>
               {netReturn >= 0 ? "+" : ""}{netReturnPercent.toFixed(2)}%
             </span>
           </div>
-          <div className="text-2xl font-bold text-gray-800 font-mono">
+          <div className="text-2xl font-bold text-white font-mono">
             {depositsLoading ? "$0.00" : formatCurrency(totalCurrentValue)}
           </div>
-          <div className="flex justify-between text-xs pt-1 border-t border-gray-50 text-gray-500">
-            <span>Net Invested: {formatCurrency(totalDeposited)}</span>
-            <span className={netReturn >= 0 ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
+          <div className="flex justify-between text-xs pt-2 border-t border-white/10 text-slate-400 font-mono">
+            <span>Deposited: {formatCurrency(totalDeposited)}</span>
+            <span className={netReturn >= 0 ? "text-[#00e676] font-bold" : "text-rose-400 font-bold"}>
               PnL: {netReturn >= 0 ? "+" : ""}{formatCurrency(netReturn)}
             </span>
           </div>
@@ -216,29 +216,29 @@ export default function WalletPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Mapped user deposits list */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-800 mb-4">My Asset Allocations</h2>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 shadow-sm text-white">
+            <h2 className="text-xs font-bold text-white uppercase tracking-wider mb-4">My Asset Allocations</h2>
 
             {depositsLoading ? (
               <div className="space-y-3">
-                <div className="h-12 bg-gray-250 animate-pulse rounded-xl" />
+                <div className="h-12 bg-white/5 animate-pulse rounded-xl" />
               </div>
             ) : mappedDeposits.length === 0 ? (
-              <div className="text-center py-8 text-xs text-gray-400">
-                No approved deposits found. Go to the Deposit page to load your wallet.
+              <div className="text-center py-8 text-xs text-slate-500">
+                No approved deposits found. Go to the Deposit page to load your account.
               </div>
             ) : (
               <div className="space-y-3">
                 {mappedDeposits.map((item) => (
-                  <div key={item._id} className="p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                  <div key={item._id} className="p-4 bg-[#0e1520] border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
-                        item.symbol === "BTC" ? "bg-orange-50 text-orange-500 border border-orange-100" :
-                        item.symbol === "ETH" ? "bg-indigo-50 text-indigo-500 border border-indigo-100" :
-                        item.symbol === "SOL" ? "bg-purple-50 text-purple-500 border border-purple-100" :
-                        item.symbol === "BNB" ? "bg-yellow-50 text-yellow-600 border border-yellow-100" :
-                        item.symbol === "XRP" ? "bg-blue-50 text-blue-500 border border-blue-100" :
-                        "bg-green-50 text-green-600 border border-green-100"
+                        item.symbol === "BTC" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" :
+                        item.symbol === "ETH" ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30" :
+                        item.symbol === "SOL" ? "bg-purple-500/15 text-purple-400 border border-purple-500/30" :
+                        item.symbol === "BNB" ? "bg-yellow-500/15 text-yellow-300 border border-yellow-500/30" :
+                        item.symbol === "XRP" ? "bg-blue-500/15 text-blue-400 border border-blue-500/30" :
+                        "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
                       }`}>
                         {item.symbol === "BTC" ? "₿" :
                          item.symbol === "ETH" ? "Ξ" :
@@ -250,20 +250,20 @@ export default function WalletPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-gray-800">{item.meta?.methodName || "Deposit"}</span>
-                          <span className="text-[9px] font-mono text-gray-400">Qty: {item.units.toFixed(5)} {item.symbol}</span>
+                          <span className="text-xs font-bold text-white">{item.meta?.methodName || "Deposit"}</span>
+                          <span className="text-[9px] font-mono text-slate-400">Qty: {item.units.toFixed(5)} {item.symbol}</span>
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-0.5">
+                        <div className="text-[10px] text-slate-500 mt-0.5 font-mono">
                           Deposited {formatCurrency(item.amount)} on {formatDate(item.createdAt)}
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <div className="text-xs font-bold text-gray-800 font-mono">
+                      <div className="text-xs font-bold text-white font-mono">
                         {formatCurrency(item.currentValue)}
                       </div>
-                      <span className={`text-[10px] font-bold ${item.profitOrLoss >= 0 ? "text-green-600" : "text-red-500"}`}>
+                      <span className={`text-[10px] font-bold font-mono ${item.profitOrLoss >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                         {item.profitOrLoss >= 0 ? "+" : ""}{item.profitOrLoss.toFixed(2)} ({item.pnlPercent.toFixed(2)}%)
                       </span>
                     </div>
@@ -274,57 +274,57 @@ export default function WalletPage() {
           </div>
 
           {/* Linked Custody Wallets */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm space-y-5">
+          <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 shadow-sm space-y-5 text-white">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-sm font-semibold text-gray-800">Linked Custody Wallets</h2>
-                <p className="text-[10px] text-gray-400 mt-0.5">Integrate external wallets to prove margin liquidity and credit thresholds.</p>
+                <h2 className="text-xs font-bold text-white uppercase tracking-wider">Linked Custody Wallets</h2>
+                <p className="text-[10px] text-slate-400 mt-0.5">Integrate external wallets to prove margin liquidity and credit thresholds.</p>
               </div>
               <button
                 onClick={() => navigate("/trader/wallet/connect")}
-                className="px-3.5 py-2 bg-[#1a3a2a] hover:bg-[#2d6a4f] text-white text-xs font-black rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-4 py-2 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-[#00c076]/20 cursor-pointer"
               >
                 <span>+</span> Link Wallet
               </button>
             </div>
 
             {wallets.length === 0 ? (
-              <div className="text-center py-6 text-xs text-gray-400 border border-dashed border-gray-150 rounded-2xl bg-gray-50/20">
-                No external wallets connected. Click "Link Wallet" to connect popular Web3 clients.
+              <div className="text-center py-6 text-xs text-slate-500 border border-dashed border-white/10 rounded-2xl bg-[#0e1520]">
+                No external wallets connected. Click "Link Wallet" to connect Web3 custody clients.
               </div>
             ) : (
               <div className="space-y-3">
                 {wallets.map((wallet) => (
-                  <div key={wallet._id} className="p-4 border border-gray-100 rounded-2xl flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                  <div key={wallet._id} className="p-4 bg-[#0e1520] border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-100">
+                      <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center font-bold text-xs shrink-0 border border-white/10 text-white">
                         {wallet.label.charAt(0)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-gray-800">{wallet.label}</span>
+                          <span className="text-xs font-bold text-white">{wallet.label}</span>
                           {wallet.isPrimary && (
-                            <span className="text-[9px] bg-emerald-50 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            <span className="text-[9px] bg-emerald-500/15 text-[#00e676] border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                               Primary
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400 block mt-0.5">
-                          Added {formatDate(wallet.createdAt)} • details encrypted
+                        <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">
+                          Added {formatDate(wallet.createdAt)} • Encrypted Key
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2.5">
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-                        wallet.isVerified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                        wallet.isVerified ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-amber-500/15 text-amber-300 border border-amber-500/30"
                       }`}>
                         {wallet.isVerified ? "Verified" : "Pending Audit"}
                       </span>
                       {!wallet.isPrimary && (
                         <button
                           onClick={() => setPrimaryMutation.mutate(wallet._id)}
-                          className="text-[10px] text-gray-400 hover:text-slate-700 font-bold px-2 py-1 rounded hover:bg-gray-100 transition-all"
+                          className="text-[10px] text-slate-400 hover:text-white font-bold px-2 py-1 rounded hover:bg-white/5 transition-all cursor-pointer"
                           disabled={setPrimaryMutation.isPending}
                         >
                           Make Primary
@@ -336,7 +336,7 @@ export default function WalletPage() {
                             removeWalletMutation.mutate(wallet._id);
                           }
                         }}
-                        className="text-[10px] text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded hover:bg-red-50 transition-all"
+                        className="text-[10px] text-rose-400 hover:text-rose-300 font-bold px-2 py-1 rounded hover:bg-rose-500/15 transition-all cursor-pointer"
                         disabled={removeWalletMutation.isPending}
                       >
                         Unlink
@@ -350,9 +350,9 @@ export default function WalletPage() {
         </div>
 
         {/* Right: Asset Market Rates Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4 h-fit">
-          <h2 className="text-sm font-semibold text-gray-800">Crypto Market Rates</h2>
-          <div className="divide-y divide-gray-100">
+        <div className="bg-[#121822] rounded-3xl border border-white/10 p-5 shadow-sm space-y-4 h-fit text-white">
+          <h2 className="text-xs font-bold text-white uppercase tracking-wider">Crypto Market Rates</h2>
+          <div className="divide-y divide-white/5 font-mono">
             {ASSETS.map((asset) => {
               const currentPrice = livePrices[asset.symbol] ?? asset.basePrice;
               const diffPercent = ((currentPrice - asset.basePrice) / asset.basePrice) * 100;
@@ -360,20 +360,20 @@ export default function WalletPage() {
               return (
                 <div key={asset.symbol} className="py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${asset.color}`}>
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs bg-white/5 border border-white/10 text-white`}>
                       {asset.icon}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-gray-700 block">{asset.symbol}/USDT</span>
-                      <span className="text-[9px] text-gray-400 block">{asset.name}</span>
+                      <span className="text-xs font-bold text-white block font-sans">{asset.symbol}/USDT</span>
+                      <span className="text-[9px] text-slate-500 block font-sans">{asset.name}</span>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-xs font-semibold text-gray-800 font-mono block">
+                    <span className="text-xs font-bold text-white font-mono block">
                       ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
-                    <span className={`text-[10px] font-bold ${diffPercent >= 0 ? "text-green-600" : "text-red-500"}`}>
+                    <span className={`text-[10px] font-bold ${diffPercent >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                       {diffPercent >= 0 ? "+" : ""}{diffPercent.toFixed(2)}%
                     </span>
                   </div>
@@ -383,7 +383,7 @@ export default function WalletPage() {
           </div>
           <button
             onClick={() => navigate("/trader/positions")}
-            className="w-full py-2.5 bg-[#f0f7f4] hover:bg-[#e0f0e8] text-[#2d6a4f] text-xs font-bold rounded-xl transition-colors text-center block"
+            className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[#00e676] text-xs font-bold rounded-xl transition-colors text-center block cursor-pointer"
           >
             Launch Margin Trader
           </button>

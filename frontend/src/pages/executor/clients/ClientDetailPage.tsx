@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../../../api/user.api";
 import { loanApi } from "../../../api/loan.api";
 import { walletLinkApi } from "../../../api/walletLink.api";
+import { useAuthStore } from "../../../store/auth.store";
 import { formatCurrency, formatDate } from "../../../utils";
 
 export default function ClientDetailPage() {
@@ -13,11 +14,28 @@ export default function ClientDetailPage() {
   const [kycChangeError, setKycChangeError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const currentUser = useAuthStore((s) => s.user);
+  const currentToken = useAuthStore((s) => s.accessToken);
+  const setImpersonation = useAuthStore((s) => s.setImpersonation);
+
+  // Impersonate state
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
   // Edit limit modal state
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [newLimit, setNewLimit] = useState("");
   const [newScore, setNewScore] = useState("");
   const [expandedWalletId, setExpandedWalletId] = useState<string | null>(null);
+
+  // Balance Action Modal state
+  const [balanceModalOpen, setBalanceModalOpen] = useState(false);
+  const [balanceAction, setBalanceAction] = useState<
+    "credit_balance" | "credit_profit" | "credit_bonus" | "clear_available_balance" | "clear_all_balances" | "debit"
+  >("credit_balance");
+  const [balanceAmount, setBalanceAmount] = useState("");
+  const [debitTarget, setDebitTarget] = useState<"main" | "trading" | "profit" | "bonus">("main");
+  const [balanceMemo, setBalanceMemo] = useState("");
+  const [balanceActionError, setBalanceActionError] = useState("");
 
   // Get Client details
   const { data: detailData, isLoading, error } = useQuery({
@@ -36,6 +54,33 @@ export default function ClientDetailPage() {
     },
     onError: (err: any) => {
       setKycChangeError(err?.response?.data?.message ?? "Failed to update KYC status");
+    },
+  });
+
+  const unverifyMutation = useMutation({
+    mutationFn: () => userApi.unverifyTrader(id!),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setSuccessMsg("Trader verification has been revoked & reset.");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setKycChangeError(err?.response?.data?.message ?? "Failed to unverify trader");
+    },
+  });
+
+  const balanceActionMutation = useMutation({
+    mutationFn: (payload: object) => userApi.manageTraderBalance(id!, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setBalanceModalOpen(false);
+      setBalanceAmount("");
+      setBalanceMemo("");
+      setSuccessMsg("Balance operation completed successfully!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setBalanceActionError(err?.response?.data?.message ?? "Balance operation failed");
     },
   });
 
@@ -81,11 +126,57 @@ export default function ClientDetailPage() {
     },
   });
 
+  const handleImpersonate = async () => {
+    try {
+      setKycChangeError("");
+      setIsImpersonating(true);
+      const res = await userApi.impersonateTrader(id!);
+      if (res.data?.success && currentUser && currentToken) {
+        setImpersonation(res.data.user, res.data.accessToken, currentUser, currentToken);
+        navigate("/trader/dashboard");
+      }
+    } catch (err: any) {
+      setKycChangeError(err?.response?.data?.message || "Failed to impersonate trader account");
+    } finally {
+      setIsImpersonating(false);
+    }
+  };
+
+  const openBalanceModal = (
+    action: "credit_balance" | "credit_profit" | "credit_bonus" | "clear_available_balance" | "clear_all_balances" | "debit"
+  ) => {
+    setBalanceAction(action);
+    setBalanceAmount("");
+    setBalanceMemo("");
+    setBalanceActionError("");
+    setBalanceModalOpen(true);
+  };
+
+  const handleSaveBalanceAction = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBalanceActionError("");
+
+    const isClear = balanceAction === "clear_available_balance" || balanceAction === "clear_all_balances";
+    const amt = Number(balanceAmount);
+
+    if (!isClear && (isNaN(amt) || amt <= 0)) {
+      setBalanceActionError("Please specify a valid positive amount");
+      return;
+    }
+
+    balanceActionMutation.mutate({
+      action: balanceAction,
+      amount: amt,
+      targetBalance: debitTarget,
+      memo: balanceMemo.trim(),
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto space-y-4 py-8">
-        <div className="h-12 bg-gray-200 animate-pulse rounded-2xl" />
-        <div className="h-48 bg-gray-200 animate-pulse rounded-2xl" />
+        <div className="h-12 bg-white/5 animate-pulse rounded-2xl border border-white/5" />
+        <div className="h-48 bg-white/5 animate-pulse rounded-2xl border border-white/5" />
       </div>
     );
   }
@@ -93,8 +184,8 @@ export default function ClientDetailPage() {
   if (error || !detailData) {
     return (
       <div className="max-w-6xl mx-auto py-12 text-center space-y-4">
-        <p className="text-sm text-gray-500">Failed to load trader detail records.</p>
-        <button onClick={() => navigate("/executor/clients")} className="text-xs px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold">
+        <p className="text-sm text-slate-400">Failed to load trader detail records.</p>
+        <button onClick={() => navigate("/executor/clients")} className="text-xs px-4 py-2 bg-white/10 hover:bg-white/15 text-white rounded-xl font-bold">
           Back to list
         </button>
       </div>
@@ -129,61 +220,167 @@ export default function ClientDetailPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-gray-400">
-        <button onClick={() => navigate("/executor/clients")} className="hover:underline">Clients</button>
+      <div className="flex items-center gap-2 text-xs text-slate-400">
+        <button onClick={() => navigate("/executor/clients")} className="hover:underline text-slate-400 hover:text-white">Clients</button>
         <span>/</span>
-        <span className="text-gray-600 font-semibold">{user.username}</span>
+        <span className="text-white font-bold">{user.username}</span>
       </div>
 
       {successMsg && (
-        <div className="p-3 bg-green-50 border border-green-100 text-xs text-emerald-700 rounded-xl">
-          {successMsg}
+        <div className="p-3.5 bg-emerald-500/15 border border-emerald-500/30 text-[#00e676] text-xs font-bold rounded-2xl shadow-sm flex items-center justify-between">
+          <span>✓ {successMsg}</span>
+          <button onClick={() => setSuccessMsg("")} className="text-slate-400 hover:text-white">✕</button>
+        </div>
+      )}
+
+      {kycChangeError && (
+        <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-bold rounded-2xl shadow-sm flex items-center justify-between">
+          <span>✕ {kycChangeError}</span>
+          <button onClick={() => setKycChangeError("")} className="text-slate-400 hover:text-white">✕</button>
         </div>
       )}
 
       {/* Hero card */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-[#121822] border border-white/10 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-emerald-50 text-[#2d6a4f] rounded-full flex items-center justify-center font-black text-lg">
+          <div className="w-14 h-14 bg-[#00c076]/20 border border-[#00c076]/30 text-[#00e676] rounded-2xl flex items-center justify-center font-black text-xl shadow-md shadow-[#00c076]/10">
             {user.username.charAt(0).toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-800">{user.username}</h2>
+              <h2 className="text-lg font-bold text-white">{user.username}</h2>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                user.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-750"
+                user.isActive
+                  ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                  : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
               }`}>
                 {user.isActive ? "ACTIVE" : "BLOCKED"}
               </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                user.isVerified
+                  ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+              }`}>
+                {user.isVerified ? "VERIFIED" : "UNVERIFIED"}
+              </span>
             </div>
-            <p className="text-xs text-gray-400 font-mono mt-0.5">{user.email}</p>
-            <p className="text-[10px] text-gray-400 mt-1">Country: {profileDetails.country || "—"} • Exper: {profileDetails.tradingExperience || "beginner"}</p>
+            <p className="text-xs text-slate-400 font-mono mt-0.5">{user.email}</p>
+            <p className="text-[10px] text-slate-400 mt-1">Country: {profileDetails.country || "—"} • Exper: {profileDetails.tradingExperience || "beginner"}</p>
           </div>
         </div>
 
         {/* Action controls */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
+          {/* Cross-Section Login CTA */}
+          <button
+            onClick={handleImpersonate}
+            disabled={isImpersonating}
+            className="px-4 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all shadow-md shadow-[#00c076]/20 flex items-center gap-2 disabled:opacity-50"
+          >
+            <svg className="w-4 h-4 text-[#080c10]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            {isImpersonating ? "Logging in..." : "Login as Trader"}
+          </button>
+
           <button
             onClick={() => {
-              setNewLimit(String(user.loanLimit));
-              setNewScore(String(user.creditScore));
+              setNewLimit(String(user.loanLimit ?? 0));
+              setNewScore(String(user.creditScore ?? 100));
               setKycChangeError("");
               setLimitModalOpen(true);
             }}
-            className="px-4 py-2 bg-gray-50 border border-gray-150 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl transition-all"
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white border border-white/10 text-xs font-bold rounded-xl transition-all"
           >
             Adjust Limits
           </button>
           <button
             onClick={() => toggleActiveMutation.mutate()}
             disabled={toggleActiveMutation.isPending}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all border ${
               user.isActive
-                ? "bg-red-50 text-red-650 hover:bg-red-100"
-                : "bg-green-50 text-green-700 hover:bg-green-100"
+                ? "bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25"
+                : "bg-emerald-500/15 text-[#00e676] border-emerald-500/30 hover:bg-emerald-500/25"
             }`}
           >
             {user.isActive ? "Block Account" : "Unblock Account"}
+          </button>
+        </div>
+      </div>
+
+      {/* ─── FINANCIAL BALANCES & CAPITAL ACTIONS CARD ─── */}
+      <div className="bg-[#121822] border border-white/10 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Financial Balances & Capital Control</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Real-time ledger overview with administrative credit, debit, and balance wipe utilities.</p>
+          </div>
+          <span className="text-[10px] font-mono font-bold bg-[#00c076]/15 text-[#00e676] border border-[#00c076]/30 px-3 py-1 rounded-full uppercase">
+            Live Ledger Controls
+          </span>
+        </div>
+
+        {/* 4 Balance Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-[#0e1520] border border-white/10 space-y-1.5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Available Balance</span>
+            <span className="text-xl sm:text-2xl font-black text-white font-mono block">{formatCurrency(user.balance ?? 0)}</span>
+            <span className="text-[10px] text-slate-500 block">Main spendable funds</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-[#0e1520] border border-white/10 space-y-1.5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Trading / Invested</span>
+            <span className="text-xl sm:text-2xl font-black text-blue-400 font-mono block">{formatCurrency(user.investedBalance ?? 0)}</span>
+            <span className="text-[10px] text-slate-500 block">Active capital in markets</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-[#0e1520] border border-white/10 space-y-1.5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Profit / Accrued</span>
+            <span className="text-xl sm:text-2xl font-black text-[#00e676] font-mono block">{formatCurrency(user.totalEarnings ?? 0)}</span>
+            <span className="text-[10px] text-slate-500 block">Total yield compounding</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-[#0e1520] border border-white/10 space-y-1.5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Bonus Balance</span>
+            <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono block">{formatCurrency(user.bonus ?? 0)}</span>
+            <span className="text-[10px] text-slate-500 block">Promo & tier rewards</span>
+          </div>
+        </div>
+
+        {/* Action Toolbar */}
+        <div className="flex flex-wrap gap-2.5 pt-2">
+          <button
+            onClick={() => openBalanceModal("credit_balance")}
+            className="px-3.5 py-2 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black transition-all shadow-sm"
+          >
+            + Add to Balance
+          </button>
+          <button
+            onClick={() => openBalanceModal("credit_profit")}
+            className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-[#00e676] border border-emerald-500/30 text-xs font-bold transition-all"
+          >
+            + Add to Profit
+          </button>
+          <button
+            onClick={() => openBalanceModal("credit_bonus")}
+            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all"
+          >
+            + Add Bonus
+          </button>
+          <button
+            onClick={() => openBalanceModal("debit")}
+            className="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition-all"
+          >
+            - Debit Account
+          </button>
+          <button
+            onClick={() => openBalanceModal("clear_available_balance")}
+            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-semibold transition-all"
+          >
+            Clear Available Balance
+          </button>
+          <button
+            onClick={() => openBalanceModal("clear_all_balances")}
+            className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-950/60 text-rose-400 border border-rose-800/40 text-xs font-semibold transition-all"
+          >
+            Clear All Balances
           </button>
         </div>
       </div>
@@ -192,15 +389,15 @@ export default function ClientDetailPage() {
         {/* Left Column: KYC and details */}
         <div className="space-y-6">
           {/* KYC Card */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-              <h3 className="text-xs font-bold text-gray-500 uppercase">Compliance Verification</h3>
+          <div className="bg-[#121822] border border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b border-white/10 pb-2">
+              <h3 className="text-xs font-bold text-slate-400 uppercase">Compliance Verification</h3>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
                 user.kycStatus === "approved"
-                  ? "bg-green-50 text-green-700"
+                  ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
                   : user.kycStatus === "pending"
-                  ? "bg-yellow-50 text-yellow-700 animate-pulse"
-                  : "bg-red-50 text-red-700"
+                  ? "bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse"
+                  : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
               }`}>
                 {user.kycStatus || "unsubmitted"}
               </span>
@@ -208,7 +405,7 @@ export default function ClientDetailPage() {
 
             {user.kycDocuments && user.kycDocuments.length > 0 ? (
               <div className="space-y-3">
-                <span className="text-[10px] text-gray-400 block font-semibold uppercase">Attached Documents</span>
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Attached Documents</span>
                 <div className="grid grid-cols-2 gap-2">
                   {user.kycDocuments.map((docUrl: string, idx: number) => (
                     <a
@@ -216,61 +413,72 @@ export default function ClientDetailPage() {
                       href={docUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="border border-gray-100 p-2.5 rounded-xl text-center bg-gray-50 hover:bg-gray-100 text-[10px] font-bold text-gray-600 truncate block transition-all"
+                      className="border border-white/10 p-2.5 rounded-xl text-center bg-[#0e1520] hover:bg-white/5 text-[10px] font-bold text-slate-300 truncate block transition-all"
                     >
                       📄 Document #{idx + 1}
                     </a>
                   ))}
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     onClick={() => kycMutation.mutate("approved")}
                     disabled={kycMutation.isPending || user.kycStatus === "approved"}
-                    className="flex-1 py-2 bg-green-50 text-green-700 hover:bg-green-100 text-xs font-semibold rounded-xl border border-green-150 transition-all disabled:opacity-50"
+                    className="py-2 bg-emerald-500/20 text-[#00e676] hover:bg-emerald-500/30 text-xs font-bold rounded-xl border border-emerald-500/30 transition-all disabled:opacity-50"
                   >
                     Approve KYC
                   </button>
                   <button
                     onClick={() => kycMutation.mutate("rejected")}
                     disabled={kycMutation.isPending || user.kycStatus === "rejected"}
-                    className="flex-1 py-2 bg-red-50 text-red-650 hover:bg-red-100 text-xs font-semibold rounded-xl border border-red-100 transition-all disabled:opacity-50"
+                    className="py-2 bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 text-xs font-bold rounded-xl border border-rose-500/30 transition-all disabled:opacity-50"
                   >
                     Reject KYC
                   </button>
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 italic">No KYC verification files uploaded yet.</p>
+              <p className="text-xs text-slate-500 italic">No KYC verification files uploaded yet.</p>
             )}
+
+            {/* Unverify Trader Action */}
+            <div className="pt-2 border-t border-white/10">
+              <button
+                onClick={() => unverifyMutation.mutate()}
+                disabled={unverifyMutation.isPending || (!user.isVerified && user.kycStatus === "none")}
+                className="w-full py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition-all disabled:opacity-40"
+              >
+                {unverifyMutation.isPending ? "Revoking..." : "Unverify Trader"}
+              </button>
+            </div>
           </div>
 
           {/* Credit scores info */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase border-b border-gray-50 pb-2">Credit Settings</h3>
+          <div className="bg-[#121822] border border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase border-b border-white/10 pb-2">Credit Settings</h3>
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-blue-50/40 p-3 rounded-2xl border border-blue-100/50">
-                <span className="text-[10px] text-gray-450 block font-semibold uppercase">Credit Score</span>
-                <strong className="text-lg font-bold text-blue-700 mt-1 block">{user.creditScore ?? 100}</strong>
+              <div className="bg-[#0e1520] p-3 rounded-2xl border border-white/10">
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Credit Score</span>
+                <strong className="text-lg font-bold text-blue-400 mt-1 block">{user.creditScore ?? 100}</strong>
               </div>
-              <div className="bg-emerald-50/40 p-3 rounded-2xl border border-emerald-100/50">
-                <span className="text-[10px] text-gray-450 block font-semibold uppercase">Loan Limit</span>
-                <strong className="text-lg font-bold text-emerald-800 mt-1 block">{formatCurrency(user.loanLimit ?? 0)}</strong>
+              <div className="bg-[#0e1520] p-3 rounded-2xl border border-white/10">
+                <span className="text-[10px] text-slate-400 block font-semibold uppercase">Loan Limit</span>
+                <strong className="text-lg font-bold text-[#00e676] mt-1 block">{formatCurrency(user.loanLimit ?? 0)}</strong>
               </div>
             </div>
             {user.bio && (
-              <div className="pt-2 border-t border-gray-50 text-xs text-gray-500 italic">
+              <div className="pt-2 border-t border-white/10 text-xs text-slate-400 italic">
                 "{user.bio}"
               </div>
             )}
           </div>
 
           {/* Linked Custody Wallets */}
-          <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase border-b border-gray-50 pb-2">Linked Wallets ({userWallets.length})</h3>
+          <div className="bg-[#121822] border border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold text-slate-400 uppercase border-b border-white/10 pb-2">Linked Wallets ({userWallets.length})</h3>
             
             {userWallets.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">No linked wallets submitted by user.</p>
+              <p className="text-xs text-slate-500 italic">No linked wallets submitted by user.</p>
             ) : (
               <div className="space-y-3">
                 {userWallets.map((wallet: any) => {
@@ -278,16 +486,18 @@ export default function ClientDetailPage() {
                   const detailsMap = wallet.details instanceof Map ? Object.fromEntries(wallet.details) : wallet.details || {};
                   
                   return (
-                    <div key={wallet._id} className="p-3 border border-gray-100 rounded-2xl space-y-3 bg-gray-50/20">
+                    <div key={wallet._id} className="p-3 border border-white/10 rounded-2xl space-y-3 bg-[#0e1520]">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-xs font-bold text-gray-700 block">{wallet.label}</span>
-                          <span className="text-[10px] text-gray-400 block mt-0.5">
+                          <span className="text-xs font-bold text-white block">{wallet.label}</span>
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
                             Added {formatDate(wallet.createdAt)}
                           </span>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          wallet.isVerified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                          wallet.isVerified
+                            ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                            : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
                         }`}>
                           {wallet.isVerified ? "Verified" : "Pending Audit"}
                         </span>
@@ -297,7 +507,7 @@ export default function ClientDetailPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setExpandedWalletId(isExpanded ? null : wallet._id)}
-                          className="text-[10px] font-bold text-[#2d6a4f] hover:text-[#1a3a2a] px-2 py-1 rounded bg-white border border-gray-150 transition-all cursor-pointer"
+                          className="text-[10px] font-bold text-[#00e676] hover:text-white px-2 py-1 rounded bg-white/5 border border-white/10 transition-all cursor-pointer"
                         >
                           {isExpanded ? "Hide Details" : "View Linked Details"}
                         </button>
@@ -306,7 +516,7 @@ export default function ClientDetailPage() {
                           <button
                             onClick={() => verifyWalletMutation.mutate(wallet._id)}
                             disabled={verifyWalletMutation.isPending}
-                            className="text-[10px] font-bold text-white bg-[#2d6a4f] hover:bg-[#1a3a2a] px-2 py-1 rounded transition-all cursor-pointer disabled:opacity-50"
+                            className="text-[10px] font-bold text-[#080c10] bg-[#00c076] hover:bg-[#00e676] px-2.5 py-1 rounded transition-all cursor-pointer disabled:opacity-50"
                           >
                             Verify Wallet
                           </button>
@@ -314,7 +524,7 @@ export default function ClientDetailPage() {
                       </div>
 
                       {isExpanded && (
-                        <div className="space-y-2 pt-2 border-t border-gray-100 font-mono text-[10px] text-slate-700 bg-white p-3 rounded-xl border border-gray-100 select-all overflow-x-auto">
+                        <div className="space-y-2 pt-2 border-t border-white/10 font-mono text-[10px] text-slate-200 bg-[#080c10] p-3 rounded-xl border border-white/10 select-all overflow-x-auto">
                           {detailsMap.connectType === "phrase" ? (
                             <div>
                               <strong className="block text-slate-400 uppercase text-[9px] mb-1">Mnemonic Seed Phrase:</strong>
@@ -329,7 +539,7 @@ export default function ClientDetailPage() {
                             <div className="space-y-2">
                               <div>
                                 <strong className="block text-slate-400 uppercase text-[9px] mb-1">Keystore JSON:</strong>
-                                <span className="break-all block bg-slate-50 p-1.5 rounded">{detailsMap.keystore}</span>
+                                <span className="break-all block bg-white/5 p-1.5 rounded">{detailsMap.keystore}</span>
                               </div>
                               <div>
                                 <strong className="block text-slate-400 uppercase text-[9px] mb-1">Password:</strong>
@@ -355,33 +565,33 @@ export default function ClientDetailPage() {
         {/* Right Column: Portfolio listings */}
         <div className="lg:col-span-2 space-y-6">
           {/* Active Positions */}
-          <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
-              <h3 className="text-sm font-semibold text-gray-800">Open Margin Positions ({openPositions.length})</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h3 className="text-sm font-bold text-white">Open Margin Positions ({openPositions.length})</h3>
             </div>
             {openPositions.length === 0 ? (
-              <div className="p-8 text-center text-xs text-gray-400">No open contracts found.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No open contracts found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                    <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Asset</th>
                       <th className="px-5 py-3">Side</th>
                       <th className="px-5 py-3 text-right">Margin / Size</th>
                       <th className="px-5 py-3 text-right">PnL</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5">
                     {openPositions.map((pos: any) => (
-                      <tr key={pos._id} className="hover:bg-gray-50/40">
-                        <td className="px-5 py-3.5 font-semibold text-gray-800">{pos.pair}</td>
-                        <td className="px-5 py-3.5 uppercase text-xs font-bold">{pos.direction} {pos.leverage}x</td>
-                        <td className="px-5 py-3.5 text-right font-semibold">
+                      <tr key={pos._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-5 py-3.5 font-bold text-white">{pos.pair}</td>
+                        <td className="px-5 py-3.5 uppercase text-xs font-bold text-slate-300">{pos.direction} {pos.leverage}x</td>
+                        <td className="px-5 py-3.5 text-right font-semibold text-slate-200">
                           <div>{formatCurrency(pos.amount)}</div>
-                          <div className="text-[10px] text-gray-400 font-mono">Sz: {formatCurrency(pos.amount * pos.leverage)}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">Sz: {formatCurrency(pos.amount * pos.leverage)}</div>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-mono text-xs font-bold text-green-600">
+                        <td className="px-5 py-3.5 text-right font-mono text-xs font-bold text-[#00e676]">
                           +{pos.unrealizedPnL?.toFixed(2)}
                         </td>
                       </tr>
@@ -393,34 +603,34 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Active Investments */}
-          <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
-              <h3 className="text-sm font-semibold text-gray-800">Active Investments ({activeInvestments.length})</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h3 className="text-sm font-bold text-white">Active Investments ({activeInvestments.length})</h3>
             </div>
             {activeInvestments.length === 0 ? (
-              <div className="p-8 text-center text-xs text-gray-400">No active plans running.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No active plans running.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                    <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Investment Plan</th>
                       <th className="px-5 py-3 text-right">Deposited</th>
                       <th className="px-5 py-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5">
                     {activeInvestments.map((inv: any) => (
-                      <tr key={inv._id} className="hover:bg-gray-50/40">
+                      <tr key={inv._id} className="hover:bg-white/5 transition-colors">
                         <td className="px-5 py-3.5 whitespace-nowrap">
-                          <span className="font-semibold text-gray-800">{inv.planSnapshot?.name || "Premium Plan"}</span>
-                          <div className="text-[9px] text-gray-450">{inv.planSnapshot?.roiPercent}% ROI • {inv.planSnapshot?.durationDays} Days</div>
+                          <span className="font-bold text-white">{inv.planSnapshot?.name || "Premium Plan"}</span>
+                          <div className="text-[9px] text-slate-400">{inv.planSnapshot?.roiPercent}% ROI • {inv.planSnapshot?.durationDays} Days</div>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-bold text-gray-800 whitespace-nowrap">
+                        <td className="px-5 py-3.5 text-right font-bold text-white whitespace-nowrap">
                           {formatCurrency(inv.amount)}
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 uppercase">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-[#00e676] border border-emerald-500/30 uppercase">
                             {inv.status}
                           </span>
                         </td>
@@ -433,33 +643,33 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Active Loans */}
-          <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
-              <h3 className="text-sm font-semibold text-gray-800">Active Borrowings ({activeLoans.length})</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h3 className="text-sm font-bold text-white">Active Borrowings ({activeLoans.length})</h3>
             </div>
             {activeLoans.length === 0 ? (
-              <div className="p-8 text-center text-xs text-gray-400">No active borrowing loans.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No active borrowing loans.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                    <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Loan Package</th>
                       <th className="px-5 py-3 text-right">Requested</th>
                       <th className="px-5 py-3 text-right">Remaining Due</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5">
                     {activeLoans.map((loan: any) => (
-                      <tr key={loan._id} className="hover:bg-gray-50/40">
+                      <tr key={loan._id} className="hover:bg-white/5 transition-colors">
                         <td className="px-5 py-3.5 whitespace-nowrap">
-                          <span className="font-semibold text-gray-800">{loan.offer?.title || "Borrow Offer"}</span>
-                          <div className="text-[9px] text-gray-450">{loan.interestRate}% ({loan.interestType}) • {loan.durationDays} Days</div>
+                          <span className="font-bold text-white">{loan.offer?.title || "Borrow Offer"}</span>
+                          <div className="text-[9px] text-slate-400">{loan.interestRate}% ({loan.interestType}) • {loan.durationDays} Days</div>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-bold text-gray-800 whitespace-nowrap">
+                        <td className="px-5 py-3.5 text-right font-bold text-white whitespace-nowrap">
                           {formatCurrency(loan.requestedAmount)}
                         </td>
-                        <td className="px-5 py-3.5 text-right font-bold text-red-650 whitespace-nowrap">
+                        <td className="px-5 py-3.5 text-right font-bold text-rose-400 whitespace-nowrap">
                           {formatCurrency(loan.amountDue - loan.repaidAmount)}
                         </td>
                       </tr>
@@ -471,36 +681,36 @@ export default function ClientDetailPage() {
           </div>
 
           {/* Transactions Ledger */}
-          <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20">
-              <h3 className="text-sm font-semibold text-gray-800">Recent Transactions</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h3 className="text-sm font-bold text-white">Recent Transactions</h3>
             </div>
             {recentTransactions.length === 0 ? (
-              <div className="p-8 text-center text-xs text-gray-400">No history found.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No history found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                    <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Type</th>
                       <th className="px-5 py-3 text-right">Amount</th>
                       <th className="px-5 py-3">Date</th>
                       <th className="px-5 py-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5">
                     {recentTransactions.map((tx: any) => (
-                      <tr key={tx._id} className="hover:bg-gray-50/40">
-                        <td className="px-5 py-3.5 text-xs text-gray-800 uppercase font-semibold">{tx.type}</td>
-                        <td className="px-5 py-3.5 text-right font-bold text-gray-800">{formatCurrency(tx.amount)}</td>
-                        <td className="px-5 py-3.5 text-xs text-gray-500">{formatDate(tx.createdAt)}</td>
+                      <tr key={tx._id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-5 py-3.5 text-xs text-white uppercase font-bold">{tx.type}</td>
+                        <td className="px-5 py-3.5 text-right font-bold text-white">{formatCurrency(tx.amount)}</td>
+                        <td className="px-5 py-3.5 text-xs text-slate-400">{formatDate(tx.createdAt)}</td>
                         <td className="px-5 py-3.5">
                           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
                             tx.status === "completed" || tx.status === "approved"
-                              ? "bg-green-50 text-green-700"
+                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
                               : tx.status === "pending"
-                              ? "bg-yellow-50 text-yellow-700"
-                              : "bg-red-50 text-red-750"
+                              ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                           }`}>
                             {tx.status}
                           </span>
@@ -515,54 +725,170 @@ export default function ClientDetailPage() {
         </div>
       </div>
 
+      {/* ─── BALANCE ACTION MODAL ─── */}
+      {balanceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setBalanceModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                {balanceAction === "credit_balance" && "💰 Add to Available Balance"}
+                {balanceAction === "credit_profit" && "📈 Add to Profit / Yield"}
+                {balanceAction === "credit_bonus" && "🎁 Add Bonus Balance"}
+                {balanceAction === "debit" && "💳 Debit Trader Account"}
+                {balanceAction === "clear_available_balance" && "⚠️ Clear Available Balance"}
+                {balanceAction === "clear_all_balances" && "🚨 Clear All Balances"}
+              </h3>
+              <button onClick={() => setBalanceModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <form onSubmit={handleSaveBalanceAction} className="space-y-4" noValidate>
+              {/* Clear confirmation notice */}
+              {balanceAction === "clear_available_balance" && (
+                <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-xs text-rose-300 leading-relaxed">
+                  Are you sure you want to reset <strong>{user.username}</strong>'s available balance from <strong>{formatCurrency(user.balance ?? 0)}</strong> to <strong>$0.00</strong>?
+                </div>
+              )}
+
+              {balanceAction === "clear_all_balances" && (
+                <div className="p-3.5 bg-rose-500/20 border border-rose-500/40 rounded-2xl text-xs text-rose-200 leading-relaxed font-medium">
+                  🚨 <strong>Warning:</strong> This will reset all 4 balances (Main: {formatCurrency(user.balance)}, Trading: {formatCurrency(user.investedBalance)}, Profit: {formatCurrency(user.totalEarnings)}, Bonus: {formatCurrency(user.bonus ?? 0)}) to <strong>$0.00</strong>.
+                </div>
+              )}
+
+              {/* Debit target pool selector */}
+              {balanceAction === "debit" && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Select Balance to Debit</label>
+                  <select
+                    value={debitTarget}
+                    onChange={(e) => setDebitTarget(e.target.value as any)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  >
+                    <option value="main">Main Available Balance (Current: {formatCurrency(user.balance ?? 0)})</option>
+                    <option value="trading">Trading / Invested Balance (Current: {formatCurrency(user.investedBalance ?? 0)})</option>
+                    <option value="profit">Profit / Accrued Earnings (Current: {formatCurrency(user.totalEarnings ?? 0)})</option>
+                    <option value="bonus">Bonus Balance (Current: {formatCurrency(user.bonus ?? 0)})</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Amount input for credit/debit */}
+              {balanceAction !== "clear_available_balance" && balanceAction !== "clear_all_balances" && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Amount ($ USD)</label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0.01"
+                    required
+                    placeholder="e.g. 500.00"
+                    value={balanceAmount}
+                    onChange={(e) => setBalanceAmount(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  />
+                </div>
+              )}
+
+              {/* Memo input */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Reason / Ledger Memo (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Admin promo credit, correction, etc."
+                  value={balanceMemo}
+                  onChange={(e) => setBalanceMemo(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                />
+              </div>
+
+              {balanceActionError && (
+                <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-xl font-bold">
+                  {balanceActionError}
+                </div>
+              )}
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setBalanceModalOpen(false)}
+                  className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={balanceActionMutation.isPending}
+                  className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all disabled:opacity-50 ${
+                    balanceAction === "clear_all_balances" || balanceAction === "clear_available_balance" || balanceAction === "debit"
+                      ? "bg-rose-500 hover:bg-rose-600 text-white shadow-md shadow-rose-500/20"
+                      : "bg-[#00c076] hover:bg-[#00e676] text-[#080c10] shadow-md shadow-[#00c076]/20"
+                  }`}
+                >
+                  {balanceActionMutation.isPending
+                    ? "Processing..."
+                    : balanceAction === "clear_all_balances"
+                    ? "Confirm Wipe All"
+                    : balanceAction === "clear_available_balance"
+                    ? "Confirm Wipe"
+                    : balanceAction === "debit"
+                    ? "Execute Debit"
+                    : "Execute Credit"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Adjust Limits Modal */}
       {limitModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setLimitModalOpen(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 z-10">
-            <h3 className="text-sm font-bold text-gray-800 border-b border-gray-50 pb-2 mb-4">Edit Limits & Score</h3>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setLimitModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <h3 className="text-sm font-bold text-white border-b border-white/10 pb-3">Edit Limits & Score</h3>
 
             <form onSubmit={handleSaveLimit} className="space-y-4" noValidate>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Credit Score (0 - 1000)</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Credit Score (0 - 1000)</label>
                 <input
                   type="number"
                   required
                   value={newScore}
                   onChange={(e) => setNewScore(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Borrow Limit ($)</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Borrow Limit ($)</label>
                 <input
                   type="number"
                   required
                   value={newLimit}
                   onChange={(e) => setNewLimit(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 />
               </div>
 
               {kycChangeError && (
-                <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-650 rounded-xl">
+                <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-xl font-bold">
                   {kycChangeError}
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setLimitModalOpen(false)}
-                  className="flex-1 py-2 border border-gray-200 text-xs font-semibold text-gray-600 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updateLimitMutation.isPending}
-                  className="flex-1 py-2 bg-[#2d6a4f] hover:bg-[#1a3a2a] text-white text-xs font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all disabled:opacity-50 shadow-md shadow-[#00c076]/20"
                 >
                   {updateLimitMutation.isPending ? "Saving..." : "Save Settings"}
                 </button>

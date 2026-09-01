@@ -148,7 +148,7 @@ const ExecutorSidebar = () => {
 
       <aside className={`
         fixed top-0 left-0 h-full z-30 flex flex-col
-        w-64 bg-[#1a3a2a] text-white
+        w-64 bg-[#0d131a] border-r border-white/10 text-white
         transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         lg:relative lg:translate-x-0 lg:z-auto
@@ -157,17 +157,17 @@ const ExecutorSidebar = () => {
         {/* Brand */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
+            <img
+              src="/branding/arglogo.png"
+              alt="Alpha Rise Global"
+              className="w-8 h-8 object-contain rounded-xl shadow-md shadow-[#00c076]/20"
+            />
             <div>
-              <span className="font-bold text-sm tracking-wide block">Alpha Rise Global</span>
-              <span className="text-white/40 text-xs">Admin Panel</span>
+              <span className="font-extrabold text-sm tracking-tight block text-white">Alpha Rise Global</span>
+              <span className="text-slate-400 text-xs font-semibold">Admin Panel</span>
             </div>
           </div>
-          <button onClick={() => setSidebar(false)} className="lg:hidden text-white/60 hover:text-white">
+          <button onClick={() => setSidebar(false)} className="lg:hidden text-slate-400 hover:text-white">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -177,31 +177,31 @@ const ExecutorSidebar = () => {
         {/* User info */}
         <div className="px-5 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#2d6a4f] flex items-center justify-center text-sm font-bold uppercase shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#00c076]/20 border border-[#00c076]/30 flex items-center justify-center text-sm font-black text-[#00e676] uppercase shrink-0">
               {user?.username?.charAt(0) ?? "E"}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold truncate">{user?.username ?? "Executor"}</p>
+              <p className="text-sm font-bold text-white truncate">{user?.username ?? "Executor"}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                <p className="text-xs text-white/50">Administrator</p>
+                <span className="w-2 h-2 rounded-full bg-[#00e676] shadow-sm shadow-[#00e676]/50" />
+                <p className="text-xs text-slate-400 font-medium">Administrator</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               onClick={() => setSidebar(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-[#2d6a4f] text-white"
-                    : "text-white/60 hover:text-white hover:bg-white/10"
+                    ? "bg-[#00c076]/15 text-[#00e676] border border-[#00c076]/30 font-bold shadow-sm"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                 }`
               }
             >
@@ -215,7 +215,7 @@ const ExecutorSidebar = () => {
         <div className="px-3 py-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

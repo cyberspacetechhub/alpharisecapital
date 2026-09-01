@@ -4,7 +4,7 @@ import ExecutorHeader from "./ExecutorHeader";
 
 export default function ExecutorLayout() {
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-[#0b0f14] text-slate-100 overflow-hidden">
       <ExecutorSidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <ExecutorHeader />

@@ -83,34 +83,34 @@ export default function KycPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       
       {/* Page Header */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h1 className="text-xl font-bold text-gray-800">KYC Verification</h1>
-        <p className="text-xs text-gray-400 mt-1">
-          Verify your identity to unlock advanced trading capabilities, withdrawals, and higher limits.
+      <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 text-white">
+        <h1 className="text-xl font-bold text-white">KYC Verification</h1>
+        <p className="text-xs text-slate-400 mt-1">
+          Verify your identity to unlock institutional liquidity pools, higher leverage margins, and unlimited withdrawals.
         </p>
       </div>
 
       {/* KYC Status Display */}
       {status === "approved" && (
-        <div className="bg-white rounded-2xl border border-green-100 p-8 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto shadow-sm">
+        <div className="bg-[#121822] rounded-3xl border border-emerald-500/30 p-8 text-center space-y-4 text-white shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[#00e676] flex items-center justify-center mx-auto shadow-sm">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
           </div>
           <div className="space-y-1">
-            <h2 className="text-lg font-bold text-gray-800">Identity Verified</h2>
-            <p className="text-sm text-gray-500">
-              Your KYC documents have been reviewed and approved. Your account is fully unlocked.
+            <h2 className="text-lg font-bold text-white">Identity Verified</h2>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Your KYC identity credentials have been verified and approved. Your trading profile is fully unlocked.
             </p>
           </div>
           {profile?.kycDocuments && profile.kycDocuments.length > 0 && (
-            <div className="border-t border-gray-100 pt-4 text-left max-w-md mx-auto">
-              <p className="text-xs font-semibold text-gray-400 mb-2">Verified Documents</p>
+            <div className="border-t border-white/10 pt-4 text-left max-w-md mx-auto">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Verified Credentials</p>
               <ul className="space-y-2">
                 {profile.kycDocuments.map((doc: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2 text-xs font-medium text-[#2d6a4f] hover:underline">
-                    <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <li key={i} className="flex items-center gap-2 text-xs font-bold text-[#00e676] hover:underline">
+                    <svg className="w-4 h-4 text-[#00e676] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <a href={doc} target="_blank" rel="noopener noreferrer">Verified Document #{i + 1}</a>
@@ -123,26 +123,26 @@ export default function KycPage() {
       )}
 
       {status === "pending" && (
-        <div className="bg-white rounded-2xl border border-yellow-100 p-8 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center mx-auto shadow-sm">
+        <div className="bg-[#121822] rounded-3xl border border-amber-500/30 p-8 text-center space-y-4 text-white shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center justify-center mx-auto shadow-sm">
             <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={3} />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           </div>
           <div className="space-y-1">
-            <h2 className="text-lg font-bold text-gray-800">Verification Pending Review</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Your KYC documents were submitted and are currently in the review queue. This process normally takes up to 24 hours.
+            <h2 className="text-lg font-bold text-white">Verification Pending Review</h2>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Your KYC documents were submitted and are currently in the executor audit queue.
             </p>
           </div>
           {profile?.kycDocuments && profile.kycDocuments.length > 0 && (
-            <div className="border-t border-gray-100 pt-4 text-left max-w-md mx-auto">
-              <p className="text-xs font-semibold text-gray-400 mb-2">Submitted Documents</p>
+            <div className="border-t border-white/10 pt-4 text-left max-w-md mx-auto">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Submitted Documents</p>
               <ul className="space-y-2">
                 {profile.kycDocuments.map((doc: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2 text-xs font-medium text-yellow-600 hover:underline">
-                    <svg className="w-4 h-4 text-yellow-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <li key={i} className="flex items-center gap-2 text-xs font-bold text-amber-300 hover:underline">
+                    <svg className="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <a href={doc} target="_blank" rel="noopener noreferrer">Submitted Document #{i + 1}</a>
@@ -155,41 +155,41 @@ export default function KycPage() {
       )}
 
       {(status === "none" || status === "rejected") && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+        <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 space-y-6 text-white">
           {status === "rejected" && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-xl space-y-1">
-              <div className="flex items-center gap-2 text-red-700 font-bold text-sm">
+            <div className="p-4 bg-rose-500/15 border border-rose-500/30 rounded-2xl space-y-1 text-xs text-rose-300">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
                 <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                 </svg>
                 Verification Rejected
               </div>
-              <p className="text-xs text-red-600 leading-relaxed pl-7">
-                Your previous verification request was rejected. This is usually due to blurry documents or invalid IDs. Please review the upload guidelines below and submit new, clear documents.
+              <p className="leading-relaxed pl-7 text-slate-300">
+                Your previous verification was rejected. Please ensure documents are high-resolution with all four corners visible and resubmit.
               </p>
             </div>
           )}
 
           {submitSuccess && (
-            <div className="p-3 bg-green-50 border border-green-100 text-green-700 rounded-xl text-xs font-semibold">
-              {submitSuccess}
+            <div className="p-3.5 bg-emerald-500/15 border border-emerald-500/30 text-[#00e676] rounded-2xl text-xs font-bold">
+              ✓ {submitSuccess}
             </div>
           )}
           {submitError && (
-            <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-xl text-xs font-semibold">
-              {submitError}
+            <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 text-rose-400 rounded-2xl text-xs font-bold">
+              ✕ {submitError}
             </div>
           )}
 
-          <div className="space-y-2">
-            <h2 className="text-sm font-bold text-gray-800">Upload Verification Documents</h2>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Please upload one or more clear files of either your **Passport, National ID Card, or Driver's License**. Ensure that all details like your name, date of birth, and photo are legible. Max size 10MB per file.
+          <div className="space-y-1">
+            <h2 className="text-sm font-bold text-white">Upload Identification Documents</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Upload clear photos or scans of your **Passport, National ID Card, or Driver's License**. Maximum 10MB per file.
             </p>
           </div>
 
           {/* Drag & Drop upload container */}
-          <div className="border-2 border-dashed border-gray-200 hover:border-[#2d6a4f] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-[#f0f7f4]/10 hover:bg-[#f0f7f4]/30 relative">
+          <div className="border-2 border-dashed border-white/10 hover:border-[#00c076] rounded-3xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-[#0e1520] hover:bg-[#0e1520]/80 relative">
             <input
               type="file"
               multiple
@@ -198,36 +198,36 @@ export default function KycPage() {
               onChange={handleFileChange}
               disabled={submitting}
             />
-            <div className="w-12 h-12 rounded-xl bg-[#f0f7f4] text-[#2d6a4f] flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 text-[#00c076] flex items-center justify-center mb-3">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
-            <p className="text-sm font-semibold text-gray-700">Click to upload files</p>
-            <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG up to 10MB each</p>
+            <p className="text-sm font-bold text-white">Click or drag files to upload</p>
+            <p className="text-xs text-slate-500 mt-1">PDF, JPG, PNG up to 10MB each</p>
           </div>
 
           {/* List of uploaded documents */}
           {documents.length > 0 && (
             <div className="space-y-2.5">
-              <h3 className="text-xs font-bold text-gray-500">Document Upload Queue</h3>
-              <ul className="divide-y divide-gray-50 border border-gray-100 rounded-xl overflow-hidden">
+              <h3 className="text-xs font-bold text-slate-400 uppercase">Upload Queue</h3>
+              <ul className="divide-y divide-white/5 border border-white/10 rounded-2xl overflow-hidden bg-[#0e1520]">
                 {documents.map((doc, i) => (
-                  <li key={i} className="flex items-center justify-between p-3 bg-white text-xs">
-                    <div className="flex items-center gap-2 min-w-0">
+                  <li key={i} className="flex items-center justify-between p-3.5 text-xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       {doc.loading ? (
-                        <div className="w-4 h-4 rounded-full border-2 border-[#2d6a4f]/20 border-t-[#2d6a4f] animate-spin shrink-0" />
+                        <div className="w-4 h-4 rounded-full border-2 border-[#00c076]/20 border-t-[#00c076] animate-spin shrink-0" />
                       ) : (
-                        <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4 text-[#00e676] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       )}
-                      <span className="font-medium text-gray-700 truncate">{doc.name}</span>
+                      <span className="font-mono text-slate-200 truncate">{doc.name}</span>
                     </div>
                     {!doc.loading && (
                       <button
                         onClick={() => handleRemoveDoc(i)}
-                        className="text-red-500 hover:text-red-700 transition-colors p-1"
+                        className="text-rose-400 hover:text-rose-300 transition-colors p-1 cursor-pointer"
                         type="button"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -244,9 +244,9 @@ export default function KycPage() {
           <button
             onClick={handleSubmitKyc}
             disabled={submitting || documents.length === 0 || documents.some((d) => d.loading)}
-            className="w-full py-3 rounded-xl bg-[#1a3a2a] text-white hover:bg-[#2d6a4f] text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black shadow-md shadow-[#00c076]/20 transition-all disabled:opacity-50 cursor-pointer"
           >
-            {submitting ? "Submitting..." : "Submit KYC Verification"}
+            {submitting ? "Submitting Documents..." : "Submit KYC Verification"}
           </button>
         </div>
       )}

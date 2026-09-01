@@ -22,7 +22,7 @@ const CopyButton = ({ text }: { text: string }) => {
     <button
       type="button"
       onClick={copy}
-      className="shrink-0 text-xs px-2.5 py-1 rounded-lg bg-[#f0f7f4] text-[#2d6a4f] font-semibold hover:bg-[#e0f0e8] transition-colors"
+      className="shrink-0 text-xs px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[#00e676] font-bold transition-colors cursor-pointer"
     >
       {copied ? "Copied!" : "Copy"}
     </button>
@@ -85,26 +85,26 @@ export default function DepositPage() {
   if (success) {
     return (
       <div className="max-w-lg mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 mb-5">
-            <svg className="w-8 h-8 text-[#2d6a4f]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="bg-[#121822] rounded-3xl border border-white/10 p-8 text-center text-white shadow-xl">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-5">
+            <svg className="w-8 h-8 text-[#00e676]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Deposit Submitted!</h2>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            Your deposit of <span className="font-semibold text-gray-700">{formatCurrency(success.amount)}</span> has been submitted and is pending review.
+          <h2 className="text-xl font-bold text-white mb-2">Deposit Submitted!</h2>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Your deposit of <span className="font-bold text-white font-mono">{formatCurrency(success.amount)}</span> has been submitted and is pending verification.
           </p>
-          <div className="mt-4 px-4 py-3 rounded-xl bg-[#f0f7f4] text-left">
-            <p className="text-xs text-gray-500">Reference</p>
-            <p className="text-sm font-mono font-semibold text-[#1a3a2a] mt-0.5">{success.reference}</p>
+          <div className="mt-4 px-4 py-3.5 rounded-2xl bg-[#0e1520] border border-white/10 text-left">
+            <p className="text-[10px] uppercase font-bold text-slate-400">Transaction Reference</p>
+            <p className="text-xs font-mono font-bold text-[#00c076] mt-0.5">{success.reference}</p>
           </div>
-          <p className="text-xs text-gray-400 mt-4 leading-relaxed">
-            Your balance will be credited once an administrator approves your deposit. You will receive an email notification.
+          <p className="text-xs text-slate-400 mt-4 leading-relaxed">
+            Your balance will be credited immediately once an executor confirms your payment.
           </p>
           <button
             onClick={handleReset}
-            className="mt-6 w-full py-3 rounded-xl bg-[#1a3a2a] text-white text-sm font-semibold hover:bg-[#2d6a4f] transition-colors"
+            className="mt-6 w-full py-3.5 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black shadow-md shadow-[#00c076]/20 transition-all cursor-pointer"
           >
             Make Another Deposit
           </button>
@@ -114,23 +114,23 @@ export default function DepositPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-2xl mx-auto space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-lg font-bold text-gray-800">Deposit Funds</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Choose a payment method and submit your deposit for review.</p>
+        <h1 className="text-xl font-bold text-white">Deposit Funds</h1>
+        <p className="text-xs text-slate-400 mt-0.5">Select a payment gateway and fund your compounding account.</p>
       </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-3">
         {[
-          { n: 1, label: "Select Method" },
-          { n: 2, label: "Enter Amount" },
+          { n: 1, label: "Select Gateway" },
+          { n: 2, label: "Transfer & Confirm" },
         ].map(({ n, label }, i) => (
           <div key={n} className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                step >= n ? "bg-[#1a3a2a] text-white" : "bg-gray-200 text-gray-500"
+                step >= n ? "bg-[#00c076] text-[#080c10]" : "bg-white/10 text-slate-400"
               }`}>
                 {step > n ? (
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -138,9 +138,9 @@ export default function DepositPage() {
                   </svg>
                 ) : n}
               </div>
-              <span className={`text-xs font-medium ${step >= n ? "text-[#1a3a2a]" : "text-gray-400"}`}>{label}</span>
+              <span className={`text-xs font-bold ${step >= n ? "text-[#00e676]" : "text-slate-500"}`}>{label}</span>
             </div>
-            {i === 0 && <div className={`flex-1 h-px w-8 ${step > 1 ? "bg-[#1a3a2a]" : "bg-gray-200"}`} />}
+            {i === 0 && <div className={`flex-1 h-0.5 w-12 ${step > 1 ? "bg-[#00c076]" : "bg-white/10"}`} />}
           </div>
         ))}
       </div>
@@ -150,11 +150,13 @@ export default function DepositPage() {
         <div>
           {isLoading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-20 bg-gray-200 animate-pulse rounded-2xl" />)}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-20 bg-white/5 animate-pulse rounded-3xl border border-white/5" />
+              ))}
             </div>
           ) : methods.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-100 px-6 py-16 text-center">
-              <p className="text-sm text-gray-400">No deposit methods are currently available. Please check back later.</p>
+            <div className="bg-[#121822] rounded-3xl border border-white/10 px-6 py-16 text-center text-slate-500 text-xs">
+              <p>No deposit methods are currently configured. Please contact support.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -162,13 +164,13 @@ export default function DepositPage() {
                 <button
                   key={m._id}
                   onClick={() => handleSelectMethod(m)}
-                  className="w-full bg-white rounded-2xl border-2 border-gray-100 hover:border-[#2d6a4f] p-5 text-left transition-all group"
+                  className="w-full bg-[#121822] rounded-3xl border border-white/10 hover:border-[#00c076]/50 p-5 text-left transition-all group cursor-pointer text-white"
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                      m.type === "crypto" ? "bg-orange-50" : "bg-blue-50"
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                      m.type === "crypto" ? "bg-amber-500/15 text-amber-400 border border-amber-500/30" : "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                     }`}>
-                      <svg className={`w-5 h-5 ${m.type === "crypto" ? "text-orange-500" : "text-blue-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                         {m.type === "crypto"
                           ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           : <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -177,18 +179,18 @@ export default function DepositPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-800">{m.name}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          m.type === "crypto" ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
+                        <p className="text-sm font-bold text-white">{m.name}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                          m.type === "crypto" ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-blue-500/15 text-blue-300 border border-blue-500/30"
                         }`}>
                           {m.type}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-slate-400 mt-0.5 font-mono">
                         {Object.keys(m.details).join(" · ")}
                       </p>
                     </div>
-                    <svg className="w-5 h-5 text-gray-300 group-hover:text-[#2d6a4f] transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-slate-500 group-hover:text-[#00c076] transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
@@ -203,36 +205,36 @@ export default function DepositPage() {
       {step === 2 && selectedMethod && (
         <div className="space-y-4">
           {/* Method details card */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 text-white">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  selectedMethod.type === "crypto" ? "bg-orange-50" : "bg-blue-50"
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                  selectedMethod.type === "crypto" ? "bg-amber-500/15 text-amber-400" : "bg-blue-500/15 text-blue-400"
                 }`}>
-                  <svg className={`w-4 h-4 ${selectedMethod.type === "crypto" ? "text-orange-500" : "text-blue-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     {selectedMethod.type === "crypto"
                       ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       : <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     }
                   </svg>
                 </div>
-                <p className="text-sm font-semibold text-gray-800">{selectedMethod.name}</p>
+                <p className="text-sm font-bold text-white">{selectedMethod.name}</p>
               </div>
-              <button onClick={() => setStep(1)} className="text-xs text-[#2d6a4f] font-semibold hover:underline">
-                Change
+              <button onClick={() => setStep(1)} className="text-xs text-[#00e676] font-bold hover:underline cursor-pointer">
+                Change Gateway
               </button>
             </div>
 
-            <p className="text-xs font-semibold text-gray-500 mb-3">
-              Send your funds to the details below, then fill in the form.
+            <p className="text-xs text-slate-400 mb-3 font-medium">
+              Send your funds to the account details below, then enter your submitted amount:
             </p>
 
             <div className="space-y-2">
               {Object.entries(selectedMethod.details).map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-[#f0f7f4]">
+                <div key={k} className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-[#0e1520] border border-white/10">
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-gray-600">{k}</p>
-                    <p className="text-xs font-mono text-gray-800 break-all mt-0.5">{v}</p>
+                    <p className="text-[10px] font-bold uppercase text-slate-400">{k}</p>
+                    <p className="text-xs font-mono font-bold text-white break-all mt-0.5">{v}</p>
                   </div>
                   <CopyButton text={v} />
                 </div>
@@ -241,13 +243,13 @@ export default function DepositPage() {
           </div>
 
           {/* Deposit form */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">Deposit Details</h3>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 text-white">
+            <h3 className="text-sm font-bold text-white mb-4">Deposit Details</h3>
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    Amount (USD) <span className="text-red-400">*</span>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+                    Amount (USD) <span className="text-rose-400">*</span>
                   </label>
                   <input
                     {...register("amount", {
@@ -259,52 +261,52 @@ export default function DepositPage() {
                     min="1"
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                   />
                   {errors.amount
-                    ? <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>
-                    : <p className="text-xs text-gray-400 mt-1">Enter the exact USD equivalent of what you are sending.</p>
+                    ? <p className="text-xs text-rose-400 mt-1">{errors.amount.message}</p>
+                    : <p className="text-[10px] text-slate-500 mt-1">Enter the exact USD equivalent of your transfer.</p>
                   }
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    Proof of payment URL <span className="text-gray-400 font-normal">(optional)</span>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">
+                    Proof of payment URL <span className="text-slate-500 font-normal lowercase">(optional)</span>
                   </label>
                   <input
                     {...register("proofUrl", {
                       pattern: { value: /^https?:\/\/.+/, message: "Must be a valid URL starting with http(s)://" },
                     })}
                     type="url"
-                    placeholder="https://link-to-screenshot-or-receipt.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                    placeholder="https://imgur.com/your-receipt.png"
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                   />
                   {errors.proofUrl
-                    ? <p className="text-xs text-red-500 mt-1">{errors.proofUrl.message}</p>
-                    : <p className="text-xs text-gray-400 mt-1">Upload your receipt to an image host and paste the link here to speed up approval.</p>
+                    ? <p className="text-xs text-rose-400 mt-1">{errors.proofUrl.message}</p>
+                    : <p className="text-[10px] text-slate-500 mt-1">Paste a screenshot or transaction hash link to accelerate review.</p>
                   }
                 </div>
               </div>
 
               {serverError && (
-                <div className="mt-4 flex items-start gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-100">
-                  <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="mt-4 flex items-start gap-3 px-4 py-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs font-bold">
+                  <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   </svg>
-                  <p className="text-xs text-red-600">{serverError}</p>
+                  <p>{serverError}</p>
                 </div>
               )}
 
-              <div className="mt-5 p-4 rounded-xl bg-yellow-50 border border-yellow-100">
-                <p className="text-xs text-yellow-700 leading-relaxed">
-                  <span className="font-semibold">Important:</span> Only submit after you have sent the funds. Deposits are manually reviewed and credited within 24 hours.
+              <div className="mt-5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+                <p className="leading-relaxed">
+                  <span className="font-bold">Important Notice:</span> Only submit after you have executed the blockchain/wire transfer. Deposits are verified securely by our settlement team.
                 </p>
               </div>
 
               <button
                 type="submit"
                 disabled={depositMutation.isPending}
-                className="mt-5 w-full py-3 rounded-xl bg-[#1a3a2a] text-white text-sm font-semibold hover:bg-[#2d6a4f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="mt-5 w-full py-3.5 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black shadow-md shadow-[#00c076]/20 transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
               >
                 {depositMutation.isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -312,7 +314,7 @@ export default function DepositPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
                 )}
-                {depositMutation.isPending ? "Submitting…" : "Submit Deposit Request"}
+                {depositMutation.isPending ? "Submitting Request…" : "Confirm & Submit Deposit"}
               </button>
             </form>
           </div>

@@ -212,41 +212,41 @@ export default function ExecutorInvestmentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Investment Portal</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage investment packages and track active user portfolios</p>
+          <h1 className="text-2xl font-black text-white">Investment Portal</h1>
+          <p className="text-xs text-slate-400 mt-1">Manage investment packages and track active user portfolios</p>
         </div>
         {activeTab === "plans" && (
           <button
             onClick={() => handleOpenPlanModal("create")}
-            className="bg-[#2d6a4f] hover:bg-[#1b4332] text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm"
+            className="bg-[#00c076] hover:bg-[#00e676] text-[#080c10] px-4 py-2 rounded-2xl text-xs font-black transition-all shadow-md shadow-[#00c076]/20 cursor-pointer"
           >
-            Create New Plan
+            + Create New Plan
           </button>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-white/10">
         <button
           onClick={() => setActiveTab("plans")}
-          className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${
+          className={`px-5 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
             activeTab === "plans"
-              ? "border-[#2d6a4f] text-[#2d6a4f]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
+              ? "border-[#00c076] text-[#00e676]"
+              : "border-transparent text-slate-400 hover:text-white"
           }`}
         >
           Investment Plans
         </button>
         <button
           onClick={() => setActiveTab("investments")}
-          className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition-all ${
+          className={`px-5 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
             activeTab === "investments"
-              ? "border-[#2d6a4f] text-[#2d6a4f]"
-              : "border-transparent text-gray-500 hover:text-gray-900"
+              ? "border-[#00c076] text-[#00e676]"
+              : "border-transparent text-slate-400 hover:text-white"
           }`}
         >
           Client Investments
@@ -255,16 +255,16 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Tab: Plans */}
       {activeTab === "plans" && (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[#121822] border border-white/10 rounded-3xl shadow-sm overflow-hidden">
           {loadingPlans ? (
-            <div className="p-12 text-center text-gray-500">Loading investment plans...</div>
+            <div className="p-12 text-center text-slate-500 text-xs">Loading investment plans...</div>
           ) : !plansData || plansData.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">No investment plans configured. Create one to get started.</div>
+            <div className="p-12 text-center text-slate-500 text-xs">No investment plans configured. Create one to get started.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+                  <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                     <th className="px-6 py-4">Plan Name</th>
                     <th className="px-6 py-4">Limits (Min / Max)</th>
                     <th className="px-6 py-4">ROI %</th>
@@ -273,37 +273,39 @@ export default function ExecutorInvestmentsPage() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-sm text-gray-600">
+                <tbody className="divide-y divide-white/5 text-xs text-slate-300">
                   {plansData.map((plan) => (
-                    <tr key={plan._id} className="hover:bg-gray-50/50">
-                      <td className="px-6 py-4 font-semibold text-gray-900">{plan.name}</td>
-                      <td className="px-6 py-4">
+                    <tr key={plan._id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4 font-bold text-white">{plan.name}</td>
+                      <td className="px-6 py-4 font-mono">
                         {formatCurrency(plan.minAmount)} – {formatCurrency(plan.maxAmount)}
                       </td>
-                      <td className="px-6 py-4 text-emerald-600 font-medium">+{plan.roiPercent}%</td>
+                      <td className="px-6 py-4 text-[#00e676] font-bold font-mono">+{plan.roiPercent}%</td>
                       <td className="px-6 py-4">{plan.durationDays} Days</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          plan.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          plan.isActive
+                            ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                            : "bg-white/5 text-slate-400 border border-white/10"
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${plan.isActive ? "bg-green-500" : "bg-gray-400"}`} />
+                          <span className={`w-1.5 h-1.5 rounded-full ${plan.isActive ? "bg-[#00e676]" : "bg-slate-500"}`} />
                           {plan.isActive ? "Active" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <button
                           onClick={() => togglePlanMutation.mutate(plan._id)}
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-colors ${
+                          className={`text-xs font-bold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
                             plan.isActive
-                              ? "border-gray-200 text-gray-500 hover:bg-gray-50"
-                              : "border-green-200 text-[#2d6a4f] hover:bg-green-50"
+                              ? "border-white/10 text-slate-400 hover:bg-white/5"
+                              : "border-emerald-500/30 text-[#00e676] bg-emerald-500/15 hover:bg-emerald-500/25"
                           }`}
                         >
                           {plan.isActive ? "Deactivate" : "Activate"}
                         </button>
                         <button
                           onClick={() => handleOpenPlanModal("edit", plan)}
-                          className="text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 px-2.5 py-1 rounded-lg transition-colors"
+                          className="text-xs font-bold border border-white/10 text-slate-200 hover:bg-white/5 px-2.5 py-1 rounded-xl transition-all cursor-pointer"
                         >
                           Edit
                         </button>
@@ -313,7 +315,7 @@ export default function ExecutorInvestmentsPage() {
                               deletePlanMutation.mutate(plan._id);
                             }
                           }}
-                          className="text-xs font-semibold border border-red-100 text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors"
+                          className="text-xs font-bold border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 px-2.5 py-1 rounded-xl transition-all cursor-pointer"
                         >
                           Delete
                         </button>
@@ -335,7 +337,7 @@ export default function ExecutorInvestmentsPage() {
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setInvestPage(1); }}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              className="bg-[#121822] border border-white/10 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#00c076]"
             >
               <option value="">All Statuses</option>
               <option value="approved">Active</option>
@@ -344,16 +346,16 @@ export default function ExecutorInvestmentsPage() {
             </select>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <div className="bg-[#121822] border border-white/10 rounded-3xl shadow-sm overflow-hidden">
             {loadingInvests ? (
-              <div className="p-12 text-center text-gray-500">Loading portfolios...</div>
+              <div className="p-12 text-center text-slate-500 text-xs">Loading portfolios...</div>
             ) : !investData || investData.data.length === 0 ? (
-              <div className="p-12 text-center text-gray-500">No client investments found.</div>
+              <div className="p-12 text-center text-slate-500 text-xs">No client investments found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-6 py-4">Client</th>
                       <th className="px-6 py-4">Package</th>
                       <th className="px-6 py-4">Amount</th>
@@ -362,43 +364,43 @@ export default function ExecutorInvestmentsPage() {
                       <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm text-gray-600">
+                  <tbody className="divide-y divide-white/5 text-xs text-slate-300">
                     {investData.data.map((tx) => {
                       const progress = getProgress(tx);
                       return (
-                        <tr key={tx._id} className="hover:bg-gray-50/50">
+                        <tr key={tx._id} className="hover:bg-white/5 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900">{tx.user?.username}</div>
-                            <div className="text-xs text-gray-400">{tx.user?.email}</div>
+                            <div className="font-bold text-white">{tx.user?.username}</div>
+                            <div className="text-[10px] text-slate-400 font-mono">{tx.user?.email}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="font-medium text-gray-800">{tx.planSnapshot?.name}</div>
-                            <div className="text-xs text-gray-500">ROI: +{tx.planSnapshot?.roiPercent}%</div>
+                            <div className="font-bold text-white">{tx.planSnapshot?.name}</div>
+                            <div className="text-[10px] text-[#00e676] font-mono font-bold">ROI: +{tx.planSnapshot?.roiPercent}%</div>
                           </td>
-                          <td className="px-6 py-4 font-semibold text-gray-900">
+                          <td className="px-6 py-4 font-bold text-white font-mono">
                             {formatCurrency(tx.amount)}
                           </td>
                           <td className="px-6 py-4 min-w-[180px]">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
                               <span>{progress.daysElapsed} / {tx.planSnapshot?.durationDays} Days</span>
-                              <span className="font-medium">{progress.percent}%</span>
+                              <span className="font-bold text-white font-mono">{progress.percent}%</span>
                             </div>
-                            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-[#0e1520] rounded-full overflow-hidden border border-white/5">
                               <div
-                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                className="h-full bg-[#00c076] rounded-full transition-all duration-500 shadow-sm shadow-[#00c076]/50"
                                 style={{ width: `${progress.percent}%` }}
                               />
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium uppercase ${getStatusColor(tx.status)}`}>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusColor(tx.status)}`}>
                               {tx.status}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right space-x-2">
                             <button
                               onClick={() => setSelectedTx(tx)}
-                              className="text-xs font-semibold text-[#2d6a4f] hover:text-[#1b4332]"
+                              className="text-xs font-bold text-[#00e676] hover:underline"
                             >
                               Details
                             </button>
@@ -410,13 +412,13 @@ export default function ExecutorInvestmentsPage() {
                                       approveInvestmentMutation.mutate(tx._id);
                                     }
                                   }}
-                                  className="text-xs font-semibold text-green-600 hover:text-green-800"
+                                  className="text-xs font-bold text-[#00e676] hover:underline"
                                 >
                                   Approve
                                 </button>
                                 <button
                                   onClick={() => setPendingRejectModal(tx)}
-                                  className="text-xs font-semibold text-red-600 hover:text-red-800"
+                                  className="text-xs font-bold text-rose-400 hover:underline"
                                 >
                                   Reject
                                 </button>
@@ -426,25 +428,25 @@ export default function ExecutorInvestmentsPage() {
                               <>
                                 <button
                                   onClick={() => setProfitModal(tx)}
-                                  className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                                  className="text-xs font-bold text-blue-400 hover:underline"
                                 >
                                   Log Profit
                                 </button>
                                 <button
                                   onClick={() => setUpgradeModal(tx)}
-                                  className="text-xs font-semibold text-amber-600 hover:text-amber-800"
+                                  className="text-xs font-bold text-amber-400 hover:underline"
                                 >
                                   Upgrade
                                 </button>
                                 <button
                                   onClick={() => setStatusModal({ tx, status: "completed" })}
-                                  className="text-xs font-semibold text-green-600 hover:text-green-800"
+                                  className="text-xs font-bold text-[#00e676] hover:underline"
                                 >
                                   Mature
                                 </button>
                                 <button
                                   onClick={() => setStatusModal({ tx, status: "rejected" })}
-                                  className="text-xs font-semibold text-red-600 hover:text-red-800"
+                                  className="text-xs font-bold text-rose-400 hover:underline"
                                 >
                                   Cancel
                                 </button>
@@ -460,19 +462,19 @@ export default function ExecutorInvestmentsPage() {
             )}
             {/* Pagination */}
             {investData && investData.pages > 1 && (
-              <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100 text-sm">
+              <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 text-xs">
                 <button
                   disabled={investPage === 1}
                   onClick={() => setInvestPage(p => p - 1)}
-                  className="px-3 py-1.5 border border-gray-200 rounded-lg font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-40"
+                  className="px-3 py-1.5 border border-white/10 rounded-xl font-bold text-slate-300 hover:bg-white/5 disabled:opacity-30 cursor-pointer"
                 >
                   Previous
                 </button>
-                <span className="text-gray-600">Page {investPage} of {investData.pages}</span>
+                <span className="text-slate-400">Page {investPage} of {investData.pages}</span>
                 <button
                   disabled={investPage === investData.pages}
                   onClick={() => setInvestPage(p => p + 1)}
-                  className="px-3 py-1.5 border border-gray-200 rounded-lg font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-40"
+                  className="px-3 py-1.5 border border-white/10 rounded-xl font-bold text-slate-300 hover:bg-white/5 disabled:opacity-30 cursor-pointer"
                 >
                   Next
                 </button>
@@ -484,50 +486,50 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Plan Add/Edit Modal */}
       {planModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 capitalize">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-4 capitalize">
               {planModal.mode} Investment Plan
             </h3>
             <form onSubmit={handlePlanSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Plan Name</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Plan Name</label>
                 <input
                   type="text"
                   required
                   value={planForm.name}
                   onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
-                  placeholder="e.g. Bronze Package"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                  placeholder="e.g. Institutional Yield"
+                  className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Min Amount ($)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Min Amount ($)</label>
                   <input
                     type="number"
                     required
                     min={1}
                     value={planForm.minAmount || ""}
                     onChange={(e) => setPlanForm({ ...planForm, minAmount: parseFloat(e.target.value) })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Max Amount ($)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Max Amount ($)</label>
                   <input
                     type="number"
                     required
                     min={1}
                     value={planForm.maxAmount || ""}
                     onChange={(e) => setPlanForm({ ...planForm, maxAmount: parseFloat(e.target.value) })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">ROI %</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">ROI %</label>
                   <input
                     type="number"
                     required
@@ -535,18 +537,18 @@ export default function ExecutorInvestmentsPage() {
                     min={0}
                     value={planForm.roiPercent || ""}
                     onChange={(e) => setPlanForm({ ...planForm, roiPercent: parseFloat(e.target.value) })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Duration (Days)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Duration (Days)</label>
                   <input
                     type="number"
                     required
                     min={1}
                     value={planForm.durationDays || ""}
                     onChange={(e) => setPlanForm({ ...planForm, durationDays: parseInt(e.target.value) })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                   />
                 </div>
               </div>
@@ -556,23 +558,23 @@ export default function ExecutorInvestmentsPage() {
                   id="isActive"
                   checked={planForm.isActive}
                   onChange={(e) => setPlanForm({ ...planForm, isActive: e.target.checked })}
-                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  className="rounded border-white/20 text-[#00c076] bg-[#0e1520] focus:ring-[#00c076]"
                 />
-                <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Make plan active immediately</label>
+                <label htmlFor="isActive" className="text-xs font-bold text-slate-300">Make plan active immediately</label>
               </div>
 
-              <div className="flex gap-3 justify-end pt-4">
+              <div className="flex gap-3 justify-end pt-4 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setPlanModal(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50"
+                  className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createPlanMutation.isPending || updatePlanMutation.isPending}
-                  className="px-4 py-2 text-sm font-semibold bg-[#2d6a4f] hover:bg-[#1b4332] text-white rounded-xl disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-black bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl disabled:opacity-50 shadow-md shadow-[#00c076]/20 cursor-pointer"
                 >
                   Save Plan
                 </button>
@@ -584,15 +586,15 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Log Profit Modal */}
       {profitModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Log Daily/Manual Profit</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Distribute profit to <strong>{profitModal.user?.username}</strong> under package {profitModal.planSnapshot?.name}.
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-1">Log Daily/Manual Profit</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Distribute profit to <strong className="text-white">{profitModal.user?.username}</strong> under package {profitModal.planSnapshot?.name}.
             </p>
             <form onSubmit={handleProfitSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Profit Amount ($)</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Profit Amount ($)</label>
                 <input
                   type="number"
                   required
@@ -601,31 +603,31 @@ export default function ExecutorInvestmentsPage() {
                   value={profitAmount}
                   onChange={(e) => setProfitAmount(e.target.value)}
                   placeholder="e.g. 5.50"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Note / Reference</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Note / Reference</label>
                 <input
                   type="text"
                   value={profitNote}
                   onChange={(e) => setProfitNote(e.target.value)}
                   placeholder="e.g. Daily trading yield distribution"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
                 />
               </div>
-              <div className="flex gap-3 justify-end pt-2">
+              <div className="flex gap-3 justify-end pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setProfitModal(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50"
+                  className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={logProfitMutation.isPending}
-                  className="px-4 py-2 text-sm font-semibold bg-[#2d6a4f] hover:bg-[#1b4332] text-white rounded-xl disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-black bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl disabled:opacity-50 shadow-md shadow-[#00c076]/20 cursor-pointer"
                 >
                   Disburse Profit
                 </button>
@@ -637,20 +639,20 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Upgrade Plan Modal */}
       {upgradeModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Upgrade Investment Package</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Upgrade active portfolio for <strong>{upgradeModal.user?.username}</strong>. Currently on {upgradeModal.planSnapshot?.name}.
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-1">Upgrade Investment Package</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Upgrade active portfolio for <strong className="text-white">{upgradeModal.user?.username}</strong>. Currently on {upgradeModal.planSnapshot?.name}.
             </p>
             <form onSubmit={handleUpgradeSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Select New Plan</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Select New Plan</label>
                 <select
                   required
                   value={selectedPlanId}
                   onChange={(e) => setSelectedPlanId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
+                  className="w-full border border-white/10 bg-[#0e1520] text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-[#00c076]"
                 >
                   <option value="">-- Choose Plan --</option>
                   {activePlans
@@ -662,24 +664,24 @@ export default function ExecutorInvestmentsPage() {
                     ))}
                 </select>
               </div>
-              <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 text-xs text-amber-800 space-y-1">
-                <span className="font-semibold block">Important Note:</span>
-                <span>
+              <div className="bg-amber-500/15 rounded-2xl p-3.5 border border-amber-500/30 text-xs text-amber-300 space-y-1">
+                <span className="font-bold block">Important Note:</span>
+                <span className="text-[11px] leading-relaxed block">
                   Upgrading will top up the investment amount to match the new plan's minimum limit (if current investment is less). The difference will be automatically deducted from the user's available balance.
                 </span>
               </div>
-              <div className="flex gap-3 justify-end pt-2">
+              <div className="flex gap-3 justify-end pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setUpgradeModal(null)}
-                  className="px-4 py-2 text-sm font-semibold border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50"
+                  className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={upgradePlanMutation.isPending}
-                  className="px-4 py-2 text-sm font-semibold bg-[#2d6a4f] hover:bg-[#1b4332] text-white rounded-xl disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-black bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl disabled:opacity-50 shadow-md shadow-[#00c076]/20 cursor-pointer"
                 >
                   Confirm Upgrade
                 </button>
@@ -691,45 +693,45 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Mature / Cancel Status Update Confirmation Modal */}
       {statusModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-2">
               {statusModal.status === "completed" ? "Mature Investment" : "Cancel/Reject Investment"}
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Are you sure you want to change the status of this investment to <strong>{statusModal.status}</strong>?
+            <p className="text-xs text-slate-400 mb-4">
+              Are you sure you want to change the status of this investment to <strong className="text-white uppercase">{statusModal.status}</strong>?
             </p>
 
             {statusModal.status === "completed" && (
-              <div className="bg-green-50 text-green-800 p-3 rounded-xl border border-green-100 text-xs mb-4">
+              <div className="bg-emerald-500/15 text-[#00e676] p-3.5 rounded-2xl border border-emerald-500/30 text-xs mb-4">
                 This will end the investment cycle, release the principal amount and finalize the calculated ROI earnings into the client's available balance.
               </div>
             )}
 
             {statusModal.status === "rejected" && (
               <div className="space-y-4 mb-4">
-                <div className="bg-red-50 text-red-800 p-3 rounded-xl border border-red-100 text-xs">
+                <div className="bg-rose-500/15 text-rose-400 p-3.5 rounded-2xl border border-rose-500/30 text-xs">
                   This will cancel the active investment and return the principal amount invested back into the client's available balance.
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Reason for Rejection</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Reason for Rejection</label>
                   <input
                     type="text"
                     required
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
                     placeholder="e.g. Account balance reconciliation"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                    className="w-full border border-white/10 bg-[#0e1520] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-rose-500"
                   />
                 </div>
               </div>
             )}
 
-            <div className="flex gap-3 justify-end pt-2">
+            <div className="flex gap-3 justify-end pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setStatusModal(null)}
-                className="px-4 py-2 text-sm font-semibold border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50"
+                className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
               >
                 Go Back
               </button>
@@ -737,10 +739,10 @@ export default function ExecutorInvestmentsPage() {
                 type="button"
                 onClick={handleStatusSubmit}
                 disabled={updateStatusMutation.isPending}
-                className={`px-4 py-2 text-sm font-semibold text-white rounded-xl disabled:opacity-50 ${
+                className={`px-4 py-2 text-xs font-black rounded-xl disabled:opacity-50 cursor-pointer ${
                   statusModal.status === "completed"
-                    ? "bg-[#2d6a4f] hover:bg-[#1b4332]"
-                    : "bg-red-600 hover:bg-red-700"
+                    ? "bg-[#00c076] hover:bg-[#00e676] text-[#080c10] shadow-md shadow-[#00c076]/20"
+                    : "bg-rose-500 hover:bg-rose-600 text-white"
                 }`}
               >
                 Confirm
@@ -752,11 +754,11 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Reject Pending Investment Modal */}
       {pendingRejectModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Reject Investment Request</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              Specify the reason for rejecting the investment request from <strong>{pendingRejectModal.user?.username}</strong>.
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-2">Reject Investment Request</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Specify the reason for rejecting the investment request from <strong className="text-white">{pendingRejectModal.user?.username}</strong>.
             </p>
             <form
               onSubmit={(e) => {
@@ -766,28 +768,28 @@ export default function ExecutorInvestmentsPage() {
               className="space-y-4"
             >
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Reason</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Reason</label>
                 <input
                   type="text"
                   required
                   value={pendingRejectReason}
                   onChange={(e) => setPendingRejectReason(e.target.value)}
                   placeholder="e.g. Incomplete verification or incorrect deposit reference"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  className="w-full border border-white/10 bg-[#0e1520] text-white rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-rose-500"
                 />
               </div>
-              <div className="flex gap-3 justify-end pt-2">
+              <div className="flex gap-3 justify-end pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => { setPendingRejectModal(null); setPendingRejectReason(""); }}
-                  className="px-4 py-2 text-sm font-semibold border border-gray-200 text-gray-500 rounded-xl hover:bg-gray-50"
+                  className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={rejectInvestmentMutation.isPending}
-                  className="px-4 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white rounded-xl disabled:opacity-50 cursor-pointer"
                 >
                   Reject Investment
                 </button>
@@ -799,18 +801,18 @@ export default function ExecutorInvestmentsPage() {
 
       {/* Details Side Panel */}
       {selectedTx && (
-        <div className="fixed inset-0 bg-black/40 z-40 flex justify-end">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex justify-end">
           <div className="fixed inset-0" onClick={() => setSelectedTx(null)} />
-          <div className="relative w-full max-w-lg bg-white h-full shadow-2xl p-6 overflow-y-auto z-50 flex flex-col justify-between animate-in slide-in-from-right duration-300">
+          <div className="relative w-full max-w-lg bg-[#121822] border-l border-white/10 h-full shadow-2xl p-6 overflow-y-auto z-50 flex flex-col justify-between animate-in slide-in-from-right duration-300">
             <div className="space-y-6">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Investment Details</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Reference: {selectedTx.reference}</p>
+                  <h2 className="text-lg font-bold text-white">Investment Details</h2>
+                  <p className="text-xs text-slate-400 mt-0.5 font-mono">Ref: {selectedTx.reference}</p>
                 </div>
                 <button
                   onClick={() => setSelectedTx(null)}
-                  className="text-gray-400 hover:text-gray-900 transition-colors"
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -819,23 +821,23 @@ export default function ExecutorInvestmentsPage() {
               </div>
 
               {/* Client section */}
-              <div className="border-t border-b border-gray-100 py-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Investor</p>
+              <div className="border-t border-b border-white/10 py-4">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Investor</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-50 text-[#2d6a4f] flex items-center justify-center text-sm font-bold uppercase shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-[#00c076]/20 border border-[#00c076]/30 text-[#00e676] flex items-center justify-center text-sm font-black uppercase shrink-0">
                     {selectedTx.user?.username?.charAt(0) ?? "U"}
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-900 block">{selectedTx.user?.username}</span>
-                    <span className="text-xs text-gray-500">{selectedTx.user?.email}</span>
+                    <span className="font-bold text-white block">{selectedTx.user?.username}</span>
+                    <span className="text-xs text-slate-400 font-mono">{selectedTx.user?.email}</span>
                   </div>
                 </div>
               </div>
 
               {/* Stats */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Overview</p>
-                <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Overview</p>
+                <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-4 space-y-2.5">
                   {[
                     ["Package Name", selectedTx.planSnapshot?.name],
                     ["Principal Invested", formatCurrency(selectedTx.amount)],
@@ -846,9 +848,9 @@ export default function ExecutorInvestmentsPage() {
                     ["Maturity Date", selectedTx.expiresAt ? formatDate(selectedTx.expiresAt) : "N/A"],
                     ["Status", selectedTx.status.toUpperCase()],
                   ].map(([label, value]) => (
-                    <div key={label} className="flex justify-between text-sm">
-                      <span className="text-gray-500">{label}</span>
-                      <span className="font-semibold text-gray-900 text-right">{value}</span>
+                    <div key={label} className="flex justify-between text-xs">
+                      <span className="text-slate-400">{label}</span>
+                      <span className="font-bold text-white font-mono text-right">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -856,21 +858,21 @@ export default function ExecutorInvestmentsPage() {
 
               {/* Profit Logs */}
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Profit Distributions</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Profit Distributions</p>
                 {selectedTx.meta?.profitLogs && selectedTx.meta.profitLogs.length > 0 ? (
-                  <div className="space-y-2 max-h-[180px] overflow-y-auto border border-gray-100 rounded-xl p-3">
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto border border-white/10 bg-[#0e1520] rounded-2xl p-3">
                     {(selectedTx.meta.profitLogs as any[]).map((log, index) => (
-                      <div key={index} className="flex justify-between items-center text-xs border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+                      <div key={index} className="flex justify-between items-center text-xs border-b border-white/5 pb-2 last:border-0 last:pb-0">
                         <div>
-                          <div className="font-semibold text-gray-800">{log.note || "Yield Distribution"}</div>
-                          <div className="text-gray-400">{formatDate(log.date)}</div>
+                          <div className="font-bold text-white">{log.note || "Yield Distribution"}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{formatDate(log.date)}</div>
                         </div>
-                        <div className="font-bold text-emerald-600">+{formatCurrency(log.amount)}</div>
+                        <div className="font-bold text-[#00e676] font-mono">+{formatCurrency(log.amount)}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-500 bg-gray-50 p-4 rounded-xl text-center">
+                  <div className="text-xs text-slate-500 bg-[#0e1520] border border-white/10 p-4 rounded-2xl text-center">
                     No manual profits distributed yet.
                   </div>
                 )}
@@ -879,7 +881,7 @@ export default function ExecutorInvestmentsPage() {
 
             <button
               onClick={() => setSelectedTx(null)}
-              className="w-full border border-gray-200 text-gray-600 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors mt-6"
+              className="w-full border border-white/10 text-slate-300 py-3 rounded-2xl text-xs font-bold hover:bg-white/5 transition-colors mt-6 cursor-pointer"
             >
               Close Panel
             </button>

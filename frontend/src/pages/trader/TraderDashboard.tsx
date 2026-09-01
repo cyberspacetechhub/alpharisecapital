@@ -241,7 +241,7 @@ export default function TraderDashboard() {
           {/* [icon] Deposit (Green Background) */}
           <button
             onClick={() => navigate("/trader/deposit")}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#2d6a4f] hover:bg-[#388463] border border-emerald-400/30 transition-all text-xs font-bold text-white shadow-md group"
+            className="flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-2xl bg-[#1e4835] hover:bg-[#164732] border border-[#1e4835] transition-all text-xs font-bold text-white shadow-md group"
           >
             <svg className="w-5 h-5 text-white transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

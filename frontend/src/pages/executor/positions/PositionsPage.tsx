@@ -14,11 +14,11 @@ const Modal = ({
   children: React.ReactNode;
 }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-    <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto z-10">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+    <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto z-10 text-white">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <button onClick={onClose} className="text-slate-400 hover:text-white cursor-pointer">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -29,7 +29,7 @@ const Modal = ({
   </div>
 );
 
-const inputClass = "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent";
+const inputClass = "w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]";
 
 export default function ExecutorPositionsPage() {
   const qc = useQueryClient();
@@ -108,16 +108,16 @@ export default function ExecutorPositionsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-gray-800">Margin Positions Management</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Oversee and force-close client open margin contracts.</p>
+          <h1 className="text-xl font-bold text-white">Margin Positions Management</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Oversee and force-close client open margin contracts.</p>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
+        <div className="flex bg-[#0e1520] rounded-2xl p-1 shrink-0 border border-white/10">
           {["open", "closed", ""].map((status) => (
             <button
               key={status}
@@ -125,10 +125,10 @@ export default function ExecutorPositionsPage() {
                 setFilterStatus(status as any);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase cursor-pointer ${
                 filterStatus === status
-                  ? "bg-[#1a3a2a] text-white border-transparent"
-                  : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "bg-[#00c076] text-[#080c10] shadow-sm font-black"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               {status === "" ? "ALL CONTRACTS" : status.toUpperCase()}
@@ -141,19 +141,19 @@ export default function ExecutorPositionsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-gray-200 animate-pulse rounded-2xl" />
+            <div key={i} className="h-20 bg-white/5 animate-pulse rounded-3xl" />
           ))}
         </div>
       ) : positions.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
-          <p className="text-sm text-gray-400">No positions found for the selected filter.</p>
+        <div className="bg-[#121822] rounded-3xl border border-white/10 py-16 text-center">
+          <p className="text-xs text-slate-500">No positions found for the selected filter.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+        <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
+                <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
                   <th className="px-5 py-3">Client</th>
                   <th className="px-5 py-3">Asset</th>
                   <th className="px-5 py-3">Leverage</th>
@@ -164,62 +164,64 @@ export default function ExecutorPositionsPage() {
                   <th className="px-5 py-3 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-white/5 text-slate-300">
                 {positions.map((pos: PositionType) => {
                   const user: any = pos.user ?? {};
                   const isClosed = pos.status !== "open";
                   const pnl = isClosed ? pos.realizedPnL ?? 0 : pos.unrealizedPnL;
 
                   return (
-                    <tr key={pos._id} className="hover:bg-gray-50/40">
+                    <tr key={pos._id} className="hover:bg-white/5 transition-colors">
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <div className="font-semibold text-gray-800">{user.username ?? "Unknown"}</div>
-                        <div className="text-[10px] text-gray-400 font-mono">{user.email ?? "—"}</div>
+                        <div className="font-bold text-white">{user.username ?? "Unknown"}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{user.email ?? "—"}</div>
                       </td>
-                      <td className="px-5 py-4 whitespace-nowrap font-medium text-gray-800">
+                      <td className="px-5 py-4 whitespace-nowrap font-bold text-white">
                         {pos.pair}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                            pos.direction === "long" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                            pos.direction === "long"
+                              ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                           }`}
                         >
                           {pos.direction} {pos.leverage}x
                         </span>
                       </td>
                       <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <div className="font-medium text-gray-800">{formatCurrency(pos.amount)}</div>
-                        <div className="text-[9px] text-gray-400">
+                        <div className="font-bold text-white font-mono">{formatCurrency(pos.amount)}</div>
+                        <div className="text-[9px] text-slate-400 font-mono">
                           Size: {formatCurrency(pos.amount * pos.leverage)}
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-right font-mono text-xs text-gray-600 whitespace-nowrap">
+                      <td className="px-5 py-4 text-right font-mono text-xs text-slate-300 whitespace-nowrap">
                         <div>En: ${pos.entryPrice?.toLocaleString()}</div>
-                        <div>
+                        <div className="text-white font-bold">
                           {isClosed ? "Ex: " : "Cur: "}${pos.currentPrice?.toLocaleString()}
                         </div>
                       </td>
                       <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-green-600" : "text-red-500"}`}>
+                        <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                           {pnl >= 0 ? "+" : ""}
                           {pnl.toFixed(2)}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                      <td className="px-5 py-4 text-xs text-slate-400 font-mono whitespace-nowrap">
                         <div>Op: {formatDate(pos.openedAt)}</div>
-                        <div className={isClosed ? "text-gray-400" : "text-amber-600 font-semibold"}>
+                        <div className={isClosed ? "text-slate-500" : "text-amber-300 font-bold"}>
                           {isClosed ? `Cl: ${formatDate(pos.closedAt ?? pos.updatedAt ?? pos.openedAt)}` : `Ex: ${formatDate(pos.expiresAt)}`}
                         </div>
                       </td>
                       <td className="px-5 py-4 text-center whitespace-nowrap">
                         {isClosed ? (
                           <div className="flex flex-col items-center">
-                            <span className="text-[10px] bg-gray-150 text-gray-600 px-2 py-0.5 rounded-full font-bold uppercase">
+                            <span className="text-[10px] bg-white/5 text-slate-400 border border-white/10 px-2.5 py-0.5 rounded-full font-bold uppercase">
                               CLOSED
                             </span>
                             {pos.meta?.remarks && (
-                              <span className="text-[9px] text-gray-400 mt-1 italic max-w-[100px] truncate">
+                              <span className="text-[9px] text-slate-500 mt-1 italic max-w-[100px] truncate">
                                 "{pos.meta.remarks}"
                               </span>
                             )}
@@ -227,7 +229,7 @@ export default function ExecutorPositionsPage() {
                         ) : (
                           <button
                             onClick={() => handleOpenModal(pos)}
-                            className="text-xs px-3 py-1.5 rounded-lg font-bold bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                            className="text-xs px-3 py-1.5 rounded-xl font-bold bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 transition-all cursor-pointer"
                           >
                             Force Close
                           </button>
@@ -242,21 +244,21 @@ export default function ExecutorPositionsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-between items-center px-6 py-4 border-t border-gray-50 text-sm">
+            <div className="flex justify-between items-center px-6 py-4 border-t border-white/10 text-xs">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                className="px-3 py-1.5 border border-white/10 rounded-xl hover:bg-white/5 text-slate-300 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer font-bold"
               >
                 Previous
               </button>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-slate-400">
                 Page {page} of {totalPages}
               </span>
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                className="px-3 py-1.5 border border-white/10 rounded-xl hover:bg-white/5 text-slate-300 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer font-bold"
               >
                 Next
               </button>
@@ -269,12 +271,12 @@ export default function ExecutorPositionsPage() {
       {forceCloseTarget && (
         <Modal title="Force Close Position" onClose={() => setForceCloseTarget(null)}>
           <form onSubmit={handleSubmitForceClose} className="space-y-4" noValidate>
-            <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-700 rounded-xl leading-relaxed">
-              Force-closing will immediately mature this contract and credit the trader's balance based on the exit terms.
+            <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-2xl leading-relaxed font-bold">
+              ⚠ Force-closing will immediately mature this contract and credit the trader's balance based on the exit terms.
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Exit Price ($)</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Exit Price ($)</label>
               <input
                 type="number"
                 required
@@ -285,20 +287,20 @@ export default function ExecutorPositionsPage() {
             </div>
 
             {/* Override PnL Toggle */}
-            <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-2xl space-y-3">
-              <label className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer select-none">
+            <div className="p-3.5 bg-[#0e1520] border border-white/10 rounded-2xl space-y-3">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={hasOverride}
                   onChange={(e) => setHasOverride(e.target.checked)}
-                  className="w-4 h-4 accent-[#2d6a4f]"
+                  className="w-4 h-4 accent-[#00c076]"
                 />
                 Override Profit/Loss manually
               </label>
 
               {hasOverride && (
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 mb-1">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
                     Manual PnL Value ($)
                   </label>
                   <input
@@ -309,7 +311,7 @@ export default function ExecutorPositionsPage() {
                     placeholder="e.g. +350.00 (profit) or -120.00 (loss)"
                     className={inputClass}
                   />
-                  <p className="text-[10px] text-gray-400 mt-1">
+                  <p className="text-[10px] text-slate-400 mt-1">
                     Positive numbers = Trader profit. Negative numbers = Trader loss.
                   </p>
                 </div>
@@ -317,7 +319,7 @@ export default function ExecutorPositionsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Remarks / Remarks</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Internal Audit Remarks</label>
               <textarea
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
@@ -328,23 +330,23 @@ export default function ExecutorPositionsPage() {
             </div>
 
             {serverError && (
-              <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-600 rounded-xl">
-                {serverError}
+              <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-2xl font-bold">
+                ✕ {serverError}
               </div>
             )}
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setForceCloseTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:bg-white/5 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={forceCloseMutation.isPending}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {forceCloseMutation.isPending && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

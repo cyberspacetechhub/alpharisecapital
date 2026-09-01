@@ -174,38 +174,38 @@ export default function TraderPositionsPage() {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-gray-800">Margin & Leverage Trading</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Open leverage contracts on key crypto tokens.</p>
+        <h1 className="text-xl font-bold text-white">Margin & Leverage Trading</h1>
+        <p className="text-xs text-slate-400 mt-0.5">Open institutional margin contracts with real-time crypto index settlement.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Form Panel */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm h-fit">
+        <div className="bg-[#121822] rounded-3xl border border-white/10 p-6 shadow-sm h-fit text-white">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-sm font-semibold text-gray-800">New Position</h2>
-            <span className="text-xs text-gray-400">
-              Balance: <strong>{formatCurrency(user.balance)}</strong>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">New Position</h2>
+            <span className="text-xs text-slate-400 font-mono">
+              Balance: <strong className="text-[#00c076]">{formatCurrency(user.balance)}</strong>
             </span>
           </div>
 
           <form onSubmit={handleOpenPosition} className="space-y-4" noValidate>
             {/* Pairs */}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Asset Pair</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Asset Pair</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {PAIRS.map((pair) => (
                   <button
                     key={pair}
                     type="button"
                     onClick={() => setSelectedPair(pair)}
-                    className={`py-2 text-xs rounded-xl font-semibold border transition-all ${
+                    className={`py-2 text-xs rounded-xl font-bold border transition-all cursor-pointer ${
                       selectedPair === pair
-                        ? "bg-[#1a3a2a] text-white border-transparent"
-                        : "bg-gray-50 border-gray-100 text-gray-600 hover:bg-gray-100"
+                        ? "bg-[#00c076] text-[#080c10] border-transparent shadow-sm"
+                        : "bg-[#0e1520] border-white/10 text-slate-300 hover:bg-white/5"
                     }`}
                   >
                     <div>{pair.split("/")[0]}</div>
-                    <div className="text-[9px] opacity-70 font-mono mt-0.5">
+                    <div className="text-[9px] font-mono mt-0.5 opacity-80">
                       ${livePrices[pair]?.toLocaleString()}
                     </div>
                   </button>
@@ -215,30 +215,30 @@ export default function TraderPositionsPage() {
 
             {/* Direction */}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Direction</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Order Type</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setDirection("long")}
-                  className={`py-2.5 rounded-xl font-semibold text-xs transition-all border flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 rounded-xl font-black text-xs transition-all border flex items-center justify-center gap-1.5 cursor-pointer ${
                     direction === "long"
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100"
+                      ? "bg-emerald-500/20 text-[#00e676] border-emerald-500/40"
+                      : "bg-[#0e1520] border-white/10 text-slate-400 hover:bg-white/5"
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00e676]" />
                   LONG (BUY)
                 </button>
                 <button
                   type="button"
                   onClick={() => setDirection("short")}
-                  className={`py-2.5 rounded-xl font-semibold text-xs transition-all border flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 rounded-xl font-black text-xs transition-all border flex items-center justify-center gap-1.5 cursor-pointer ${
                     direction === "short"
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100"
+                      ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+                      : "bg-[#0e1520] border-white/10 text-slate-400 hover:bg-white/5"
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                   SHORT (SELL)
                 </button>
               </div>
@@ -247,25 +247,25 @@ export default function TraderPositionsPage() {
             {/* Amount & Leverage */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Margin ($)</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Margin ($)</label>
                 <input
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="e.g. 500"
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Leverage</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Leverage</label>
                 <select
                   value={leverage}
                   onChange={(e) => setLeverage(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 >
                   {[2, 5, 10, 20, 50, 100].map((lev) => (
                     <option key={lev} value={lev}>
-                      {lev}x
+                      {lev}x Leverage
                     </option>
                   ))}
                 </select>
@@ -274,17 +274,17 @@ export default function TraderPositionsPage() {
 
             {/* Durations */}
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1.5">Contract Duration</label>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Contract Expiry</label>
               <div className="grid grid-cols-5 gap-1">
                 {DURATIONS.map((dur) => (
                   <button
                     key={dur.value}
                     type="button"
                     onClick={() => setDuration(dur.value)}
-                    className={`py-1.5 rounded-lg text-[10px] font-semibold transition-all border ${
+                    className={`py-1.5 rounded-xl text-[10px] font-bold transition-all border cursor-pointer ${
                       duration === dur.value
-                        ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                        : "bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100"
+                        ? "bg-emerald-500/20 text-[#00e676] border-emerald-500/40"
+                        : "bg-[#0e1520] border-white/10 text-slate-400 hover:bg-white/5"
                     }`}
                   >
                     {dur.label}
@@ -294,49 +294,49 @@ export default function TraderPositionsPage() {
             </div>
 
             {/* Stop Loss / Take Profit */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10">
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Stop Loss (Price)</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stop Loss ($)</label>
                 <input
                   type="number"
                   value={stopLoss}
                   onChange={(e) => setStopLoss(e.target.value)}
                   placeholder="Optional"
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Take Profit (Price)</label>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Take Profit ($)</label>
                 <input
                   type="number"
                   value={takeProfit}
                   onChange={(e) => setTakeProfit(e.target.value)}
                   placeholder="Optional"
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d6a4f] focus:border-transparent"
+                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
                 />
               </div>
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-red-50 border border-red-100 text-xs text-red-600 rounded-xl">
-                {errorMsg}
+              <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 text-xs font-bold text-rose-400 rounded-2xl">
+                ✕ {errorMsg}
               </div>
             )}
 
             {successMsg && (
-              <div className="p-3 bg-green-50 border border-green-100 text-xs text-emerald-700 rounded-xl">
-                {successMsg}
+              <div className="p-3.5 bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-[#00e676] rounded-2xl">
+                ✓ {successMsg}
               </div>
             )}
 
             <button
               type="submit"
               disabled={openMutation.isPending}
-              className="w-full py-3 bg-[#1a3a2a] hover:bg-[#2d6a4f] text-white text-xs font-bold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              className="w-full py-3.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl shadow-md shadow-[#00c076]/20 transition-all disabled:opacity-60 cursor-pointer flex items-center justify-center gap-1.5"
             >
               {openMutation.isPending && (
-                <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <svg className="w-4 h-4 animate-spin text-[#080c10]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
               )}
@@ -348,78 +348,78 @@ export default function TraderPositionsPage() {
         {/* Right Active & History Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Active Positions */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-800">Open Positions ({openPositions.length})</h2>
-              <span className="text-xs text-gray-400 italic">Simulated prices tick every 3s</span>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm text-white">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520] flex items-center justify-between">
+              <h2 className="text-xs font-bold text-white uppercase tracking-wider">Open Positions ({openPositions.length})</h2>
+              <span className="text-[10px] text-slate-400 font-mono italic">Realtime rates polling</span>
             </div>
 
             {positionsLoading ? (
               <div className="p-6 space-y-2">
-                <div className="h-10 bg-gray-200 animate-pulse rounded-xl" />
-                <div className="h-10 bg-gray-200 animate-pulse rounded-xl" />
+                <div className="h-10 bg-white/5 animate-pulse rounded-xl" />
+                <div className="h-10 bg-white/5 animate-pulse rounded-xl" />
               </div>
             ) : openPositions.length === 0 ? (
-              <div className="p-12 text-center text-sm text-gray-400">No open trading positions.</div>
+              <div className="p-12 text-center text-xs text-slate-500">No open trading positions.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
-                      <th className="px-5 py-3">Asset</th>
-                      <th className="px-5 py-3">Side</th>
-                      <th className="px-5 py-3 text-right">Margin / Size</th>
-                      <th className="px-5 py-3 text-right">Entry Price</th>
-                      <th className="px-5 py-3 text-right">Mark Price</th>
-                      <th className="px-5 py-3 text-right">Unrealized PnL</th>
-                      <th className="px-5 py-3 text-center">Action</th>
+                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                      <th className="px-5 py-3.5">Asset</th>
+                      <th className="px-5 py-3.5">Side</th>
+                      <th className="px-5 py-3.5 text-right">Margin / Size</th>
+                      <th className="px-5 py-3.5 text-right">Entry Price</th>
+                      <th className="px-5 py-3.5 text-right">Mark Price</th>
+                      <th className="px-5 py-3.5 text-right">Unrealized PnL</th>
+                      <th className="px-5 py-3.5 text-center">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
                     {openPositions.map((pos) => {
                       const pnl = getLivePnL(pos);
                       const pnlPct = getLivePnLPercent(pos);
                       const markPrice = livePrices[pos.pair] ?? pos.currentPrice;
 
                       return (
-                        <tr key={pos._id} className="hover:bg-gray-50/40">
-                          <td className="px-5 py-4 whitespace-nowrap">
-                            <span className="font-semibold text-gray-800">{pos.pair}</span>
+                        <tr key={pos._id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-5 py-4 whitespace-nowrap font-sans font-bold text-white">
+                            {pos.pair}
                           </td>
-                          <td className="px-5 py-4 whitespace-nowrap">
+                          <td className="px-5 py-4 whitespace-nowrap font-sans">
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
                                 pos.direction === "long"
-                                  ? "bg-green-50 text-green-700"
-                                  : "bg-red-50 text-red-700"
+                                  ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                                  : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                               }`}
                             >
                               {pos.direction.toUpperCase()} {pos.leverage}x
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right whitespace-nowrap">
-                            <div className="font-medium text-gray-800">{formatCurrency(pos.amount)}</div>
-                            <div className="text-[10px] text-gray-400 font-mono">
+                          <td className="px-5 py-4 text-right whitespace-nowrap font-mono">
+                            <div className="font-bold text-white">{formatCurrency(pos.amount)}</div>
+                            <div className="text-[10px] text-slate-500 font-mono">
                               Size: {formatCurrency(pos.amount * pos.leverage)}
                             </div>
                           </td>
-                          <td className="px-5 py-4 text-right font-mono text-xs text-gray-600 whitespace-nowrap">
+                          <td className="px-5 py-4 text-right font-mono text-xs text-slate-400 whitespace-nowrap">
                             ${pos.entryPrice?.toLocaleString()}
                           </td>
-                          <td className="px-5 py-4 text-right font-mono text-xs text-gray-800 whitespace-nowrap">
+                          <td className="px-5 py-4 text-right font-mono text-xs text-white font-bold whitespace-nowrap">
                             ${markPrice?.toLocaleString()}
                           </td>
                           <td className="px-5 py-4 text-right whitespace-nowrap">
-                            <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                               {pnl >= 0 ? "+" : ""}
                               {pnl.toFixed(2)} ({pnlPct.toFixed(2)}%)
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-center whitespace-nowrap">
+                          <td className="px-5 py-4 text-center whitespace-nowrap font-sans">
                             <button
                               onClick={() => closeMutation.mutate(pos._id)}
                               disabled={closeMutation.isPending}
-                              className="text-[11px] font-bold px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-60"
+                              className="text-[10px] font-bold px-3 py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 transition-colors disabled:opacity-60 cursor-pointer"
                             >
                               Close
                             </button>
@@ -434,62 +434,62 @@ export default function TraderPositionsPage() {
           </div>
 
           {/* History Positions */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-50">
-              <h2 className="text-sm font-semibold text-gray-800">Closed Contracts History</h2>
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm text-white">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+              <h2 className="text-xs font-bold text-white uppercase tracking-wider">Closed Contracts History</h2>
             </div>
 
             {positionsLoading ? (
               <div className="p-6 space-y-2">
-                <div className="h-10 bg-gray-200 animate-pulse rounded-xl" />
+                <div className="h-10 bg-white/5 animate-pulse rounded-xl" />
               </div>
             ) : closedPositions.length === 0 ? (
-              <div className="p-12 text-center text-sm text-gray-400">No trading history found.</div>
+              <div className="p-12 text-center text-xs text-slate-500">No trading history found.</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="bg-gray-50/50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-50">
-                      <th className="px-5 py-3">Closed Date</th>
-                      <th className="px-5 py-3">Asset</th>
-                      <th className="px-5 py-3 text-right">Entry / Exit</th>
-                      <th className="px-5 py-3 text-right">PnL</th>
-                      <th className="px-5 py-3">Closed By</th>
-                      <th className="px-5 py-3">Remarks</th>
+                    <tr className="bg-[#0e1520] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+                      <th className="px-5 py-3.5">Closed Date</th>
+                      <th className="px-5 py-3.5">Asset</th>
+                      <th className="px-5 py-3.5 text-right">Entry / Exit</th>
+                      <th className="px-5 py-3.5 text-right">Realized PnL</th>
+                      <th className="px-5 py-3.5">Closed By</th>
+                      <th className="px-5 py-3.5">Remarks</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white/5 text-slate-300 font-mono">
                     {closedPositions.map((pos) => {
                       const pnl = pos.realizedPnL ?? 0;
                       return (
-                        <tr key={pos._id} className="hover:bg-gray-50/40">
-                          <td className="px-5 py-4 text-xs text-gray-500 whitespace-nowrap">
+                        <tr key={pos._id} className="hover:bg-white/5 transition-colors">
+                          <td className="px-5 py-4 text-xs text-slate-400 whitespace-nowrap font-mono">
                             {formatDate(pos.closedAt ?? pos.updatedAt ?? pos.openedAt)}
                           </td>
-                          <td className="px-5 py-4 whitespace-nowrap">
-                            <span className="font-semibold text-gray-800 block">{pos.pair}</span>
+                          <td className="px-5 py-4 whitespace-nowrap font-sans">
+                            <span className="font-bold text-white block">{pos.pair}</span>
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                                pos.direction === "long" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                              className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                pos.direction === "long" ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                               }`}
                             >
                               {pos.direction} {pos.leverage}x
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right font-mono text-xs text-gray-600 whitespace-nowrap">
+                          <td className="px-5 py-4 text-right font-mono text-xs text-slate-400 whitespace-nowrap">
                             <div>En: ${pos.entryPrice?.toLocaleString()}</div>
                             <div>Ex: ${pos.exitPrice?.toLocaleString()}</div>
                           </td>
                           <td className="px-5 py-4 text-right whitespace-nowrap">
-                            <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            <span className={`font-bold font-mono text-xs ${pnl >= 0 ? "text-[#00e676]" : "text-rose-400"}`}>
                               {pnl >= 0 ? "+" : ""}
                               {pnl.toFixed(2)}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-xs text-gray-500 uppercase whitespace-nowrap">
+                          <td className="px-5 py-4 text-xs text-slate-400 uppercase whitespace-nowrap font-sans font-bold">
                             {pos.closedBy || "system"}
                           </td>
-                          <td className="px-5 py-4 text-xs text-gray-400 max-w-[120px] truncate italic">
+                          <td className="px-5 py-4 text-xs text-slate-500 max-w-[120px] truncate italic font-sans">
                             {pos.meta?.remarks || "—"}
                           </td>
                         </tr>

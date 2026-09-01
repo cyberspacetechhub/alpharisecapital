@@ -81,11 +81,11 @@ const RegisterPage = () => {
       <div className="w-full max-w-lg">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#1a3a2a] mb-4 shadow-lg">
-            <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
+          <img
+            src="/branding/arglogo.png"
+            alt="Alpha Rise Global"
+            className="w-16 h-16 object-contain rounded-2xl mb-4 mx-auto shadow-lg shadow-[#00c076]/20"
+          />
           <h1 className="text-2xl font-bold text-[#1a3a2a]">Alpha Rise Global</h1>
           <p className="text-gray-500 mt-1 text-sm">Create your trading account to get started</p>
         </div>

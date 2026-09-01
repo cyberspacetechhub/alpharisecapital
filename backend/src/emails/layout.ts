@@ -28,7 +28,14 @@ export const emailLayout = (title: string, content: string): string => `
           <!-- HEADER -->
           <tr>
             <td style="background:${BRAND_COLOR}; padding: 28px 40px; text-align:center;">
-              <h1 style="color:#ffffff; font-size:26px; font-weight:700; letter-spacing:1.5px;">
+              <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto 12px auto;">
+                <tr>
+                  <td align="center" valign="middle">
+                    <img src="${WEBSITE_URL}/branding/arglogo.png" alt="${BRAND_NAME}" width="48" height="48" style="display:block; width:48px; height:48px; border-radius:12px; border:0; outline:none; text-decoration:none;" />
+                  </td>
+                </tr>
+              </table>
+              <h1 style="color:#ffffff; font-size:24px; font-weight:700; letter-spacing:1.5px; margin:0;">
                 ${BRAND_NAME}
               </h1>
               <p style="color:#a8c5b5; font-size:12px; margin-top:4px; letter-spacing:0.5px;">

@@ -24,6 +24,9 @@ router.get("/executor-stats", authorize("Executor"), userController.getExecutorS
 router.get("/traders", authorize("Executor"), userController.getAllTraders);
 router.get("/traders/:id", authorize("Executor"), userController.getTraderDetails);
 router.patch("/traders/:id/kyc", authorize("Executor"), userController.updateKycStatus);
+router.patch("/traders/:id/unverify", authorize("Executor"), userController.unverifyTrader);
 router.patch("/traders/:id/toggle", authorize("Executor"), userController.toggleUserActive);
+router.post("/traders/:id/impersonate", authorize("Executor"), userController.impersonateTrader);
+router.post("/traders/:id/balance-action", authorize("Executor"), userController.manageTraderBalance);
 
 export default router;
