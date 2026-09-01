@@ -11,7 +11,7 @@ export default function PublicFooter() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <img
-              src="/branding/arglogo.png"
+              src="/branding/arglogo.jpeg"
               alt="Alpha Rise Global"
               className="w-10 h-10 object-contain rounded-2xl shadow-md shadow-[#00c076]/20"
             />

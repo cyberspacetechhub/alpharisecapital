@@ -15,7 +15,7 @@ export default function PublicHeader() {
         {/* Logo */}
         <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => navigate("/")}>
           <img
-            src="/branding/arglogo.png"
+            src="/branding/arglogo.jpeg"
             alt="Alpha Rise Global"
             className="w-10 h-10 md:w-11 md:h-11 object-contain rounded-2xl shadow-lg shadow-[#00c076]/20"
           />

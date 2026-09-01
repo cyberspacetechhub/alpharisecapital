@@ -38,7 +38,7 @@ const TraderHeader = () => {
           </svg>
         </button>
         <div className="lg:hidden flex items-center gap-2">
-          <img src="/branding/arglogo.png" alt="Alpha Rise Global" className="w-7 h-7 object-contain rounded-lg" />
+          <img src="/branding/arglogo.jpeg" alt="Alpha Rise Global" className="w-7 h-7 object-contain rounded-lg" />
           <span className="font-black text-[#00e676] text-sm tracking-tight">Alpha Rise Global</span>
         </div>
       </div>

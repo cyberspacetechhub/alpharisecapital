@@ -31,7 +31,7 @@ export const emailLayout = (title: string, content: string): string => `
               <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto 12px auto;">
                 <tr>
                   <td align="center" valign="middle">
-                    <img src="${WEBSITE_URL}/branding/arglogo.png" alt="${BRAND_NAME}" width="48" height="48" style="display:block; width:48px; height:48px; border-radius:12px; border:0; outline:none; text-decoration:none;" />
+                    <img src="${WEBSITE_URL}/branding/arglogo.jpeg" alt="${BRAND_NAME}" width="48" height="48" style="display:block; width:48px; height:48px; border-radius:12px; border:0; outline:none; text-decoration:none;" />
                   </td>
                 </tr>
               </table>

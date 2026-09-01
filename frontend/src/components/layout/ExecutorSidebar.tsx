@@ -168,7 +168,7 @@ const ExecutorSidebar = () => {
         <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-2.5">
             <img
-              src="/branding/arglogo.png"
+              src="/branding/arglogo.jpeg"
               alt="Alpha Rise Global"
               className="w-8 h-8 object-contain rounded-xl shadow-md shadow-[#00c076]/20"
             />

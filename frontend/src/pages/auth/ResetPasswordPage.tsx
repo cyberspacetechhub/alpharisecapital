@@ -75,7 +75,7 @@ const ResetPasswordPage = () => {
         {/* Brand */}
         <div className="text-center mb-8">
           <img
-            src="/branding/arglogo.png"
+            src="/branding/arglogo.jpeg"
             alt="Alpha Rise Global"
             className="w-16 h-16 object-contain rounded-2xl mb-4 mx-auto shadow-lg shadow-[#00c076]/20"
           />

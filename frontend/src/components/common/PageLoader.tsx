@@ -14,7 +14,7 @@ const PageLoader: React.FC<PageLoaderProps> = ({ fullScreen = true }) => {
       <div className="relative flex items-center justify-center">
         <div className="w-16 h-16 rounded-full border-4 border-[#00c076]/20 border-t-[#00c076] animate-spin" />
         <img
-          src="/branding/arglogo.png"
+          src="/branding/arglogo.jpeg"
           alt="Alpha Rise Global"
           className="absolute w-10 h-10 object-contain rounded-xl shadow-lg shadow-[#00c076]/30 animate-pulse"
         />
