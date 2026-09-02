@@ -7,6 +7,7 @@ import { SystemSetting } from "../models/systemSetting.model";
 import { AppError } from "../utils/AppError";
 import { generateReference } from "../utils/tokens";
 import { sendEmail } from "./email.service";
+import { sendSystemMessage } from "./inAppMessage.service";
 import { loanApprovedEmail, loanRejectedEmail } from "../emails";
 
 const DASHBOARD_URL = `${process.env.CLIENT_URL}/dashboard/loans`;
@@ -119,6 +120,14 @@ export const approveLoan = async (applicationId: string, executorId: string) => 
       )
     );
 
+    await sendSystemMessage(
+      String(application.user),
+      "Loan Approved",
+      `Your loan of $${application.requestedAmount} has been approved and disbursed to your account balance.`,
+      "Loan",
+      String(application._id)
+    ).catch(e => console.error("Loan approval system message failed", e));
+
     return application;
   } catch (err) {
     await session.abortTransaction();
@@ -147,6 +156,14 @@ export const rejectLoan = async (applicationId: string, executorId: string, reas
       "Loan Rejected",
       loanRejectedEmail(user.username, `$${application.requestedAmount}`, reason, DASHBOARD_URL)
     );
+
+    await sendSystemMessage(
+      String(application.user),
+      "Loan Request Rejected",
+      `Your loan request of $${application.requestedAmount} has been rejected. Reason: ${reason}`,
+      "Loan",
+      String(application._id)
+    ).catch(e => console.error("Loan rejection system message failed", e));
   }
 
   return application;
@@ -230,6 +247,14 @@ export const repayLoan = async (userId: string, applicationId: string, amount: n
 
     await Promise.all([user.save({ session }), application.save({ session })]);
     await session.commitTransaction();
+
+    await sendSystemMessage(
+      userId,
+      "Loan Repayment Successful",
+      `Your loan repayment of $${paying} was successful.`,
+      "Loan",
+      String(application._id)
+    ).catch(e => console.error("Loan repayment system message failed", e));
     return application;
   } catch (err) {
     await session.abortTransaction();

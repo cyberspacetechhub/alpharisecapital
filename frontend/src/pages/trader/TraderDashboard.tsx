@@ -35,7 +35,7 @@ const StatCard = ({
       {icon}
     </span>
     {/* 2. Label */}
-    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{label}</p>
+    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{label}</p>
     {/* 3. Value */}
     {loading ? (
       <Skeleton className="h-7 w-24 bg-white/15" />
@@ -45,23 +45,11 @@ const StatCard = ({
   </div>
 );
 
-// ── market status ────────────────────────────────────────────────────────────
-
-const useMarketOpen = () => {
-  const now = new Date();
-  const day = now.getUTCDay();
-  const hour = now.getUTCHours();
-  // forex market: Mon 00:00 – Fri 22:00 UTC (simplified)
-  const isOpen = day >= 1 && day <= 5 && !(day === 5 && hour >= 22);
-  return isOpen;
-};
-
 // ── main component ───────────────────────────────────────────────────────────
 
 export default function TraderDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const marketOpen = useMarketOpen();
 
   const { data: dashData, isLoading: dashLoading } = useQuery<DashboardSummary>({
     queryKey: ["dashboard"],
@@ -101,7 +89,7 @@ export default function TraderDashboard() {
       ),
     },
     {
-      label: "Total Withdrawal",
+      label: "Withdrawal",
       value: formatCurrency(dashData?.totalWithdrawn ?? 0),
       iconBg: "bg-rose-500/20 text-rose-400",
       icon: (
@@ -141,7 +129,7 @@ export default function TraderDashboard() {
       </div>
 
       {/* ── Unified Hero Card (Darker #121418 Background) ── */}
-      <div className="bg-[#121418] border border-gray-800/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg space-y-6">
+      <div className="bg-[#121418] border border-gray-800/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg space-y-2">
 
         {/* Top row: Welcome back / Username (Left) + Market Status / Connect Wallet (Right) */}
         <div className="flex items-start justify-between gap-4">
@@ -156,15 +144,15 @@ export default function TraderDashboard() {
           {/* Right: [Heart Rhythm Icon] Market status on top, [Connect Wallet] with amber 600/20 & amber 500 text */}
           <div className="flex flex-col items-end gap-2 shrink-0">
             {/* [Heart Rhythm Icon] Market Status */}
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+            {/* <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
               marketOpen ? "bg-[#00c076] text-emerald-50 border border-[#00c076]" : "bg-red-500/20 text-red-300 border border-red-400/30"
             }`}>
-              {/* Heart Rhythm / ECG Waveform Icon */}
+              
               <svg className={`w-4 h-4 ${marketOpen ? "text-emerald-50" : "text-red-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12h3.75l2.25-6 3.75 12 2.25-6H21.75" />
               </svg>
               <span>Market {marketOpen ? "Open" : "Closed"}</span>
-            </div>
+            </div> */}
 
             {/* Connect Wallet: bg amber-600/20, text amber-500 */}
             <button

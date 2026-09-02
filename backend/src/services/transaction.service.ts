@@ -45,6 +45,14 @@ export const requestDeposit = async (userId: string, amount: number, methodId: s
     depositReceivedEmail(user.username, `$${amount}`, method.name, tx.reference, DASHBOARD_URL)
   );
 
+  await sendSystemMessage(
+    userId,
+    "Deposit Request Submitted",
+    `Your deposit request of $${amount} via ${method.name} has been submitted and is pending review.`,
+    "Transaction",
+    String(tx._id)
+  ).catch((e) => console.error("Deposit request system notification failed", e));
+
   return tx;
 };
 
@@ -57,6 +65,11 @@ export const approveDeposit = async (txId: string, executorId: string) => {
 
     const user = await User.findById(tx.user).session(session);
     if (!user) throw new AppError("User not found", 404);
+
+    const methodName: string =
+      ((tx.meta as Record<string, any>)?.methodName as string) ||
+      (tx.methodId ? (await DepositMethod.findById(tx.methodId).session(session))?.name : undefined) ||
+      "Deposit Method";
 
     user.balance += tx.amount;
     user.totalDeposited += tx.amount;
@@ -115,14 +128,14 @@ export const approveDeposit = async (txId: string, executorId: string) => {
 
     await sendEmail(
       user.email,
-      "Deposit Approved",
-      depositApprovedEmail(user.username, `$${tx.amount}`, tx.reference, `$${user.balance}`, DASHBOARD_URL)
+      "Deposit Successful",
+      depositApprovedEmail(user.username, `$${tx.amount}`, methodName, tx.reference, `$${user.balance}`, DASHBOARD_URL)
     );
 
     await sendSystemMessage(
       String(tx.user),
-      "Deposit Approved",
-      `Your deposit of $${tx.amount} has been approved and added to your available balance.`,
+      "Deposit Successful",
+      `Your deposit of $${tx.amount} via ${methodName} was successful and added to your available balance.`,
       "Transaction",
       String(tx._id)
     ).catch((e) => console.error("Deposit system notification failed", e));
@@ -149,6 +162,11 @@ export const rejectDeposit = async (txId: string, executorId: string, reason: st
   const tx = await Transaction.findOne({ _id: txId, type: "deposit", status: "pending" });
   if (!tx) throw new AppError("Pending deposit not found", 404);
 
+  const methodName: string =
+    ((tx.meta as Record<string, any>)?.methodName as string) ||
+    (tx.methodId ? (await DepositMethod.findById(tx.methodId))?.name : undefined) ||
+    "Deposit Method";
+
   tx.status = "rejected";
   tx.reviewedBy = new mongoose.Types.ObjectId(executorId);
   tx.reviewedAt = new Date();
@@ -160,16 +178,16 @@ export const rejectDeposit = async (txId: string, executorId: string, reason: st
     await sendEmail(
       user.email,
       "Deposit Rejected",
-      depositRejectedEmail(user.username, `$${tx.amount}`, tx.reference, reason, DASHBOARD_URL)
+      depositRejectedEmail(user.username, `$${tx.amount}`, methodName, tx.reference, reason, DASHBOARD_URL)
     );
 
     await sendSystemMessage(
       String(tx.user),
       "Deposit Rejected",
-      `Your deposit of $${tx.amount} has been rejected. Reason: ${reason}`,
+      `Your deposit request of $${tx.amount} via ${methodName} has been rejected. Reason: ${reason}`,
       "Transaction",
       String(tx._id)
-    ).catch(e => console.error("Deposit rejection system notification failed", e));
+    ).catch((e) => console.error("Deposit rejection system notification failed", e));
   }
 
   return tx;
@@ -223,6 +241,14 @@ export const requestWithdrawal = async (
       withdrawalRequestedEmail(user.username, `$${amount}`, method.name, tx[0].reference, DASHBOARD_URL)
     );
 
+    await sendSystemMessage(
+      userId,
+      "Withdrawal Request Submitted",
+      `Your withdrawal request of $${amount} via ${method.name} has been submitted and is pending review.`,
+      "Transaction",
+      String(tx[0]._id)
+    ).catch((e) => console.error("Withdrawal request system notification failed", e));
+
     return tx[0];
   } catch (err) {
     await session.abortTransaction();
@@ -242,6 +268,11 @@ export const approveWithdrawal = async (txId: string, executorId: string) => {
     const user = await User.findById(tx.user).session(session);
     if (!user) throw new AppError("User not found", 404);
 
+    const methodName: string =
+      ((tx.meta as Record<string, any>)?.methodName as string) ||
+      (tx.methodId ? (await WithdrawalMethod.findById(tx.methodId).session(session))?.name : undefined) ||
+      "Withdrawal Method";
+
     user.pendingWithdrawal = Math.max(0, user.pendingWithdrawal - tx.amount);
     user.totalWithdrawn += tx.amount;
     tx.status = "approved";
@@ -253,17 +284,17 @@ export const approveWithdrawal = async (txId: string, executorId: string) => {
 
     await sendEmail(
       user.email,
-      "Withdrawal Approved",
-      withdrawalApprovedEmail(user.username, `$${tx.amount}`, tx.reference, DASHBOARD_URL)
+      "Withdrawal Successful",
+      withdrawalApprovedEmail(user.username, `$${tx.amount}`, methodName, tx.reference, DASHBOARD_URL)
     );
 
     await sendSystemMessage(
       String(tx.user),
-      "Withdrawal Approved",
-      `Your withdrawal request of $${tx.amount} has been approved and processed.`,
+      "Withdrawal Successful",
+      `Your withdrawal request of $${tx.amount} via ${methodName} was successful.`,
       "Transaction",
       String(tx._id)
-    ).catch(e => console.error("Withdrawal approval system notification failed", e));
+    ).catch((e) => console.error("Withdrawal approval system notification failed", e));
 
     return tx;
   } catch (err) {
@@ -284,6 +315,11 @@ export const rejectWithdrawal = async (txId: string, executorId: string, reason:
     const user = await User.findById(tx.user).session(session);
     if (!user) throw new AppError("User not found", 404);
 
+    const methodName: string =
+      ((tx.meta as Record<string, any>)?.methodName as string) ||
+      (tx.methodId ? (await WithdrawalMethod.findById(tx.methodId).session(session))?.name : undefined) ||
+      "Withdrawal Method";
+
     // Return funds to balance
     user.pendingWithdrawal = Math.max(0, user.pendingWithdrawal - tx.amount);
     user.balance += tx.amount;
@@ -298,16 +334,16 @@ export const rejectWithdrawal = async (txId: string, executorId: string, reason:
     await sendEmail(
       user.email,
       "Withdrawal Rejected",
-      withdrawalRejectedEmail(user.username, `$${tx.amount}`, tx.reference, reason, DASHBOARD_URL)
+      withdrawalRejectedEmail(user.username, `$${tx.amount}`, methodName, tx.reference, reason, DASHBOARD_URL)
     );
 
     await sendSystemMessage(
       String(tx.user),
       "Withdrawal Rejected",
-      `Your withdrawal request of $${tx.amount} has been rejected. Reason: ${reason}`,
+      `Your withdrawal request of $${tx.amount} via ${methodName} has been rejected. Reason: ${reason}`,
       "Transaction",
       String(tx._id)
-    ).catch(e => console.error("Withdrawal rejection system notification failed", e));
+    ).catch((e) => console.error("Withdrawal rejection system notification failed", e));
 
     return tx;
   } catch (err) {

@@ -12,7 +12,7 @@ export const depositReceivedEmail = (
     "Deposit Received",
     `
     ${emailHeading("Deposit Request Received")}
-    ${emailParagraph(`Hi <strong>${username}</strong>, we have received your deposit request and it is currently under review.`)}
+    ${emailParagraph(`Hi <strong>${username}</strong>, we have received your deposit request of <strong>${amount}</strong> via <strong>${method}</strong> and it is currently under review.`)}
     ${emailInfoTable(
       emailInfoRow("Amount", amount) +
       emailInfoRow("Method", method) +
@@ -27,20 +27,22 @@ export const depositReceivedEmail = (
 export const depositApprovedEmail = (
   username: string,
   amount: string,
+  method: string,
   reference: string,
   newBalance: string,
   dashboardUrl: string
 ): string =>
   emailLayout(
-    "Deposit Approved",
+    "Deposit Successful",
     `
-    ${emailHeading("Deposit Approved ✓")}
-    ${emailParagraph(`Hi <strong>${username}</strong>, your deposit has been approved and credited to your account.`)}
+    ${emailHeading("Deposit Successful ✓")}
+    ${emailParagraph(`Hi <strong>${username}</strong>, your deposit of <strong>${amount}</strong> via <strong>${method}</strong> was successful and has been credited to your account.`)}
     ${emailInfoTable(
       emailInfoRow("Amount Credited", amount) +
+      emailInfoRow("Method", method) +
       emailInfoRow("Reference", reference) +
       emailInfoRow("New Balance", newBalance) +
-      emailInfoRow("Status", "Approved")
+      emailInfoRow("Status", "Successful")
     )}
     ${emailAlert("Your funds are now available for trading or investment.", "success")}
     ${emailButton("Go to Dashboard", dashboardUrl)}
@@ -50,6 +52,7 @@ export const depositApprovedEmail = (
 export const depositRejectedEmail = (
   username: string,
   amount: string,
+  method: string,
   reference: string,
   reason: string,
   dashboardUrl: string
@@ -58,9 +61,10 @@ export const depositRejectedEmail = (
     "Deposit Rejected",
     `
     ${emailHeading("Deposit Rejected")}
-    ${emailParagraph(`Hi <strong>${username}</strong>, unfortunately your deposit request has been rejected.`)}
+    ${emailParagraph(`Hi <strong>${username}</strong>, unfortunately your deposit request of <strong>${amount}</strong> via <strong>${method}</strong> has been rejected.`)}
     ${emailInfoTable(
       emailInfoRow("Amount", amount) +
+      emailInfoRow("Method", method) +
       emailInfoRow("Reference", reference) +
       emailInfoRow("Reason", reason) +
       emailInfoRow("Status", "Rejected")

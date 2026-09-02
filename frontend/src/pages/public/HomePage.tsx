@@ -158,7 +158,7 @@ export default function HomePage() {
       `}</style>
 
       {/* ─── HERO SECTION WITH INTERACTIVE HISTOGRAM GRAPH ─── */}
-      <section className="py-20 md:py-32 px-6 md:px-12 max-w-7xl mx-auto w-full relative">
+      <section className="py-2.5 md:py-5 px-6 md:px-12 max-w-7xl mx-auto w-full relative">
         {/* Soft Background glow bubble */}
         <div className="absolute top-1/4 right-10 w-[450px] h-[450px] rounded-full bg-emerald-500/10 blur-3xl -z-10 pointer-events-none" />
 
@@ -187,7 +187,7 @@ export default function HomePage() {
                 onClick={() => navigate("/login")}
                 className="px-8 py-4 rounded-2xl border border-white/15 hover:bg-white/5 text-sm font-black text-white text-center transition-all hover:border-white/30 hover:scale-[1.02]"
               >
-                Access Portal
+                Login to Dashboard
               </button>
             </div>
           </div>
