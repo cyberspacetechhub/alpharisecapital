@@ -6,6 +6,8 @@ import { TraderProfile } from "../models/trader.profile.model";
 import { Transaction } from "../models/transaction.model";
 import { Position } from "../models/position.model";
 import { LoanApplication } from "../models/loan.model";
+import { DepositMethod } from "../models/depositMethod.model";
+import { WithdrawalMethod } from "../models/withdrawalMethod.model";
 import { AppError } from "../utils/AppError";
 import { uploadImage, uploadBuffer } from "./cloudinary.service";
 import { UpdateProfileInput, KycSubmitInput } from "../utils/validators/user.validator";
@@ -198,12 +200,45 @@ export const getTraderDetails = async (userId: string) => {
     .sort({ createdAt: -1 })
     .lean();
 
-  const [recentTransactions, openPositions, activeInvestments, activeLoans] = await Promise.all([
+  const [rawRecentTxs, openPositions, activeInvestments, activeLoans] = await Promise.all([
     Transaction.find({ user: userId }).sort({ createdAt: -1 }).limit(10).lean(),
     Position.find({ user: userId, status: "open" }).lean(),
     Transaction.find({ user: userId, type: { $in: ["investment", "reinvestment"] }, status: "approved" }).lean(),
     LoanApplication.find({ user: userId, status: "active" }).populate("offer", "title interestRate").lean(),
   ]);
+
+  const [depositMethods, withdrawalMethods] = await Promise.all([
+    DepositMethod.find({}, "name image").lean(),
+    WithdrawalMethod.find({}, "name image").lean(),
+  ]);
+
+  const methodMap = new Map<string, string>();
+  const nameMap = new Map<string, string>();
+
+  for (const m of depositMethods) {
+    if (m.image) {
+      methodMap.set(String(m._id), m.image);
+      nameMap.set(m.name.toLowerCase().trim(), m.image);
+    }
+  }
+  for (const m of withdrawalMethods) {
+    if (m.image) {
+      methodMap.set(String(m._id), m.image);
+      nameMap.set(m.name.toLowerCase().trim(), m.image);
+    }
+  }
+
+  const recentTransactions = rawRecentTxs.map((tx: any) => {
+    if (!tx.meta?.methodImage) {
+      const fallbackImg =
+        (tx.methodId && methodMap.get(String(tx.methodId))) ||
+        (tx.meta?.methodName && nameMap.get(String(tx.meta.methodName).toLowerCase().trim()));
+      if (fallbackImg) {
+        tx.meta = { ...(tx.meta || {}), methodImage: fallbackImg };
+      }
+    }
+    return tx;
+  });
 
   return {
     user,

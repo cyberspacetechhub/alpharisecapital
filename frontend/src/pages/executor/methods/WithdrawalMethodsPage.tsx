@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { withdrawalMethodApi } from "../../../api/methods.api";
+import { userApi } from "../../../api/user.api";
 import type { WithdrawalMethod } from "../../../types";
 import { formatCurrency } from "../../../utils";
 
 interface MethodForm {
   name: string;
   type: "crypto" | "bank";
+  image?: string;
   minAmount: number;
   maxAmount: number;
   details: { key: string; value: string; isInput?: boolean }[];
@@ -17,6 +19,7 @@ interface MethodForm {
 const defaultValues: MethodForm = {
   name: "",
   type: "crypto",
+  image: "",
   minAmount: 10,
   maxAmount: 10000,
   details: [{ key: "", value: "", isInput: false }],
@@ -56,6 +59,8 @@ export default function WithdrawalMethodsPage() {
   const [editing, setEditing] = useState<WithdrawalMethod | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<WithdrawalMethod | null>(null);
   const [serverError, setServerError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const { data, isLoading } = useQuery<WithdrawalMethod[]>({
     queryKey: ["withdrawal-methods-all"],
@@ -64,13 +69,16 @@ export default function WithdrawalMethodsPage() {
 
   const methods = data ?? [];
 
-  const { register, handleSubmit, control, reset, watch, formState: { errors } } = useForm<MethodForm>({ defaultValues });
+  const { register, handleSubmit, control, reset, setValue, watch, formState: { errors } } = useForm<MethodForm>({ defaultValues });
   const { fields, append, remove } = useFieldArray({ control, name: "details" });
+
+  const currentImage = watch("image");
 
   const openCreate = () => {
     reset(defaultValues);
     setEditing(null);
     setServerError("");
+    setUploadError("");
     setModalMode("create");
   };
 
@@ -83,6 +91,7 @@ export default function WithdrawalMethodsPage() {
     reset({
       name: m.name,
       type: m.type,
+      image: m.image || "",
       minAmount: m.minAmount,
       maxAmount: m.maxAmount,
       details: details.length ? details : [{ key: "", value: "", isInput: false }],
@@ -90,12 +99,34 @@ export default function WithdrawalMethodsPage() {
     });
     setEditing(m);
     setServerError("");
+    setUploadError("");
     setModalMode("edit");
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError("");
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await userApi.uploadFile(formData);
+      const url = res.data?.url;
+      if (url) {
+        setValue("image", url);
+      }
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message || "Failed to upload image file.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const buildPayload = (data: MethodForm) => ({
     name: data.name,
     type: data.type,
+    image: data.image?.trim() || "",
     minAmount: Number(data.minAmount),
     maxAmount: Number(data.maxAmount),
     details: Object.fromEntries(
@@ -139,7 +170,7 @@ export default function WithdrawalMethodsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-white">Withdrawal Methods</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Manage payment systems available to traders for withdrawals.</p>
+          <p className="text-xs text-slate-400 mt-0.5">Manage payout systems available to traders for liquidating profits.</p>
         </div>
         <button
           onClick={openCreate}
@@ -148,7 +179,7 @@ export default function WithdrawalMethodsPage() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          Add Method
+          Add Gateway
         </button>
       </div>
 
@@ -169,16 +200,24 @@ export default function WithdrawalMethodsPage() {
             <div key={m._id} className="bg-[#121822] rounded-3xl border border-white/10 p-5 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
-                    m.type === "crypto" ? "bg-amber-500/15 border border-amber-500/30" : "bg-blue-500/15 border border-blue-500/30"
-                  }`}>
-                    <svg className={`w-5 h-5 ${m.type === "crypto" ? "text-amber-400" : "text-blue-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      {m.type === "crypto"
-                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        : <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      }
-                    </svg>
-                  </div>
+                  {m.image ? (
+                    <img
+                      src={m.image}
+                      alt={m.name}
+                      className="w-11 h-11 rounded-2xl object-cover border border-white/10 shrink-0 bg-[#0e1520]"
+                    />
+                  ) : (
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                      m.type === "crypto" ? "bg-amber-500/15 border border-amber-500/30" : "bg-blue-500/15 border border-blue-500/30"
+                    }`}>
+                      <svg className={`w-5 h-5 ${m.type === "crypto" ? "text-amber-400" : "text-blue-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        {m.type === "crypto"
+                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          : <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        }
+                      </svg>
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-bold text-white truncate">{m.name}</p>
@@ -247,12 +286,12 @@ export default function WithdrawalMethodsPage() {
 
       {/* Create / Edit modal */}
       {modalMode && (
-        <Modal title={modalMode === "create" ? "Add Withdrawal Method" : "Edit Withdrawal Method"} onClose={() => setModalMode(null)}>
+        <Modal title={modalMode === "create" ? "Add Withdrawal Gateway" : "Edit Withdrawal Gateway"} onClose={() => setModalMode(null)}>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Method Name <span className="text-rose-400">*</span></label>
-                <input {...register("name", { required: "Name is required" })} placeholder="e.g. Bitcoin Network" className={inputClass} />
+                <input {...register("name", { required: "Name is required" })} placeholder="e.g. Bitcoin (BTC), Bank Wire" className={inputClass} />
                 {errors.name && <p className="text-xs text-rose-400 mt-1">{errors.name.message}</p>}
               </div>
 
@@ -264,12 +303,58 @@ export default function WithdrawalMethodsPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Method Asset Image / Logo */}
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Gateway Icon / Asset Logo</label>
+                <div className="flex items-center gap-4 p-3 bg-[#0e1520] border border-white/10 rounded-2xl">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {currentImage ? (
+                      <img src={currentImage} alt="Gateway Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-slate-500">No Logo</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white border border-white/10 cursor-pointer transition-colors">
+                        <svg className="w-4 h-4 text-[#00c076]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <span>{uploadingImage ? "Uploading..." : "Upload Image"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileChange}
+                          disabled={uploadingImage}
+                          className="hidden"
+                        />
+                      </label>
+                      {currentImage && (
+                        <button
+                          type="button"
+                          onClick={() => setValue("image", "")}
+                          className="px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 cursor-pointer transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      {...register("image")}
+                      placeholder="Or enter direct image URL (https://...)"
+                      className="w-full text-[11px] bg-transparent border-0 text-slate-400 placeholder-slate-600 focus:outline-none focus:text-white"
+                    />
+                  </div>
+                </div>
+                {uploadError && <p className="text-xs text-rose-400 mt-1">{uploadError}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Min Amount ($) <span className="text-rose-400">*</span></label>
                   <input
                     type="number"
-                    {...register("minAmount", { required: "Min amount is required", min: { value: 1, message: "Must be >= 1" } })}
+                    {...register("minAmount", { required: "Min amount is required", min: 1 })}
                     className={inputClass}
                   />
                   {errors.minAmount && <p className="text-xs text-rose-400 mt-1">{errors.minAmount.message}</p>}
@@ -278,7 +363,7 @@ export default function WithdrawalMethodsPage() {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Max Amount ($) <span className="text-rose-400">*</span></label>
                   <input
                     type="number"
-                    {...register("maxAmount", { required: "Max amount is required", min: { value: 1, message: "Must be >= 1" } })}
+                    {...register("maxAmount", { required: "Max amount is required", min: 1 })}
                     className={inputClass}
                   />
                   {errors.maxAmount && <p className="text-xs text-rose-400 mt-1">{errors.maxAmount.message}</p>}
@@ -287,58 +372,56 @@ export default function WithdrawalMethodsPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase">Method Details & Fields <span className="text-rose-400">*</span></label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase">Gateway Fields / Requirements <span className="text-rose-400">*</span></label>
                   <button
                     type="button"
-                    onClick={() => append({ key: "", value: "", isInput: false } as any)}
+                    onClick={() => append({ key: "", value: "", isInput: false })}
                     className="text-xs text-[#00e676] font-bold hover:underline cursor-pointer"
                   >
                     + Add field
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 mb-2">Configure read-only instructions or inputs for the Trader (e.g. Wallet Address).</p>
+                <p className="text-[11px] text-slate-400 mb-2">Check <strong>"Trader input field"</strong> for information the trader must provide (e.g. their Wallet Address, IBAN).</p>
                 <div className="space-y-3">
-                  {fields.map((field, i) => (
-                    <div key={field.id} className="space-y-2.5 p-3.5 bg-[#0e1520] border border-white/10 rounded-2xl">
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          {...register(`details.${i}.key`, { required: true })}
-                          placeholder="Field name (e.g. BTC Address or Network)"
-                          className={`${inputClass} flex-1`}
-                        />
-                        {watch(`details.${i}.isInput` as any) ? (
-                          <div className="flex-1 bg-white/5 border border-white/10 text-slate-400 text-xs px-4 py-2.5 rounded-xl flex items-center justify-center font-medium italic">
-                            Provided by Trader at payout
-                          </div>
-                        ) : (
+                  {fields.map((field, i) => {
+                    const isInputField = watch(`details.${i}.isInput`);
+                    return (
+                      <div key={field.id} className="p-3 bg-[#0e1520] rounded-2xl border border-white/5 space-y-2">
+                        <div className="flex gap-2 items-center">
                           <input
-                            {...register(`details.${i}.value`, { required: !watch(`details.${i}.isInput` as any) })}
-                            placeholder="Constant value (e.g. TRC20)"
+                            {...register(`details.${i}.key`, { required: true })}
+                            placeholder="Field Label (e.g. Your BTC Address)"
                             className={`${inputClass} flex-1`}
                           />
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                        <label className="flex items-center gap-2 text-xs text-slate-300 font-bold select-none cursor-pointer">
+                          {!isInputField && (
+                            <input
+                              {...register(`details.${i}.value`)}
+                              placeholder="Instruction / Fixed Note"
+                              className={`${inputClass} flex-1`}
+                            />
+                          )}
+                          {fields.length > 1 && (
+                            <button type="button" onClick={() => remove(i)} className="text-rose-400 hover:text-rose-300 px-1 py-1 cursor-pointer">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 border-t border-white/5">
                           <input
                             type="checkbox"
-                            {...register(`details.${i}.isInput` as any)}
+                            id={`isInput-${i}`}
+                            {...register(`details.${i}.isInput`)}
                             className="w-3.5 h-3.5 accent-[#00c076]"
                           />
-                          Trader must fill this field when withdrawing
-                        </label>
-                        {fields.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => remove(i)}
-                            className="text-xs text-rose-400 hover:text-rose-300 font-bold cursor-pointer"
-                          >
-                            Remove
-                          </button>
-                        )}
+                          <label htmlFor={`isInput-${i}`} className="text-[11px] text-slate-300 font-bold cursor-pointer">
+                            Trader input field (Trader enters this when requesting withdrawal)
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -358,9 +441,9 @@ export default function WithdrawalMethodsPage() {
               <button type="button" onClick={() => setModalMode(null)} className="flex-1 py-2.5 rounded-xl border border-white/10 text-xs font-bold text-slate-400 hover:bg-white/5 transition-colors cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer">
-                {saving && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={4} /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>}
-                {saving ? "Saving…" : modalMode === "create" ? "Add Method" : "Save Changes"}
+              <button type="submit" disabled={saving || uploadingImage} className="flex-1 py-2.5 rounded-xl bg-[#00c076] text-[#080c10] text-xs font-black hover:bg-[#00e676] transition-all shadow-md shadow-[#00c076]/20 disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer">
+                {saving && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>}
+                {saving ? "Saving…" : modalMode === "create" ? "Add Gateway" : "Save Changes"}
               </button>
             </div>
           </form>

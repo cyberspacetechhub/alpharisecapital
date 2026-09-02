@@ -5,7 +5,13 @@ import { Transaction } from "../models/transaction.model";
 import { AppError } from "../utils/AppError";
 import { generateReference } from "../utils/tokens";
 import { sendEmail } from "./email.service";
-import { investmentStartedEmail, investmentCompletedEmail } from "../emails";
+import { sendSystemMessage } from "./inAppMessage.service";
+import {
+  investmentStartedEmail,
+  reinvestmentConfirmedEmail,
+  investmentPlanExpiredEmail,
+  investmentFundsAvailableEmail,
+} from "../emails";
 
 // ─── Invest ──────────────────────────────────────────────────────────────────
 
@@ -50,6 +56,14 @@ export const invest = async (userId: string, planId: string, amount: number) => 
     );
 
     await session.commitTransaction();
+
+    await sendSystemMessage(
+      userId,
+      "Investment Requested",
+      `Your investment request of $${amount.toFixed(2)} into the ${plan.name} plan has been received and is pending activation.`,
+      "Transaction",
+      tx[0]._id.toString()
+    ).catch((e) => console.error("System message failed:", e));
 
     return tx[0];
   } catch (err) {
@@ -127,6 +141,15 @@ export const reinvest = async (userId: string, transactionId: string) => {
     );
 
     await session.commitTransaction();
+
+    await sendSystemMessage(
+      userId,
+      "Reinvestment Submitted",
+      `Your reinvestment of $${reinvestAmount.toFixed(2)} into the ${plan.name} plan has been initiated and is pending activation.`,
+      "Transaction",
+      tx[0]._id.toString()
+    ).catch((e) => console.error("System message failed:", e));
+
     return tx[0];
   } catch (err) {
     await session.abortTransaction();
@@ -177,6 +200,15 @@ export const upgradePlan = async (userId: string, activeTransactionId: string, n
 
     await Promise.all([user.save({ session }), activeTx.save({ session })]);
     await session.commitTransaction();
+
+    await sendSystemMessage(
+      userId,
+      "Investment Plan Upgraded",
+      `Your investment plan has been upgraded to ${newPlan.name} with updated daily yield of ${newPlan.roiPercent}%.`,
+      "Transaction",
+      activeTx._id.toString()
+    ).catch((e) => console.error("System message failed:", e));
+
     return activeTx;
   } catch (err) {
     await session.abortTransaction();
@@ -186,7 +218,7 @@ export const upgradePlan = async (userId: string, activeTransactionId: string, n
   }
 };
 
-// ─── Mature Investment (called by scheduler) ──────────────────────────────────
+// ─── Mature Investment (called by scheduler or after last profit drop) ─────────
 
 export const matureInvestment = async (transactionId: string) => {
   const session = await mongoose.startSession();
@@ -198,10 +230,18 @@ export const matureInvestment = async (transactionId: string) => {
       status: "approved",
     }).session(session);
 
-    if (!tx) throw new AppError("Investment transaction not found", 404);
+    if (!tx) {
+      await session.abortTransaction();
+      session.endSession();
+      return null;
+    }
 
     const user = await User.findById(tx.user).session(session);
-    if (!user) throw new AppError("User not found", 404);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return null;
+    }
 
     const dailyRoiPercent = tx.planSnapshot?.roiPercent ?? 0;
     const durationDays = tx.planSnapshot?.durationDays ?? 30;
@@ -216,7 +256,7 @@ export const matureInvestment = async (transactionId: string) => {
     const earnings = totalROI;
     const totalReturn = tx.amount + totalROI;
 
-    // Keep fund in invested balance with profit during the 48-hour reinvestment decision window
+    // Credit any remaining undistributed ROI to user's earnings
     if (remainingROI > 0) {
       user.totalEarnings += remainingROI;
     }
@@ -225,25 +265,37 @@ export const matureInvestment = async (transactionId: string) => {
     
     if (!tx.meta) tx.meta = {};
     (tx.meta as Record<string, any>).completedAt = new Date();
-    (tx.meta as Record<string, any>).payoutAmount = totalReturn;
+    (tx.meta as Record<string, any>).payoutAmount = tx.amount; // Principal to return after 48h
     (tx.meta as Record<string, any>).payoutReleaseAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 hours payout release window
     tx.markModified("meta");
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+
+    // ── Email 1: Plan Expiry / Final Profit Notification ──
     await sendEmail(
       user.email,
-      "Investment Matured",
-      investmentCompletedEmail(
+      `Investment Cycle Completed — ${tx.planSnapshot?.name ?? "Plan"}`,
+      investmentPlanExpiredEmail(
         user.username,
-        tx.planSnapshot?.name ?? "Plan",
-        `$${tx.amount}`,
+        tx.planSnapshot?.name ?? "Investment Plan",
+        `$${tx.amount.toFixed(2)}`,
         `$${earnings.toFixed(2)}`,
-        `$${totalReturn.toFixed(2)}`,
-        `${process.env.CLIENT_URL}/dashboard/investments`
+        durationDays,
+        `${clientUrl}/trader/investments`
       )
-    );
+    ).catch((e) => console.error("[MatureJob] Plan expiry email failed:", e));
+
+    // ── In-App System Notification ──
+    await sendSystemMessage(
+      user._id.toString(),
+      `Investment Plan Expired — ${tx.planSnapshot?.name ?? "Plan"}`,
+      `Your investment plan ${tx.planSnapshot?.name ?? "Plan"} ($${tx.amount.toFixed(2)}) has completed its full cycle and final daily ROI was processed. You can reinvest within 48 hours to continue compounding, or your principal will automatically return to your available balance after 48 hours for withdrawal.`,
+      "Transaction",
+      tx._id.toString()
+    ).catch((e) => console.error("[MatureJob] In-app message failed:", e));
 
     return { tx, earnings, totalReturn };
   } catch (err) {
@@ -276,6 +328,8 @@ export const expireUninvestedFunds = async () => {
   }
 };
 
+// ─── Process Matured Payout (48hr Release to Main Balance) ────────────────────
+
 export const processMaturedPayout = async (transactionId: string) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -296,7 +350,7 @@ export const processMaturedPayout = async (transactionId: string) => {
 
     const payoutAmount = (tx.meta as Record<string, any>)?.payoutAmount || tx.amount;
 
-    // After 48 hours without reinvestment, deduct from invested balance and return full payout to main balance
+    // After 48 hours without reinvestment, deduct from invested balance and return full principal to main balance
     user.investedBalance = Math.max(0, user.investedBalance - tx.amount);
     user.balance += payoutAmount;
     tx.status = "completed";
@@ -307,6 +361,29 @@ export const processMaturedPayout = async (transactionId: string) => {
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
+
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+
+    // ── Email 2: Principal Matured & Available for Withdrawal ──
+    await sendEmail(
+      user.email,
+      "Investment Matured — Funds Available for Withdrawal",
+      investmentFundsAvailableEmail(
+        user.username,
+        tx.planSnapshot?.name ?? "Investment Plan",
+        `$${payoutAmount.toFixed(2)}`,
+        `${clientUrl}/trader/withdrawal`
+      )
+    ).catch((e) => console.error("[PayoutJob] Funds available email failed:", e));
+
+    // ── In-App System Notification ──
+    await sendSystemMessage(
+      user._id.toString(),
+      `Investment Principal Released — ${tx.planSnapshot?.name ?? "Plan"}`,
+      `Your investment in ${tx.planSnapshot?.name ?? "Plan"} has completed its 48-hour settlement window. Your principal capital of $${payoutAmount.toFixed(2)} is now credited to your available balance and ready for withdrawal.`,
+      "Transaction",
+      tx._id.toString()
+    ).catch((e) => console.error("[PayoutJob] In-app message failed:", e));
 
     console.log(`[PayoutJob] Paid out matured investment ${tx._id} to user ${user.username}: $${payoutAmount}`);
   } catch (err) {
@@ -380,6 +457,15 @@ export const logProfit = async (transactionId: string, amount: number, note?: st
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
+
+    await sendSystemMessage(
+      user._id.toString(),
+      "Profit Credit Received",
+      `A profit credit of $${amount.toFixed(2)} has been added to your account for your investment in ${tx.planSnapshot?.name || "Plan"}.`,
+      "Transaction",
+      tx._id.toString()
+    ).catch((e) => console.error("System message failed:", e));
+
     return tx;
   } catch (err) {
     await session.abortTransaction();
@@ -422,7 +508,7 @@ export const updateInvestmentStatus = async (
       
       const meta = tx.meta as Record<string, any>;
       const distributedDailyROI = (meta?.profitLogs || [])
-        .filter((l: any) => l.note === "Daily yield distribution")
+        .filter((l: any) => l.note?.startsWith("Daily yield distribution"))
         .reduce((sum: number, l: any) => sum + l.amount, 0);
 
       const remainingROI = Math.max(0, totalROI - distributedDailyROI);
@@ -504,23 +590,60 @@ export const approveInvestment = async (transactionId: string, executorId: strin
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    // Send email notification
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
     const maturityDate = expiresAt.toDateString();
     const dailyRoi = tx.planSnapshot?.roiPercent ?? plan.roiPercent;
     const totalEarnings = ((tx.amount * (dailyRoi / 100) * durationDays)).toFixed(2);
-    await sendEmail(
-      user.email,
-      "Investment Activated",
-      investmentStartedEmail(
-        user.username,
-        tx.planSnapshot?.name ?? plan.name,
-        `$${tx.amount}`,
-        `${dailyRoi}% Daily ($${totalEarnings} Total ROI)`,
-        durationDays,
-        maturityDate,
-        `${process.env.CLIENT_URL}/dashboard/investments`
-      )
-    ).catch(e => console.error("Activation email failed to send", e));
+
+    if (tx.type === "reinvestment") {
+      // ── Reinvestment Confirmation Email ──
+      await sendEmail(
+        user.email,
+        `Reinvestment Activated — ${tx.planSnapshot?.name ?? plan.name}`,
+        reinvestmentConfirmedEmail(
+          user.username,
+          tx.planSnapshot?.name ?? plan.name,
+          `$${tx.amount.toFixed(2)}`,
+          `${dailyRoi}% Daily ($${totalEarnings} Total ROI)`,
+          durationDays,
+          maturityDate,
+          `${clientUrl}/trader/investments`
+        )
+      ).catch((e) => console.error("Reinvestment confirmation email failed:", e));
+
+      // ── In-App System Notification ──
+      await sendSystemMessage(
+        user._id.toString(),
+        "Reinvestment Activated ✓",
+        `Your reinvestment of $${tx.amount.toFixed(2)} into ${tx.planSnapshot?.name ?? plan.name} is now active and compounding daily yield.`,
+        "Transaction",
+        tx._id.toString()
+      ).catch((e) => console.error("System message failed:", e));
+    } else {
+      // ── Investment Activation Email ──
+      await sendEmail(
+        user.email,
+        "Investment Activated",
+        investmentStartedEmail(
+          user.username,
+          tx.planSnapshot?.name ?? plan.name,
+          `$${tx.amount.toFixed(2)}`,
+          `${dailyRoi}% Daily ($${totalEarnings} Total ROI)`,
+          durationDays,
+          maturityDate,
+          `${clientUrl}/trader/investments`
+        )
+      ).catch((e) => console.error("Activation email failed to send", e));
+
+      // ── In-App System Notification ──
+      await sendSystemMessage(
+        user._id.toString(),
+        "Investment Activated ✓",
+        `Your investment of $${tx.amount.toFixed(2)} into ${tx.planSnapshot?.name ?? plan.name} is now active and compounding daily yield.`,
+        "Transaction",
+        tx._id.toString()
+      ).catch((e) => console.error("System message failed:", e));
+    }
 
     return tx;
   } catch (err) {
@@ -559,6 +682,14 @@ export const rejectInvestment = async (transactionId: string, executorId: string
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
+    await sendSystemMessage(
+      user._id.toString(),
+      "Investment Request Declined",
+      `Your investment request of $${tx.amount.toFixed(2)} was declined. Reason: ${reason || "Not specified"}. The principal has been refunded to your wallet balance.`,
+      "Transaction",
+      tx._id.toString()
+    ).catch((e) => console.error("System message failed:", e));
+
     return tx;
   } catch (err) {
     await session.abortTransaction();
@@ -581,6 +712,7 @@ export const distributeDailyProfits = async () => {
   for (const tx of activeTxs) {
     const session = await mongoose.startSession();
     session.startTransaction();
+    let shouldMature = false;
     try {
       if (!tx.meta) tx.meta = {};
       const meta = tx.meta as Record<string, any>;
@@ -636,11 +768,25 @@ export const distributeDailyProfits = async () => {
       await session.commitTransaction();
 
       console.log(`[DailyProfitJob] Disbursed Day ${newDayIndex}/${durationDays} profit $${dailyProfit} to ${user.username} for tx ${tx._id}`);
+
+      // If this was the last day of the cycle, schedule immediate maturation
+      if (newDayIndex >= durationDays) {
+        shouldMature = true;
+      }
     } catch (err) {
       await session.abortTransaction();
       console.error(`[DailyProfitJob] Error processing transaction ${tx._id}:`, err);
     } finally {
       session.endSession();
+    }
+
+    // Trigger maturation outside the session to send plan expiry email
+    if (shouldMature) {
+      try {
+        await matureInvestment(tx._id.toString());
+      } catch (matErr) {
+        console.error(`[DailyProfitJob] Error maturing transaction ${tx._id}:`, matErr);
+      }
     }
   }
 };

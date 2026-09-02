@@ -7,6 +7,7 @@ import { walletLinkApi } from "../../../api/walletLink.api";
 import { useAuthStore } from "../../../store/auth.store";
 import { formatCurrency, formatDate } from "../../../utils";
 import Pagination from "../../../components/common/Pagination";
+import AssetLogo from "../../../components/common/AssetLogo";
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -862,7 +863,7 @@ export default function ClientDetailPage() {
                   <table className="w-full text-left text-sm border-collapse">
                     <thead>
                       <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
-                        <th className="px-5 py-3">Type</th>
+                        <th className="px-5 py-3">Asset / Type</th>
                         <th className="px-5 py-3 text-right">Amount</th>
                         <th className="px-5 py-3">Date</th>
                         <th className="px-5 py-3">Status</th>
@@ -871,10 +872,23 @@ export default function ClientDetailPage() {
                     <tbody className="divide-y divide-white/5">
                       {recentTransactions.slice((txPage - 1) * 5, txPage * 5).map((tx: any) => (
                         <tr key={tx._id} className="hover:bg-white/5 transition-colors">
-                          <td className="px-5 py-3.5 text-xs text-white uppercase font-bold">{tx.type}</td>
-                          <td className="px-5 py-3.5 text-right font-bold text-white">{formatCurrency(tx.amount)}</td>
-                          <td className="px-5 py-3.5 text-xs text-slate-400">{formatDate(tx.createdAt)}</td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-5 py-3.5 text-xs text-white font-bold whitespace-nowrap">
+                            <div className="flex items-center gap-2.5">
+                              <AssetLogo
+                                image={tx.meta?.methodImage}
+                                name={tx.meta?.methodName || tx.type}
+                                type={tx.type}
+                                size="sm"
+                              />
+                              <div>
+                                <span className="capitalize">{tx.meta?.methodName || tx.type.replace("_", " ")}</span>
+                                {tx.reference && <div className="text-[9px] font-mono text-slate-500">{tx.reference}</div>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-bold text-white whitespace-nowrap font-mono">{formatCurrency(tx.amount)}</td>
+                          <td className="px-5 py-3.5 text-xs text-slate-400 whitespace-nowrap font-mono">{formatDate(tx.createdAt)}</td>
+                          <td className="px-5 py-3.5 whitespace-nowrap">
                             <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
                               tx.status === "completed" || tx.status === "approved"
                                 ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
@@ -882,7 +896,7 @@ export default function ClientDetailPage() {
                                 ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
                                 : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                             }`}>
-                              {tx.status}
+                              {tx.status === "approved" || tx.status === "completed" ? "Successful" : tx.status}
                             </span>
                           </td>
                         </tr>

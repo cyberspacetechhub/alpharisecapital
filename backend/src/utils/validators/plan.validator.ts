@@ -12,6 +12,7 @@ export const investmentPlanSchema = z.object({
 export const depositMethodSchema = z.object({
   name: z.string().min(1, "Method name is required"),
   type: z.enum(["crypto", "bank"] as const),
+  image: z.string().optional(),
   details: z.record(z.string(), z.string()),
   isActive: z.boolean().optional().default(true),
 });
@@ -19,6 +20,7 @@ export const depositMethodSchema = z.object({
 export const withdrawalMethodSchema = z.object({
   name: z.string().min(1, "Method name is required"),
   type: z.enum(["crypto", "bank"] as const),
+  image: z.string().optional(),
   details: z.record(z.string(), z.string()),
   minAmount: z.number().positive("Min amount must be positive"),
   maxAmount: z.number().positive("Max amount must be positive"),

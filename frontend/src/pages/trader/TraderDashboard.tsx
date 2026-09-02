@@ -7,6 +7,7 @@ import { investmentApi } from "../../api/investment.api";
 import { formatCurrency, formatDate, getStatusColor } from "../../utils";
 import type { DashboardSummary, Transaction, ApiResponse } from "../../types";
 import PublicTicker from "../../components/layout/PublicTicker";
+import AssetLogo from "../../components/common/AssetLogo";
 
 // ── small reusable pieces ────────────────────────────────────────────────────
 
@@ -367,21 +368,14 @@ export default function TraderDashboard() {
               {transactions.map((tx) => (
                 <li key={tx._id} className="flex items-center justify-between px-5 py-3.5">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                      tx.type === "deposit" ? "bg-emerald-500/20 text-emerald-400" :
-                      tx.type === "withdrawal" ? "bg-rose-500/20 text-rose-400" : "bg-blue-500/20 text-blue-400"
-                    }`}>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        {tx.type === "deposit"
-                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                          : tx.type === "withdrawal"
-                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                          : <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        }
-                      </svg>
-                    </div>
+                    <AssetLogo
+                      image={tx.meta?.methodImage}
+                      name={tx.meta?.methodName || tx.type}
+                      type={tx.type}
+                      size="sm"
+                    />
                     <div>
-                      <p className="text-xs font-bold text-gray-200 capitalize">{tx.type.replace("_", " ")}</p>
+                      <p className="text-xs font-bold text-gray-200 capitalize">{tx.meta?.methodName || tx.type.replace("_", " ")}</p>
                       <p className="text-[11px] text-gray-400">{formatDate(tx.createdAt)}</p>
                     </div>
                   </div>

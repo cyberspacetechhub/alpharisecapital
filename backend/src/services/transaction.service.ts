@@ -36,7 +36,7 @@ export const requestDeposit = async (userId: string, amount: number, methodId: s
     status: "pending",
     reference: generateReference(),
     methodId: method._id,
-    meta: { proofUrl: proofUrl ?? null, methodName: method.name },
+    meta: { proofUrl: proofUrl ?? null, methodName: method.name, methodImage: method.image || "" },
   });
 
   await sendEmail(
@@ -227,7 +227,7 @@ export const requestWithdrawal = async (
           status: "pending",
           reference: generateReference(),
           methodId: method._id,
-          meta: { methodName: method.name, accountDetails: accountDetails ?? {} },
+          meta: { methodName: method.name, methodImage: method.image || "", accountDetails: accountDetails ?? {} },
         },
       ],
       { session }

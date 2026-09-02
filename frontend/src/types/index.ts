@@ -90,6 +90,7 @@ export interface DepositMethod {
   _id: string;
   name: string;
   type: "crypto" | "bank";
+  image?: string;
   details: Record<string, string>;
   isActive: boolean;
 }
@@ -98,6 +99,7 @@ export interface WithdrawalMethod {
   _id: string;
   name: string;
   type: "crypto" | "bank";
+  image?: string;
   details: Record<string, string>;
   minAmount: number;
   maxAmount: number;
