@@ -70,8 +70,8 @@ export default function TraderDashboard() {
   const transactions: Transaction[] = txData?.data ?? [];
   const investments = (invData ?? []).filter((i: Transaction) => i.status === "approved").slice(0, 3);
 
-  // Calculations for Portfolio & Trends
-  const portfolioValue = (dashData?.balance ?? 0) + (dashData?.investedBalance ?? 0);
+  // Calculations for Portfolio & Trends 
+  const portfolioValue = dashData?.balance ?? 0; //) + (dashData?.investedBalance ?? 0)
   const totalEarnings = dashData?.totalEarnings ?? 0;
   const totalDeposited = dashData?.totalDeposited ?? 0;
   const profitPercentage = totalDeposited > 0 ? ((totalEarnings / totalDeposited) * 100).toFixed(1) : "0.0";
@@ -178,7 +178,7 @@ export default function TraderDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6" />
               </svg>
             </div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Portfolio Value</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Available balance</p>
             <span className="relative flex h-2 w-2 ml-1">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
