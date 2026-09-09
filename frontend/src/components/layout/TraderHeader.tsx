@@ -4,6 +4,7 @@ import { useUIStore } from "../../store/ui.store";
 import { useAuth } from "../../hooks/useAuth";
 import { messageApi } from "../../api/message.api";
 import { userApi } from "../../api/user.api";
+import GoogleTranslator from "../common/GoogleTranslator";
 
 const TraderHeader = () => {
   const { toggleSidebar } = useUIStore();
@@ -31,24 +32,25 @@ const TraderHeader = () => {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
-          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 text-slate-300 transition-colors"
+          className="flex items-center justify-center transition-colors lg:hidden w-9 h-9 rounded-xl hover:bg-white/5 text-slate-300"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <div className="lg:hidden flex items-center gap-2">
-          <img src="/branding/arglogo.jpeg" alt="Alpha Rise Global" className="w-7 h-7 object-contain rounded-lg" />
+        <div className="flex items-center gap-2 lg:hidden">
+          <img src="/branding/arglogo.jpeg" alt="Alpha Rise Global" className="object-contain rounded-lg w-7 h-7" />
           <span className="font-black text-[#00e676] text-sm tracking-tight">Alpha Rise Global</span>
         </div>
       </div>
 
       {/* Right — notifications + avatar */}
       <div className="flex items-center gap-3">
+        <GoogleTranslator />
         {/* Notifications */}
         <button
           onClick={() => navigate("/trader/notifications")}
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-white/5 text-slate-300 transition-colors"
+          className="relative flex items-center justify-center transition-colors w-9 h-9 rounded-xl hover:bg-white/5 text-slate-300"
         >
           <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -67,7 +69,7 @@ const TraderHeader = () => {
           className="w-9 h-9 rounded-full bg-[#00c076] text-[#080c10] flex items-center justify-center text-sm font-black uppercase shadow-sm shadow-[#00c076]/20 hover:bg-[#00e676] transition-colors overflow-hidden border border-white/10"
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt={user?.username || "Avatar"} className="w-full h-full object-cover" />
+            <img src={avatarUrl} alt={user?.username || "Avatar"} className="object-cover w-full h-full" />
           ) : (
             user?.username?.charAt(0) ?? "T"
           )}

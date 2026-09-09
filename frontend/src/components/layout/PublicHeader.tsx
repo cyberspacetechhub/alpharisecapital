@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import GoogleTranslator from "../common/GoogleTranslator";
 
 export default function PublicHeader() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function PublicHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0b0f14]/90 backdrop-blur-lg border-b border-white/10 py-4 px-6 md:px-12 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="flex items-center justify-between mx-auto max-w-7xl">
         
         {/* Logo */}
         <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => navigate("/")}>
@@ -19,11 +20,12 @@ export default function PublicHeader() {
             alt="Alpha Rise Global"
             className="w-10 h-10 md:w-11 md:h-11 object-contain rounded-2xl shadow-lg shadow-[#00c076]/20"
           />
-          <span className="font-black text-white text-md md:text-2xl tracking-tight">Alpha Rise Global</span>
+          <span className="font-black tracking-tight text-white text-md md:text-2xl">Alpha Rise Global</span>
         </div>
 
         {/* Desktop Nav links */}
-        <nav className="hidden md:flex items-center gap-10 text-sm font-bold text-slate-300">
+        <GoogleTranslator />
+        <nav className="items-center hidden gap-10 text-sm font-bold md:flex text-slate-300">
           <button
             onClick={() => navigate("/")}
             className={`transition-colors ${isActive("/") ? "text-[#00e676]" : "hover:text-[#00e676]"}`}
@@ -55,7 +57,7 @@ export default function PublicHeader() {
           {/* Desktop Only */}
           <button
             onClick={() => navigate("/login")}
-            className="hidden md:inline-block px-6 py-3 rounded-2xl border border-white/15 hover:bg-white/5 text-xs font-black text-white transition-all hover:border-white/30"
+            className="hidden px-6 py-3 text-xs font-black text-white transition-all border md:inline-block rounded-2xl border-white/15 hover:bg-white/5 hover:border-white/30"
           >
             Sign In
           </button>
@@ -67,11 +69,11 @@ export default function PublicHeader() {
           </button>
 
           {/* Mobile View UI Elements */}
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex items-center gap-3 md:hidden">
             {/* Mobile Person Icon for Login */}
             <button
               onClick={() => navigate("/login")}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-200 hover:bg-white/10 transition-colors"
+              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-xl bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
               aria-label="Login"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -82,7 +84,7 @@ export default function PublicHeader() {
             {/* Hamburger Drawer Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-200 hover:bg-white/10 transition-colors"
+              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-xl bg-white/5 border-white/10 text-slate-200 hover:bg-white/10"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 {mobileMenuOpen ? (
@@ -123,6 +125,7 @@ export default function PublicHeader() {
           >
             Support
           </button>
+          <GoogleTranslator /> <span></span>
         </div>
       )}
     </header>
