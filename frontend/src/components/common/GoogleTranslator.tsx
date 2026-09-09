@@ -1,5 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 
+declare global {
+  interface Window {
+    googleTranslateElementInit: () => void;
+    google: {
+      translate: {
+        TranslateElement: new (options: object, elementId: string) => void;
+      };
+    };
+  }
+}
+
 const LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
@@ -56,7 +67,7 @@ const LANGUAGES = [
 const GoogleTranslator = ({ dark = false }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState('en');
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   // Inject Google Translate script once
   useEffect(() => {
@@ -79,17 +90,17 @@ const GoogleTranslator = ({ dark = false }) => {
 
   // Close on outside click
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const selectLanguage = (code) => {
+  const selectLanguage = (code: string) => {
     setSelected(code);
     setOpen(false);
 
     // Use the hidden select rendered by Google Translate widget
-    const select = document.querySelector('#gt_hidden select');
+    const select = document.querySelector<HTMLSelectElement>('#gt_hidden select');
     if (select) {
       select.value = code;
       select.dispatchEvent(new Event('change'));
