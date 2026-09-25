@@ -15,6 +15,49 @@ export const reinvest = asyncHandler(async (req: AuthRequest, res: Response) => 
   res.status(201).json({ success: true, data: tx });
 });
 
+export const topUpInvestment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { transactionId } = req.params;
+  const { amount } = req.body;
+  const tx = await investService.topUpInvestment(req.userId!, transactionId, Number(amount), { byAdmin: false });
+  res.json({ success: true, data: tx });
+});
+
+export const topUpInvestmentAdmin = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { transactionId } = req.params;
+  const { amount, userId, deductBalance = true } = req.body;
+  
+  const txDoc = await Transaction.findById(transactionId);
+  if (!txDoc) throw new AppError("Investment not found", 404);
+
+  const targetUserId = userId || String(txDoc.user);
+  const tx = await investService.topUpInvestment(targetUserId, transactionId, Number(amount), {
+    byAdmin: true,
+    adminId: req.userId,
+    deductBalance,
+  });
+  res.json({ success: true, data: tx });
+});
+
+export const adminCreateInvestment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { userId, planId, amount, fundSource } = req.body;
+  const tx = await investService.adminCreateInvestment(req.userId!, userId, planId, Number(amount), { fundSource });
+  res.status(201).json({ success: true, data: tx });
+});
+
+export const adminCancelInvestment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const tx = await investService.adminCancelInvestment(req.userId!, id, reason);
+  res.json({ success: true, data: tx });
+});
+
+export const clientForfeitInvestment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  const tx = await investService.clientForfeitInvestment(req.userId!, id, reason);
+  res.json({ success: true, data: tx });
+});
+
 export const upgradePlan = asyncHandler(async (req: AuthRequest, res: Response) => {
   const tx = await investService.upgradePlan(req.userId!, req.params.transactionId, req.body.newPlanId);
   res.json({ success: true, data: tx });
@@ -61,12 +104,12 @@ export const updateInvestmentStatus = asyncHandler(async (req: AuthRequest, res:
   const { id } = req.params;
   const { status, reason } = req.body;
 
-  const validStatuses = ["pending", "approved", "rejected", "completed"];
+  const validStatuses = ["pending", "approved", "rejected", "completed", "cancelled", "forfeited"];
   if (!validStatuses.includes(status)) {
     throw new AppError("Invalid status", 400);
   }
 
-  const tx = await investService.updateInvestmentStatus(id, status, reason);
+  const tx = await investService.updateInvestmentStatus(id, status as any, reason);
   res.json({ success: true, data: tx });
 });
 

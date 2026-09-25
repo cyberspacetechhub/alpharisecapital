@@ -9,14 +9,19 @@ const router = Router();
 
 router.use(protect);
 
-// Trader
+// ── Trader ──
 router.post("/invest", authorize("Trader"), validate(investmentSchema), investController.invest);
 router.post("/reinvest/:transactionId", authorize("Trader"), investController.reinvest);
+router.post("/topup/:transactionId", authorize("Trader"), investController.topUpInvestment);
+router.post("/:id/forfeit", authorize("Trader"), investController.clientForfeitInvestment);
 router.patch("/upgrade/:transactionId", authorize("Trader"), validate(upgradePlanSchema), investController.upgradePlan);
 router.get("/my", authorize("Trader"), investController.getMyInvestments);
 
-// Executor
+// ── Executor (Admin) ──
 router.get("/all", authorize("Executor"), investController.getAllInvestments);
+router.post("/admin-create", authorize("Executor"), investController.adminCreateInvestment);
+router.post("/topup-executor/:transactionId", authorize("Executor"), investController.topUpInvestmentAdmin);
+router.post("/:id/cancel", authorize("Executor"), investController.adminCancelInvestment);
 router.post("/:id/profit", authorize("Executor"), investController.logProfit);
 router.patch("/:id/status", authorize("Executor"), investController.updateInvestmentStatus);
 router.patch("/upgrade-executor/:transactionId", authorize("Executor"), validate(upgradePlanSchema), investController.upgradePlanExecutor);

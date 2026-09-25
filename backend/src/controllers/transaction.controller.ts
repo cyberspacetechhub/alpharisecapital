@@ -16,7 +16,11 @@ export const withdraw = asyncHandler(async (req: AuthRequest, res: Response) => 
 });
 
 export const approveDeposit = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const tx = await txService.approveDeposit(req.params.id, req.userId!);
+  const { autoInvestPlanId, topUpTransactionId } = req.body || {};
+  const tx = await txService.approveDeposit(req.params.id, req.userId!, {
+    autoInvestPlanId,
+    topUpTransactionId,
+  });
   res.json({ success: true, data: tx });
 });
 

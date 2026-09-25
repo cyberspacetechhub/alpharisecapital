@@ -39,6 +39,9 @@ export default function ExecutorInvestmentsPage() {
   const [pendingRejectModal, setPendingRejectModal] = useState<TxWithUser | null>(null);
   const [pendingRejectReason, setPendingRejectReason] = useState("");
 
+  const [topUpModal, setTopUpModal] = useState<TxWithUser | null>(null);
+  const [topUpAmount, setTopUpAmount] = useState("");
+
   // Queries
   const { data: plansData, isLoading: loadingPlans } = useQuery({
     queryKey: ["exec-plans"],
@@ -56,6 +59,15 @@ export default function ExecutorInvestmentsPage() {
   const activePlans = plansData?.filter(p => p.isActive) ?? [];
 
   // Mutations
+  const topUpMutation = useMutation({
+    mutationFn: ({ id, amount, userId }: { id: string; amount: number; userId: string }) =>
+      investmentApi.topUpAdmin(id, amount, userId, true),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["exec-investments"] });
+      setTopUpModal(null);
+      setTopUpAmount("");
+    },
+  });
   const createPlanMutation = useMutation({
     mutationFn: (data: typeof planForm) => investmentApi.createPlan(data),
     onSuccess: () => {
@@ -355,6 +367,8 @@ export default function ExecutorInvestmentsPage() {
               <option value="">All Statuses</option>
               <option value="approved">Active</option>
               <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="forfeited">Forfeited</option>
               <option value="rejected">Rejected</option>
             </select>
           </div>
@@ -442,6 +456,12 @@ export default function ExecutorInvestmentsPage() {
                             {tx.status === "approved" && (
                               <>
                                 <button
+                                  onClick={() => { setTopUpModal(tx); setTopUpAmount(""); }}
+                                  className="text-xs font-bold text-[#00e676] hover:underline"
+                                >
+                                  Top-Up
+                                </button>
+                                <button
                                   onClick={() => setProfitModal(tx)}
                                   className="text-xs font-bold text-blue-400 hover:underline"
                                 >
@@ -455,7 +475,7 @@ export default function ExecutorInvestmentsPage() {
                                 </button>
                                 <button
                                   onClick={() => setStatusModal({ tx, status: "completed" })}
-                                  className="text-xs font-bold text-[#00e676] hover:underline"
+                                  className="text-xs font-bold text-[#00c076] hover:underline"
                                 >
                                   Mature
                                 </button>
@@ -818,6 +838,70 @@ export default function ExecutorInvestmentsPage() {
                   className="px-4 py-2 text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white rounded-xl disabled:opacity-50 cursor-pointer"
                 >
                   Reject Investment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Top-Up Modal for Executor */}
+      {topUpModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121822] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-bold text-white mb-1">Top-Up Client Investment</h3>
+            <p className="text-xs text-slate-400 mb-4">
+              Add capital to <strong className="text-white">{topUpModal.user?.username}</strong>'s contract in {topUpModal.planSnapshot?.name}.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const amt = parseFloat(topUpAmount);
+                if (isNaN(amt) || amt <= 0) return;
+                topUpMutation.mutate({
+                  id: topUpModal._id,
+                  amount: amt,
+                  userId: String(topUpModal.user?._id || (topUpModal.user as any)),
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="p-3 bg-white/5 rounded-2xl text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Current Capital:</span>
+                  <span className="font-bold text-white">{formatCurrency(topUpModal.amount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Daily ROI:</span>
+                  <span className="font-bold text-[#00e676]">+{topUpModal.planSnapshot?.roiPercent}% / day</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Top-Up Amount ($ USD)</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={topUpAmount}
+                  onChange={(e) => setTopUpAmount(e.target.value)}
+                  placeholder="e.g. 500"
+                  className="w-full border border-white/10 bg-[#0e1520] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#00c076]"
+                />
+              </div>
+              <div className="flex gap-3 justify-end pt-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => { setTopUpModal(null); setTopUpAmount(""); }}
+                  className="px-4 py-2 text-xs font-bold border border-white/10 text-slate-400 rounded-xl hover:bg-white/5 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={topUpMutation.isPending}
+                  className="px-4 py-2 text-xs font-black bg-[#00c076] hover:bg-[#00e676] text-[#080c10] rounded-xl disabled:opacity-50 shadow-md shadow-[#00c076]/20 cursor-pointer"
+                >
+                  {topUpMutation.isPending ? "Applying..." : "Apply Top-Up"}
                 </button>
               </div>
             </form>

@@ -11,8 +11,8 @@ router.use(protect);
 // Executor — full management (must be before /:id to avoid route conflict)
 router.get("/all", authorize("Executor"), depositMethodController.getAll);
 
-// Trader — view active methods and single method details before depositing
-router.get("/", authorize("Trader"), depositMethodController.getActive);
+// Trader & Executor — view active methods and single method details before depositing
+router.get("/", authorize("Trader", "Executor"), depositMethodController.getActive);
 router.get("/:id", authorize("Trader", "Executor"), depositMethodController.getOne);
 router.post("/", authorize("Executor"), validate(depositMethodSchema), depositMethodController.create);
 router.patch("/:id", authorize("Executor"), depositMethodController.update);

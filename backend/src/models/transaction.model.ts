@@ -1,7 +1,7 @@
 import { Schema, model, Document, Types } from "mongoose";
 
 export type TransactionType = "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment" | "bonus" | "adjustment" | "admin_credit" | "admin_debit";
-export type TransactionStatus = "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested";
+export type TransactionStatus = "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested" | "cancelled" | "forfeited";
 
 export interface ITransaction extends Document {
   user: Types.ObjectId;
@@ -52,7 +52,7 @@ const transactionSchema = new Schema<ITransaction>(
     amount: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "completed", "matured", "reinvested"],
+      enum: ["pending", "approved", "rejected", "completed", "matured", "reinvested", "cancelled", "forfeited"],
       default: "pending",
     },
     reference: { type: String, required: true, unique: true },

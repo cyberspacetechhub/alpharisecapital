@@ -66,40 +66,89 @@ export const investmentPlanExpiredEmail = (
   emailLayout(
     "Investment Cycle Completed",
     `
-    ${emailHeading("Investment Cycle Completed ✓")}
-    ${emailParagraph(`Hi <strong>${username}</strong>, the final daily profit for your investment in <strong>${planName}</strong> has been processed and your trading cycle has now concluded.`)}
+    ${emailHeading("Investment Completed & Credited 🎉")}
+    ${emailParagraph(`Hi <strong>${username}</strong>, the final trade for your investment in <strong>${planName}</strong> has completed!`)}
     ${emailInfoTable(
       emailInfoRow("Plan", planName) +
-      emailInfoRow("Principal Invested", amountInvested) +
-      emailInfoRow("Total ROI Earned", earnings) +
-      emailInfoRow("Duration Completed", `${durationDays} days`) +
-      emailInfoRow("Settlement Window", "48 Hours")
+      emailInfoRow("Principal Returned", amountInvested) +
+      emailInfoRow("Total Profit Earned", earnings) +
+      emailInfoRow("Duration", `${durationDays} days`) +
+      emailInfoRow("Status", "Credited to Balance")
     )}
-    ${emailAlert(`Your daily yield has been credited to your balance. You can <strong>Reinvest</strong> your principal within the next 48 hours to continue daily compounding, or check back after <strong>48 hours</strong> when your principal of ${amountInvested} will automatically return to your available balance and become ready for withdrawal.`, "warning")}
+    ${emailAlert(`Both your principal of <strong>${amountInvested}</strong> and your profit of <strong>${earnings}</strong> have been credited to your available balance. You have a <strong>48-hour window</strong> to reinvest your previous traded amount (${amountInvested}) if you wish to start another compounding cycle.`, "success")}
     ${emailButton("Reinvest or Manage Funds", dashboardUrl)}
     `
   );
 
-export const investmentFundsAvailableEmail = (
+export const investmentTopUpEmail = (
   username: string,
   planName: string,
-  payoutAmount: string,
+  topUpAmount: string,
+  newTotalAmount: string,
+  remainingDays: number,
+  newDailyProfit: string,
   dashboardUrl: string
 ): string =>
   emailLayout(
-    "Investment Funds Available",
+    "Investment Top-Up Processed",
     `
-    ${emailHeading("Principal Capital Released 🎉")}
-    ${emailParagraph(`Hi <strong>${username}</strong>, your investment in <strong>${planName}</strong> has completed its 48-hour maturity settlement period.`)}
+    ${emailHeading("Investment Top-Up Successful ✓")}
+    ${emailParagraph(`Hi <strong>${username}</strong>, a top-up of <strong>${topUpAmount}</strong> was successfully applied to your active <strong>${planName}</strong> contract.`)}
     ${emailInfoTable(
       emailInfoRow("Plan", planName) +
-      emailInfoRow("Principal Released", payoutAmount) +
-      emailInfoRow("Status", "Available in Balance")
+      emailInfoRow("Top-Up Amount", topUpAmount) +
+      emailInfoRow("New Total Invested", newTotalAmount) +
+      emailInfoRow("Remaining Duration", `${remainingDays} days`) +
+      emailInfoRow("Recalculated Daily Yield", newDailyProfit)
     )}
-    ${emailAlert(`Your funds of <strong>${payoutAmount}</strong> are now available in your account balance and ready for withdrawal or a new investment.`, "success")}
-    ${emailButton("Request Withdrawal", dashboardUrl)}
+    ${emailAlert("Your future daily profits have been recalculated based on your increased capital and remaining contract days.", "success")}
+    ${emailButton("View Active Contract", dashboardUrl)}
     `
   );
 
-// Backwards-compatible alias
+export const investmentCancelledEmail = (
+  username: string,
+  planName: string,
+  amount: string,
+  reason: string,
+  dashboardUrl: string
+): string =>
+  emailLayout(
+    "Investment Cancelled",
+    `
+    ${emailHeading("Investment Cancelled")}
+    ${emailParagraph(`Hi <strong>${username}</strong>, your investment in <strong>${planName}</strong> has been cancelled by administration.`)}
+    ${emailInfoTable(
+      emailInfoRow("Plan", planName) +
+      emailInfoRow("Principal Refunded", amount) +
+      emailInfoRow("Reason", reason) +
+      emailInfoRow("Status", "Refunded to Balance")
+    )}
+    ${emailAlert(`The principal capital of <strong>${amount}</strong> has been returned to your available account balance.`, "warning")}
+    ${emailButton("Check Account Balance", dashboardUrl)}
+    `
+  );
+
+export const investmentForfeitedEmail = (
+  username: string,
+  planName: string,
+  amount: string,
+  dashboardUrl: string
+): string =>
+  emailLayout(
+    "Investment Forfeited",
+    `
+    ${emailHeading("Investment Trade Forfeited")}
+    ${emailParagraph(`Hi <strong>${username}</strong>, your request to forfeit your ongoing investment in <strong>${planName}</strong> has been processed.`)}
+    ${emailInfoTable(
+      emailInfoRow("Plan", planName) +
+      emailInfoRow("Principal Returned", amount) +
+      emailInfoRow("Status", "Forfeited & Settled")
+    )}
+    ${emailAlert(`The principal amount of <strong>${amount}</strong> has been returned to your available account balance.`, "warning")}
+    ${emailButton("View Portfolio", dashboardUrl)}
+    `
+  );
+
+export const investmentFundsAvailableEmail = investmentPlanExpiredEmail;
 export const investmentCompletedEmail = investmentPlanExpiredEmail;

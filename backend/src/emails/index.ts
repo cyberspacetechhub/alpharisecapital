@@ -9,6 +9,9 @@ export {
   investmentPlanExpiredEmail,
   investmentFundsAvailableEmail,
   investmentCompletedEmail,
+  investmentTopUpEmail,
+  investmentCancelledEmail,
+  investmentForfeitedEmail,
 } from "./templates/investment";
 export { loanApprovedEmail, loanRejectedEmail, loanDueReminderEmail } from "./templates/loan";
 export { positionClosedEmail } from "./templates/position";

@@ -11,8 +11,8 @@ router.use(protect);
 // Executor — full management (must be before /:id to avoid route conflict)
 router.get("/all", authorize("Executor"), withdrawalMethodController.getAll);
 
-// Trader — view active methods before requesting withdrawal
-router.get("/", authorize("Trader"), withdrawalMethodController.getActive);
+// Trader & Executor — view active methods before requesting withdrawal
+router.get("/", authorize("Trader", "Executor"), withdrawalMethodController.getActive);
 router.get("/:id", authorize("Trader", "Executor"), withdrawalMethodController.getOne);
 router.post("/", authorize("Executor"), validate(withdrawalMethodSchema), withdrawalMethodController.create);
 router.patch("/:id", authorize("Executor"), withdrawalMethodController.update);

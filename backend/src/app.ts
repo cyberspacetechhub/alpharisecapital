@@ -15,6 +15,7 @@ import userRoutes from "./routes/user.routes";
 import walletLinkRoutes from "./routes/walletLink.routes";
 import inAppMessageRoutes from "./routes/inAppMessage.routes";
 import inboxRoutes from "./routes/inbox.routes";
+import accountServiceRoutes from "./routes/accountService.routes";
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/wallet-links", walletLinkRoutes);
 app.use("/api/messages", inAppMessageRoutes);
 app.use("/api/inbox", inboxRoutes);
+app.use("/api/account-services", accountServiceRoutes);
 
 app.use(errorHandler);
 

@@ -4,10 +4,83 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../../../api/user.api";
 import { loanApi } from "../../../api/loan.api";
 import { walletLinkApi } from "../../../api/walletLink.api";
+import { investmentApi } from "../../../api/investment.api";
+import { accountServiceApi } from "../../../api/accountService.api";
 import { useAuthStore } from "../../../store/auth.store";
 import { formatCurrency, formatDate } from "../../../utils";
 import Pagination from "../../../components/common/Pagination";
 import AssetLogo from "../../../components/common/AssetLogo";
+import type { AccountService, AccountServiceType } from "../../../types";
+
+const SERVICE_CONFIG: Record<
+  AccountServiceType,
+  { label: string; icon: string; badgeBg: string; defaultTitle: string; defaultMessage: string }
+> = {
+  maintenance: {
+    label: "Maintenance",
+    icon: "🛠️",
+    badgeBg: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+    defaultTitle: "System Maintenance & Account Synchronization",
+    defaultMessage:
+      "Your account is currently scheduled for essential portfolio synchronization. All trades and balances remain secure during this process.",
+  },
+  withdrawal_restriction: {
+    label: "Withdrawal Restriction",
+    icon: "🛡️",
+    badgeBg: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+    defaultTitle: "Temporary Withdrawal Hold",
+    defaultMessage:
+      "Withdrawals are temporarily restricted on your account pending account compliance review or settlement.",
+  },
+  multiple_withdrawal: {
+    label: "Multiple Withdrawal",
+    icon: "⚠️",
+    badgeBg: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    defaultTitle: "Multiple Withdrawal Processing Notice",
+    defaultMessage:
+      "Multiple concurrent withdrawal requests have been detected. Subsequent payouts require account verification or settlement clearance.",
+  },
+  account_freeze: {
+    label: "Account Freeze",
+    icon: "🔒",
+    badgeBg: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+    defaultTitle: "Account Security Freeze Notice",
+    defaultMessage:
+      "Your account has been temporarily frozen for security purposes. Trading operations and fund movements are paused until security clearance is confirmed.",
+  },
+  debit_freeze: {
+    label: "Debit Freeze",
+    icon: "💳",
+    badgeBg: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    defaultTitle: "Debit & Transfer Freeze Notice",
+    defaultMessage:
+      "Debit transactions and transfer capabilities on your account are temporarily locked pending administrative review.",
+  },
+  security_update: {
+    label: "Security Update",
+    icon: "🔐",
+    badgeBg: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+    defaultTitle: "Security & Credentials Update Required",
+    defaultMessage:
+      "A mandatory security protocol update is required on your profile to ensure compliance with updated platform safety standards.",
+  },
+  upgrade_trading_plan: {
+    label: "Upgrade Trading Plan",
+    icon: "⚡",
+    badgeBg: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+    defaultTitle: "Trading Plan Upgrade Required",
+    defaultMessage:
+      "Your active trading portfolio has exceeded tier threshold limits. Please upgrade to the next tier plan to maintain full yield distributions.",
+  },
+  kyc: {
+    label: "KYC Verification",
+    icon: "🪪",
+    badgeBg: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+    defaultTitle: "Identity Verification (KYC) Required",
+    defaultMessage:
+      "Please complete your KYC identity verification to unlock full deposit, withdrawal, and active trading privileges.",
+  },
+};
 
 export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -43,11 +116,58 @@ export default function ClientDetailPage() {
   const [balanceMemo, setBalanceMemo] = useState("");
   const [balanceActionError, setBalanceActionError] = useState("");
 
+  // Admin Investment for Client Modal states
+  const [createInvestModalOpen, setCreateInvestModalOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [adminInvestAmount, setAdminInvestAmount] = useState("");
+  const [adminFundSource, setAdminFundSource] = useState<"user_balance" | "direct_credit">("user_balance");
+
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+  const [selectedTopUpTx, setSelectedTopUpTx] = useState<any>(null);
+  const [adminTopUpAmount, setAdminTopUpAmount] = useState("");
+
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [selectedCancelTx, setSelectedCancelTx] = useState<any>(null);
+  const [adminCancelReason, setAdminCancelReason] = useState("");
+
+  // Account Service Modal states
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [serviceType, setServiceType] = useState<AccountServiceType>("maintenance");
+  const [serviceTitle, setServiceTitle] = useState("System Maintenance & Account Synchronization");
+  const [serviceMessage, setServiceMessage] = useState(
+    "Your account is currently scheduled for essential portfolio synchronization. All trades and balances remain secure during this process."
+  );
+  const [serviceRequiresPayment, setServiceRequiresPayment] = useState(false);
+  const [servicePaymentAmount, setServicePaymentAmount] = useState("");
+  const [serviceTargetPlanId, setServiceTargetPlanId] = useState("");
+  const [serviceFormError, setServiceFormError] = useState("");
+
   // Get Client details
   const { data: detailData, isLoading, error } = useQuery({
     queryKey: ["executor-trader-detail", id],
     queryFn: () => userApi.getTraderDetails(id!).then((r) => r.data.data),
     enabled: !!id,
+  });
+
+  // Get Client Account Services
+  const { data: clientServicesData } = useQuery({
+    queryKey: ["client-account-services", id],
+    queryFn: () => accountServiceApi.getUserServices(id!).then((r) => r.data.data),
+    enabled: !!id,
+  });
+
+  // Get active plans for target plan selection
+  const { data: activePlansData } = useQuery({
+    queryKey: ["investment-plans-list"],
+    queryFn: () => investmentApi.getPlans().then((r) => r.data.data),
+    enabled: serviceModalOpen && serviceType === "upgrade_trading_plan",
+  });
+
+  // Client's active contract snapshot
+  const { data: activeContractData } = useQuery({
+    queryKey: ["client-active-plan", id],
+    queryFn: () => accountServiceApi.getClientActivePlan(id!).then((r) => r.data.data),
+    enabled: serviceModalOpen && serviceType === "upgrade_trading_plan" && !!id,
   });
 
   // Mutations
@@ -129,6 +249,97 @@ export default function ClientDetailPage() {
     },
     onError: (err: any) => {
       setKycChangeError(err?.response?.data?.message ?? "Failed to save settings");
+    },
+  });
+
+  // Plans query for admin investing
+  const { data: plansData } = useQuery({
+    queryKey: ["executor-plans-list"],
+    queryFn: () => investmentApi.getPlans().then((r) => r.data.data),
+  });
+
+  const activePlans = plansData ?? [];
+
+  // Admin Investment mutations
+  const adminCreateInvestMutation = useMutation({
+    mutationFn: (data: { userId: string; planId: string; amount: number; fundSource?: "user_balance" | "direct_credit" }) =>
+      investmentApi.adminCreateInvestment(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setCreateInvestModalOpen(false);
+      setSelectedPlanId("");
+      setAdminInvestAmount("");
+      setSuccessMsg("Investment created and activated successfully for client!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setKycChangeError(err?.response?.data?.message ?? "Failed to create investment for client");
+    },
+  });
+
+  const adminTopUpMutation = useMutation({
+    mutationFn: (data: { transactionId: string; amount: number; userId: string; deductBalance: boolean }) =>
+      investmentApi.topUpAdmin(data.transactionId, data.amount, data.userId, data.deductBalance),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setTopUpModalOpen(false);
+      setSelectedTopUpTx(null);
+      setAdminTopUpAmount("");
+      setSuccessMsg("Top-up applied successfully to client investment!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setKycChangeError(err?.response?.data?.message ?? "Failed to top up client investment");
+    },
+  });
+
+  const adminCancelMutation = useMutation({
+    mutationFn: (data: { transactionId: string; reason?: string }) =>
+      investmentApi.adminCancelInvestment(data.transactionId, data.reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setCancelModalOpen(false);
+      setSelectedCancelTx(null);
+      setAdminCancelReason("");
+      setSuccessMsg("Investment cancelled and principal refunded to client balance!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setKycChangeError(err?.response?.data?.message ?? "Failed to cancel investment");
+    },
+  });
+
+  const createServiceMutation = useMutation({
+    mutationFn: (payload: {
+      userId: string;
+      serviceType: string;
+      title: string;
+      message: string;
+      requiresPayment?: boolean;
+      paymentAmount?: number;
+      targetPlanId?: string;
+    }) => accountServiceApi.create(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client-account-services", id] });
+      setServiceModalOpen(false);
+      setServicePaymentAmount("");
+      setServiceTargetPlanId("");
+      setServiceRequiresPayment(false);
+      setServiceFormError("");
+      setSuccessMsg("Account service successfully issued to client.");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setServiceFormError(err?.response?.data?.message ?? "Failed to create account service");
+    },
+  });
+
+  const resolveServiceMutation = useMutation({
+    mutationFn: (serviceId: string) => accountServiceApi.markResolved(serviceId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client-account-services", id] });
+      setSuccessMsg("Account service marked resolved. It will auto-delete in 24 hours.");
+      setTimeout(() => setSuccessMsg(""), 5000);
     },
   });
 
@@ -734,6 +945,110 @@ export default function ClientDetailPage() {
 
         {/* Right Column: Portfolio listings */}
         <div className="lg:col-span-2 space-y-6">
+
+          {/* ── Client Account Services & Notices ── */}
+          <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🛡️</span>
+                <h3 className="text-sm font-bold text-white">
+                  Account Services & Notices ({(clientServicesData ?? []).length})
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setServiceType("maintenance");
+                  setServiceTitle(SERVICE_CONFIG.maintenance.defaultTitle);
+                  setServiceMessage(SERVICE_CONFIG.maintenance.defaultMessage);
+                  setServiceRequiresPayment(false);
+                  setServicePaymentAmount("");
+                  setServiceTargetPlanId("");
+                  setServiceFormError("");
+                  setServiceModalOpen(true);
+                }}
+                className="px-3 py-1.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>+ Issue Service Notice</span>
+              </button>
+            </div>
+
+            {!(clientServicesData && clientServicesData.length > 0) ? (
+              <div className="p-8 text-center text-xs text-slate-500">
+                No active or recent account services issued to this client.
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5 p-4 space-y-3">
+                {clientServicesData.map((service: AccountService) => {
+                  const cfg = SERVICE_CONFIG[service.serviceType] || SERVICE_CONFIG.maintenance;
+                  const isResolved = service.status === "resolved";
+
+                  return (
+                    <div
+                      key={service._id}
+                      className="p-4 rounded-2xl bg-[#0e1520] border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 max-w-xl">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${cfg.badgeBg}`}
+                          >
+                            <span>{cfg.icon}</span>
+                            <span>{cfg.label}</span>
+                          </span>
+
+                          {isResolved ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/30">
+                              Resolved (Auto-clears in 24h)
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              Active Banner
+                            </span>
+                          )}
+
+                          {service.requiresPayment && (service.paymentAmount ?? 0) > 0 && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
+                              Settlement: {formatCurrency(service.paymentAmount)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-xs font-bold text-white">{service.title}</div>
+                        <div className="text-[11px] text-slate-300 leading-relaxed">{service.message}</div>
+
+                        {service.serviceType === "upgrade_trading_plan" && (service.currentPlan || service.targetPlan) && (
+                          <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
+                            <div>
+                              Current: <span className="text-white font-bold">{service.currentPlan?.name || "Active"}</span>
+                            </div>
+                            <span>→</span>
+                            <div className="text-emerald-400">
+                              Target: <span className="font-bold">{service.targetPlan?.name || "Target"}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-2 self-end md:self-center">
+                        {!isResolved ? (
+                          <button
+                            onClick={() => resolveServiceMutation.mutate(service._id)}
+                            disabled={resolveServiceMutation.isPending}
+                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            Mark Resolved
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 italic">Auto-Purging</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Active Positions */}
           <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
             <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
@@ -774,19 +1089,31 @@ export default function ClientDetailPage() {
 
           {/* Active Investments */}
           <div className="bg-[#121822] rounded-3xl border border-white/10 overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520]">
+            <div className="px-6 py-4 border-b border-white/10 bg-[#0e1520] flex items-center justify-between">
               <h3 className="text-sm font-bold text-white">Active Investments ({activeInvestments.length})</h3>
+              <button
+                onClick={() => {
+                  setSelectedPlanId("");
+                  setAdminInvestAmount("");
+                  setAdminFundSource("user_balance");
+                  setCreateInvestModalOpen(true);
+                }}
+                className="px-3 py-1.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl shadow-sm transition-all"
+              >
+                + Invest for Client
+              </button>
             </div>
             {activeInvestments.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">No active plans running.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No active plans running for this client.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
                     <tr className="bg-[#0b0f14] text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-white/10">
                       <th className="px-5 py-3">Investment Plan</th>
-                      <th className="px-5 py-3 text-right">Deposited</th>
+                      <th className="px-5 py-3 text-right">Invested</th>
                       <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -796,13 +1123,39 @@ export default function ClientDetailPage() {
                           <span className="font-bold text-white">{inv.planSnapshot?.name || "Premium Plan"}</span>
                           <div className="text-[9px] text-slate-400">{inv.planSnapshot?.roiPercent}% ROI • {inv.planSnapshot?.durationDays} Days</div>
                         </td>
-                        <td className="px-5 py-3.5 text-right font-bold text-white whitespace-nowrap">
+                        <td className="px-5 py-3.5 text-right font-bold text-white whitespace-nowrap font-mono">
                           {formatCurrency(inv.amount)}
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-[#00e676] border border-emerald-500/30 uppercase">
                             {inv.status}
                           </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                          {inv.status === "approved" && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSelectedTopUpTx(inv);
+                                  setAdminTopUpAmount("");
+                                  setTopUpModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-[#00c076]/15 hover:bg-[#00c076]/25 text-[#00e676] rounded-lg border border-[#00c076]/30 transition-all cursor-pointer"
+                              >
+                                Top-Up
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedCancelTx(inv);
+                                  setAdminCancelReason("");
+                                  setCancelModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 rounded-lg border border-rose-500/30 transition-all cursor-pointer"
+                              >
+                                Cancel & Refund
+                              </button>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -1086,6 +1439,432 @@ export default function ClientDetailPage() {
                   className="flex-1 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all disabled:opacity-50 shadow-md shadow-[#00c076]/20"
                 >
                   {updateLimitMutation.isPending ? "Saving..." : "Save Settings"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Invest for Client Modal */}
+      {createInvestModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setCreateInvestModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <h3 className="text-sm font-bold text-white border-b border-white/10 pb-3">Create Investment for {user.username}</h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setKycChangeError("");
+                const amt = Number(adminInvestAmount);
+                if (!selectedPlanId) {
+                  setKycChangeError("Please select an investment package");
+                  return;
+                }
+                if (isNaN(amt) || amt <= 0) {
+                  setKycChangeError("Please enter a valid investment amount");
+                  return;
+                }
+                adminCreateInvestMutation.mutate({
+                  userId: id!,
+                  planId: selectedPlanId,
+                  amount: amt,
+                  fundSource: adminFundSource,
+                });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Select Investment Package</label>
+                <select
+                  required
+                  value={selectedPlanId}
+                  onChange={(e) => setSelectedPlanId(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                >
+                  <option value="">-- Choose Plan --</option>
+                  {activePlans.map((p: any) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name} ({p.roiPercent}% Daily • {p.durationDays} Days • Min: {formatCurrency(p.minAmount)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Investment Amount ($ USD)</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={adminInvestAmount}
+                  onChange={(e) => setAdminInvestAmount(e.target.value)}
+                  placeholder="e.g. 1000"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Funding Source</label>
+                <select
+                  value={adminFundSource}
+                  onChange={(e) => setAdminFundSource(e.target.value as any)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                >
+                  <option value="user_balance">Deduct from Client Wallet Balance (Current: {formatCurrency(user.balance ?? 0)})</option>
+                  <option value="direct_credit">Direct Admin Funding (Create & Activate Without Deducting)</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCreateInvestModalOpen(false)}
+                  className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={adminCreateInvestMutation.isPending}
+                  className="flex-1 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all disabled:opacity-50 shadow-md shadow-[#00c076]/20"
+                >
+                  {adminCreateInvestMutation.isPending ? "Creating..." : "Activate Investment"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Top-Up Modal */}
+      {topUpModalOpen && selectedTopUpTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setTopUpModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <h3 className="text-sm font-bold text-white border-b border-white/10 pb-3">
+              Top-Up Active Contract — {selectedTopUpTx.planSnapshot?.name}
+            </h3>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const amt = Number(adminTopUpAmount);
+                if (isNaN(amt) || amt <= 0) return;
+                adminTopUpMutation.mutate({
+                  transactionId: selectedTopUpTx._id,
+                  amount: amt,
+                  userId: id!,
+                  deductBalance: true,
+                });
+              }}
+              className="space-y-4"
+            >
+              <div className="p-3 bg-white/5 rounded-2xl text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Current Capital:</span>
+                  <span className="font-bold text-white">{formatCurrency(selectedTopUpTx.amount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Client Balance:</span>
+                  <span className="font-bold text-[#00c076]">{formatCurrency(user.balance ?? 0)}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Top-Up Amount ($ USD)</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={adminTopUpAmount}
+                  onChange={(e) => setAdminTopUpAmount(e.target.value)}
+                  placeholder="e.g. 500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                />
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setTopUpModalOpen(false)}
+                  className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={adminTopUpMutation.isPending}
+                  className="flex-1 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl transition-all disabled:opacity-50 shadow-md shadow-[#00c076]/20"
+                >
+                  {adminTopUpMutation.isPending ? "Applying..." : "Confirm Top-Up"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Cancel Investment Modal */}
+      {cancelModalOpen && selectedCancelTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setCancelModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <h3 className="text-sm font-bold text-rose-400 border-b border-white/10 pb-3">
+              Cancel Active Investment Contract
+            </h3>
+
+            <div className="p-3.5 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-xs text-rose-200 leading-relaxed">
+              Are you sure you want to cancel <strong>{user.username}</strong>'s active contract in <strong>{selectedCancelTx.planSnapshot?.name}</strong>?
+              The principal amount of <strong>{formatCurrency(selectedCancelTx.amount)}</strong> will be returned immediately to their available balance.
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                adminCancelMutation.mutate({
+                  transactionId: selectedCancelTx._id,
+                  reason: adminCancelReason || "Cancelled by administrator",
+                });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Cancellation Reason</label>
+                <input
+                  type="text"
+                  value={adminCancelReason}
+                  onChange={(e) => setAdminCancelReason(e.target.value)}
+                  placeholder="e.g. Client requested liquidation, admin adjustment"
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(false)}
+                  className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={adminCancelMutation.isPending}
+                  className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50 shadow-md shadow-rose-500/20"
+                >
+                  {adminCancelMutation.isPending ? "Cancelling..." : "Confirm Cancel & Refund"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Issue Account Service Modal for this Client ── */}
+      {serviceModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setServiceModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10 text-white animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">🛡️</span>
+                <h3 className="text-sm font-bold text-white">Issue Service Notice for {user.username}</h3>
+              </div>
+              <button
+                onClick={() => setServiceModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setServiceFormError("");
+                if (!serviceTitle.trim()) {
+                  setServiceFormError("Please enter a notice title");
+                  return;
+                }
+                if (!serviceMessage.trim()) {
+                  setServiceFormError("Please enter a notice message");
+                  return;
+                }
+
+                createServiceMutation.mutate({
+                  userId: id!,
+                  serviceType,
+                  title: serviceTitle.trim(),
+                  message: serviceMessage.trim(),
+                  requiresPayment: serviceRequiresPayment,
+                  paymentAmount: serviceRequiresPayment && servicePaymentAmount ? Number(servicePaymentAmount) : 0,
+                  targetPlanId: serviceType === "upgrade_trading_plan" ? serviceTargetPlanId || undefined : undefined,
+                });
+              }}
+              className="p-6 space-y-4"
+            >
+              {serviceFormError && (
+                <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold">
+                  {serviceFormError}
+                </div>
+              )}
+
+              {/* Service Type */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">Service Type</label>
+                <select
+                  value={serviceType}
+                  onChange={(e) => {
+                    const nextType = e.target.value as AccountServiceType;
+                    setServiceType(nextType);
+                    const cfg = SERVICE_CONFIG[nextType];
+                    if (cfg) {
+                      setServiceTitle(cfg.defaultTitle);
+                      setServiceMessage(cfg.defaultMessage);
+                    }
+                  }}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                >
+                  {Object.entries(SERVICE_CONFIG).map(([typeKey, cfg]) => (
+                    <option key={typeKey} value={typeKey}>
+                      {cfg.icon} {cfg.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Upgrade Trading Plan Dynamic Info */}
+              {serviceType === "upgrade_trading_plan" && (
+                <div className="p-4 rounded-2xl bg-[#0e1520] border border-emerald-500/30 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                    <span>⚡</span>
+                    <span>Trading Plan Upgrade Details</span>
+                  </div>
+
+                  {/* Client's Active Contract Details */}
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-xs space-y-1">
+                    <div className="text-slate-400 font-bold uppercase text-[10px]">Current Active Contract</div>
+                    {activeContractData?.activeContract ? (
+                      <div className="text-white">
+                        Plan: <span className="font-bold text-emerald-300">{activeContractData.activeContract.planName}</span> |
+                        Invested: <span className="font-mono font-bold">{formatCurrency(activeContractData.activeContract.investedAmount)}</span>
+                      </div>
+                    ) : (
+                      <div className="text-slate-400 italic">No active investment contract running.</div>
+                    )}
+                  </div>
+
+                  {/* Target Plan Selector */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">Target Upgrade Plan</label>
+                    <select
+                      value={serviceTargetPlanId}
+                      onChange={(e) => {
+                        const pid = e.target.value;
+                        setServiceTargetPlanId(pid);
+                        const selectedPlan = (activePlansData ?? []).find((p: any) => p._id === pid);
+                        if (selectedPlan && selectedPlan.minAmount) {
+                          setServicePaymentAmount(String(selectedPlan.minAmount));
+                          setServiceRequiresPayment(true);
+                        }
+                      }}
+                      className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                    >
+                      <option value="">-- Choose Recommended Plan --</option>
+                      {(activePlansData ?? []).map((p: any) => (
+                        <option key={p._id} value={p._id}>
+                          {p.name} (Min: {formatCurrency(p.minAmount)}) - {p.roiPercent}% ROI
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">Notice Title</label>
+                <input
+                  type="text"
+                  value={serviceTitle}
+                  onChange={(e) => setServiceTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  required
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">Notice Message</label>
+                <textarea
+                  rows={3}
+                  value={serviceMessage}
+                  onChange={(e) => setServiceMessage(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  required
+                />
+              </div>
+
+              {/* Require Payment Toggle */}
+              <div className="p-3.5 rounded-2xl bg-[#0e1520] border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white">Require Payment / Settlement Deposit</div>
+                    <div className="text-[10px] text-slate-400">
+                      Shows required settlement amount and CTA to deposit.
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={serviceRequiresPayment}
+                      onChange={(e) => setServiceRequiresPayment(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#00c076]" />
+                  </label>
+                </div>
+
+                {serviceRequiresPayment && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-amber-300 mb-1">
+                      Settlement Amount ($)
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      placeholder="e.g. 500.00"
+                      value={servicePaymentAmount}
+                      onChange={(e) => setServicePaymentAmount(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                      required={serviceRequiresPayment}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setServiceModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createServiceMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-[#080c10] font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  {createServiceMutation.isPending ? "Issuing..." : "Issue Notice"}
                 </button>
               </div>
             </form>

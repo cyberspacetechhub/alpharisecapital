@@ -56,7 +56,13 @@ export const requestDeposit = async (userId: string, amount: number, methodId: s
   return tx;
 };
 
-export const approveDeposit = async (txId: string, executorId: string) => {
+import { adminCreateInvestment, topUpInvestment } from "./investment.service";
+
+export const approveDeposit = async (
+  txId: string,
+  executorId: string,
+  options?: { autoInvestPlanId?: string; topUpTransactionId?: string }
+) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -147,6 +153,27 @@ export const approveDeposit = async (txId: string, executorId: string) => {
         `You received a $${referrerUserToNotify.bonusAmount} referral bonus (5% commission) from ${user.username}'s deposit of $${tx.amount}!`,
         "Transaction"
       ).catch((e) => console.error("Referral bonus system notification failed", e));
+    }
+
+    // Optional Auto-Invest or Top-Up immediately after deposit approval
+    if (options?.autoInvestPlanId) {
+      try {
+        await adminCreateInvestment(executorId, String(user._id), options.autoInvestPlanId, tx.amount, {
+          fundSource: "user_balance",
+        });
+      } catch (autoErr) {
+        console.error("[DepositApproval] Auto-invest failed:", autoErr);
+      }
+    } else if (options?.topUpTransactionId) {
+      try {
+        await topUpInvestment(String(user._id), options.topUpTransactionId, tx.amount, {
+          byAdmin: true,
+          adminId: executorId,
+          deductBalance: true,
+        });
+      } catch (topUpErr) {
+        console.error("[DepositApproval] Auto-topup failed:", topUpErr);
+      }
     }
 
     return tx;

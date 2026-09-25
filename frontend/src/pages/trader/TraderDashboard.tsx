@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../hooks/useAuth";
 import { userApi } from "../../api/user.api";
 import { transactionApi } from "../../api/transaction.api";
 import { investmentApi } from "../../api/investment.api";
+import { accountServiceApi } from "../../api/accountService.api";
 import { formatCurrency, formatDate, getStatusColor } from "../../utils";
-import type { DashboardSummary, Transaction, ApiResponse } from "../../types";
+import type { DashboardSummary, Transaction, ApiResponse, AccountService } from "../../types";
 import PublicTicker from "../../components/layout/PublicTicker";
 import AssetLogo from "../../components/common/AssetLogo";
 
@@ -22,6 +24,84 @@ interface StatCardProps {
   icon: React.ReactNode;
   iconBg: string;
 }
+
+const getServiceMeta = (type: string) => {
+  switch (type) {
+    case "withdrawal_restriction":
+      return {
+        label: "Withdrawal Restriction",
+        badgeBg: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+        bannerBg: "bg-gradient-to-r from-rose-950/50 via-[#121418] to-[#121418] border-rose-500/30",
+        icon: "🛡️",
+        actionText: "Contact Support",
+        actionUrl: "/trader/messages",
+      };
+    case "multiple_withdrawal":
+      return {
+        label: "Multiple Withdrawal Notice",
+        badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+        bannerBg: "bg-gradient-to-r from-amber-950/50 via-[#121418] to-[#121418] border-amber-500/30",
+        icon: "⚠️",
+        actionText: "View Withdrawals",
+        actionUrl: "/trader/withdrawal",
+      };
+    case "account_freeze":
+      return {
+        label: "Account Freeze Alert",
+        badgeBg: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+        bannerBg: "bg-gradient-to-r from-rose-950/60 via-[#121418] to-[#121418] border-rose-500/40",
+        icon: "🔒",
+        actionText: "Contact Support",
+        actionUrl: "/trader/messages",
+      };
+    case "debit_freeze":
+      return {
+        label: "Debit Restriction",
+        badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+        bannerBg: "bg-gradient-to-r from-amber-950/50 via-[#121418] to-[#121418] border-amber-500/30",
+        icon: "💳",
+        actionText: "Review Account",
+        actionUrl: "/trader/wallet",
+      };
+    case "security_update":
+      return {
+        label: "Security Update Required",
+        badgeBg: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+        bannerBg: "bg-gradient-to-r from-cyan-950/50 via-[#121418] to-[#121418] border-cyan-500/30",
+        icon: "🔐",
+        actionText: "Update Profile",
+        actionUrl: "/trader/profile",
+      };
+    case "upgrade_trading_plan":
+      return {
+        label: "Trading Plan Upgrade Required",
+        badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+        bannerBg: "bg-gradient-to-r from-emerald-950/50 via-[#121418] to-[#121418] border-emerald-500/30",
+        icon: "⚡",
+        actionText: "Upgrade Plan",
+        actionUrl: "/trader/investments",
+      };
+    case "kyc":
+      return {
+        label: "Identity Verification (KYC)",
+        badgeBg: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+        bannerBg: "bg-gradient-to-r from-purple-950/50 via-[#121418] to-[#121418] border-purple-500/30",
+        icon: "🪪",
+        actionText: "Complete KYC",
+        actionUrl: "/trader/profile",
+      };
+    case "maintenance":
+    default:
+      return {
+        label: "System Maintenance Notice",
+        badgeBg: "bg-blue-500/20 text-blue-300 border-blue-500/40",
+        bannerBg: "bg-gradient-to-r from-blue-950/50 via-[#121418] to-[#121418] border-blue-500/30",
+        icon: "🛠️",
+        actionText: "Learn More",
+        actionUrl: "/trader/dashboard",
+      };
+  }
+};
 
 const StatCard = ({
   label,
@@ -52,6 +132,24 @@ export default function TraderDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [dismissedPopups, setDismissedPopups] = useState<string[]>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("dismissed_service_popups") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const handleDismissPopup = (id: string) => {
+    const updated = [...dismissedPopups, id];
+    setDismissedPopups(updated);
+    try {
+      sessionStorage.setItem("dismissed_service_popups", JSON.stringify(updated));
+    } catch {
+      // ignore storage error
+    }
+  };
+
   const { data: dashData, isLoading: dashLoading } = useQuery<DashboardSummary>({
     queryKey: ["dashboard"],
     queryFn: () => userApi.getDashboard().then((r) => r.data.data),
@@ -66,6 +164,14 @@ export default function TraderDashboard() {
     queryKey: ["my-investments"],
     queryFn: () => investmentApi.getMyInvestments().then((r) => r.data.data),
   });
+
+  // Query active account services for this trader
+  const { data: activeServices = [] } = useQuery<AccountService[]>({
+    queryKey: ["my-active-account-services"],
+    queryFn: () => accountServiceApi.getMyActiveServices().then((r) => r.data.data),
+  });
+
+  const undismissedPopupService = activeServices.find((s) => !dismissedPopups.includes(s._id));
 
   const transactions: Transaction[] = txData?.data ?? [];
   const investments = (invData ?? []).filter((i: Transaction) => i.status === "approved").slice(0, 3);
@@ -128,6 +234,198 @@ export default function TraderDashboard() {
       <div className="rounded-2xl overflow-hidden shadow-sm border border-emerald-900/30">
         <PublicTicker />
       </div>
+
+      {/* ── Active Account Services / Permanent Banners ── */}
+      {activeServices.length > 0 && (
+        <div className="space-y-3">
+          {activeServices.map((service) => {
+            const meta = getServiceMeta(service.serviceType);
+            return (
+              <div
+                key={service._id}
+                className={`border rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden ${meta.bannerBg}`}
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-2 max-w-3xl">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="text-xl">{meta.icon}</span>
+                      <span
+                        className={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${meta.badgeBg}`}
+                      >
+                        {meta.label}
+                      </span>
+                      <span className="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
+                        Action Required
+                      </span>
+                    </div>
+
+                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                      {service.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-300 leading-relaxed">
+                      {service.message}
+                    </p>
+
+                    {/* Upgrade Plan specific details */}
+                    {service.serviceType === "upgrade_trading_plan" && (service.currentPlan || service.targetPlan) && (
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-black/40 border border-white/10 rounded-2xl">
+                        <div className="p-2.5 rounded-xl bg-white/5 border border-white/5">
+                          <p className="text-[10px] uppercase font-bold text-gray-400">Current Plan</p>
+                          <p className="text-sm font-black text-white mt-0.5">
+                            {service.currentPlan?.name || "Standard Active Contract"}
+                          </p>
+                          {service.currentPlan?.amount ? (
+                            <p className="text-xs text-gray-400 font-mono mt-0.5">
+                              Invested: {formatCurrency(service.currentPlan.amount)}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                          <p className="text-[10px] uppercase font-bold text-emerald-400">Target Upgrade Plan</p>
+                          <p className="text-sm font-black text-emerald-300 mt-0.5">
+                            {service.targetPlan?.name || "Recommended Tier"}
+                          </p>
+                          {service.targetPlan?.minAmount ? (
+                            <p className="text-xs text-emerald-400 font-mono mt-0.5">
+                              Plan Min: {formatCurrency(service.targetPlan.minAmount)}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Payment Required Highlight */}
+                    {service.requiresPayment && (service.paymentAmount ?? 0) > 0 && (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold mt-2">
+                        <span>Required Settlement / Deposit:</span>
+                        <span className="font-mono text-sm font-black text-amber-400">
+                          {formatCurrency(service.paymentAmount ?? 0)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action CTA */}
+                  <div className="shrink-0 flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        if (service.requiresPayment) {
+                          navigate("/trader/deposit");
+                        } else {
+                          navigate(meta.actionUrl);
+                        }
+                      }}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-black font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
+                    >
+                      <span>{service.requiresPayment ? "Deposit Now" : meta.actionText}</span>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Dismissible Pop-up Modal on Entry ── */}
+      {undismissedPopupService && (() => {
+        const meta = getServiceMeta(undismissedPopupService.serviceType);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#121418] border border-gray-700/80 rounded-3xl max-w-lg w-full p-6 sm:p-7 text-white shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 space-y-5">
+              
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-2.5 rounded-2xl bg-white/5 border border-white/10">
+                    {meta.icon}
+                  </span>
+                  <div>
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${meta.badgeBg}`}>
+                      {meta.label}
+                    </span>
+                    <h3 className="text-lg font-black text-white mt-1">
+                      {undismissedPopupService.title}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDismissPopup(undismissedPopupService._id)}
+                  className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Message */}
+              <div className="text-sm text-gray-300 leading-relaxed bg-black/30 p-4 rounded-2xl border border-white/5">
+                {undismissedPopupService.message}
+              </div>
+
+              {/* Plan Upgrade if applicable */}
+              {undismissedPopupService.serviceType === "upgrade_trading_plan" && (undismissedPopupService.currentPlan || undismissedPopupService.targetPlan) && (
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/5">
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Current</span>
+                    <span className="font-bold text-white block mt-0.5">{undismissedPopupService.currentPlan?.name || "Active Plan"}</span>
+                    {undismissedPopupService.currentPlan?.amount ? (
+                      <span className="text-gray-400 font-mono text-[11px] block mt-0.5">{formatCurrency(undismissedPopupService.currentPlan.amount)}</span>
+                    ) : null}
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <span className="text-emerald-400 block text-[10px] uppercase font-bold">Target Plan</span>
+                    <span className="font-bold text-emerald-300 block mt-0.5">{undismissedPopupService.targetPlan?.name || "Upgrade Tier"}</span>
+                    {undismissedPopupService.targetPlan?.minAmount ? (
+                      <span className="text-emerald-400 font-mono text-[11px] block mt-0.5">Min: {formatCurrency(undismissedPopupService.targetPlan.minAmount)}</span>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+
+              {/* Payment requirement if applicable */}
+              {undismissedPopupService.requiresPayment && (undismissedPopupService.paymentAmount ?? 0) > 0 && (
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <span className="text-xs font-semibold">Required Settlement:</span>
+                  <span className="font-mono text-base font-black text-amber-400">
+                    {formatCurrency(undismissedPopupService.paymentAmount ?? 0)}
+                  </span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleDismissPopup(undismissedPopupService._id)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors"
+                >
+                  Dismiss
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDismissPopup(undismissedPopupService._id);
+                    if (undismissedPopupService.requiresPayment) {
+                      navigate("/trader/deposit");
+                    } else {
+                      navigate(meta.actionUrl);
+                    }
+                  }}
+                  className="px-5 py-2 rounded-xl bg-[#00c076] hover:bg-[#00e676] text-black font-black text-xs uppercase tracking-wider transition-all shadow-md"
+                >
+                  {undismissedPopupService.requiresPayment ? "Deposit Now" : meta.actionText}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Unified Hero Card (Darker #121418 Background) ── */}
       <div className="bg-[#121418] border border-gray-800/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 text-white shadow-lg space-y-2">

@@ -8,8 +8,8 @@ const router = Router();
 
 router.use(protect);
 
-// Trader
-router.get("/offers", authorize("Trader"), loanController.getActiveOffers);
+// Trader & Executor
+router.get("/offers", authorize("Trader", "Executor"), loanController.getActiveOffers);
 router.post("/apply", authorize("Trader"), validate(loanApplicationSchema), loanController.applyForLoan);
 router.post("/repay/:id", authorize("Trader"), loanController.repayLoan);
 router.get("/my", authorize("Trader"), loanController.getMyLoans);

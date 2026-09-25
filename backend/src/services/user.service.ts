@@ -29,7 +29,7 @@ export const getMyProfile = async (userId: string) => {
 export const getMyDashboard = async (userId: string) => {
   const [user, profile, activeInvestments, openPositions, activeLoans] = await Promise.all([
     User.findById(userId)
-      .select("username email balance investedBalance pendingWithdrawal totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified")
+      .select("username email balance investedBalance pendingWithdrawal escrow totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified")
       .lean(),
     Profile.findOne({ user: userId }).lean(),
     Transaction.countDocuments({ user: userId, type: { $in: ["investment", "reinvestment"] }, status: "approved" }),
@@ -41,6 +41,12 @@ export const getMyDashboard = async (userId: string) => {
 
   return {
     ...user,
+    escrow: (user as any).escrow || {
+      pendingWithdrawal: user.pendingWithdrawal || 0,
+      pendingDeposit: 0,
+      pendingInvestment: 0,
+      eligibleReinvestAmount: 0,
+    },
     bonus: user.bonus || 0,
     referralCode: (profile as any)?.referralCode || user.username,
     referredBy: (profile as any)?.referredBy || null,

@@ -6,7 +6,8 @@ export const transactionApi = {
   getMyTransactions: (params?: object) => api.get("/transactions/my", { params }),
   // executor
   getAllTransactions: (params?: object) => api.get("/transactions/all", { params }),
-  approveDeposit: (id: string) => api.patch(`/transactions/deposit/${id}/approve`),
+  approveDeposit: (id: string, data?: { autoInvestPlanId?: string; topUpTransactionId?: string }) =>
+    api.patch(`/transactions/deposit/${id}/approve`, data),
   rejectDeposit: (id: string, reason: string) => api.patch(`/transactions/deposit/${id}/reject`, { reason }),
   approveWithdrawal: (id: string) => api.patch(`/transactions/withdrawal/${id}/approve`),
   rejectWithdrawal: (id: string, reason: string) => api.patch(`/transactions/withdrawal/${id}/reject`, { reason }),

@@ -50,6 +50,7 @@ import ExecutorMessagesPage from "../pages/executor/messages/MessagesPage";
 import ResendInboxPage from "../pages/executor/inbox/ResendInboxPage";
 import ExecutorProfilePage from "../pages/executor/profile/ProfilePage";
 import KycReviewPage from "../pages/executor/kyc/KycReviewPage";
+import AccountServicesPage from "../pages/executor/accountServices/AccountServicesPage";
 
 const AppRouter = () => (
   <BrowserRouter>
@@ -109,6 +110,7 @@ const AppRouter = () => (
           <Route path="inbox" element={<ResendInboxPage />} />
           <Route path="profile" element={<ExecutorProfilePage />} />
           <Route path="kyc" element={<KycReviewPage />} />
+          <Route path="account-services" element={<AccountServicesPage />} />
         </Route>
       </Route>
 

@@ -1,3 +1,11 @@
+export interface Escrow {
+  pendingWithdrawal: number;
+  pendingDeposit: number;
+  pendingInvestment: number;
+  eligibleReinvestAmount: number;
+  reinvestExpiresAt?: string;
+}
+
 export interface User {
   _id: string;
   username: string;
@@ -10,6 +18,7 @@ export interface User {
   balance: number;
   investedBalance: number;
   pendingWithdrawal: number;
+  escrow?: Escrow;
   totalDeposited: number;
   totalWithdrawn: number;
   totalInvested: number;
@@ -55,7 +64,7 @@ export interface Transaction {
   user: string | User;
   type: "deposit" | "withdrawal" | "investment" | "reinvestment" | "loan_disbursement" | "loan_repayment" | "bonus" | "adjustment" | "admin_credit" | "admin_debit";
   amount: number;
-  status: "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested";
+  status: "pending" | "approved" | "rejected" | "completed" | "matured" | "reinvested" | "cancelled" | "forfeited";
   reference: string;
   methodId?: string;
   planId?: string;
@@ -187,6 +196,7 @@ export interface DashboardSummary {
   balance: number;
   investedBalance: number;
   pendingWithdrawal: number;
+  escrow?: Escrow;
   totalDeposited: number;
   totalWithdrawn: number;
   totalInvested: number;
@@ -211,4 +221,40 @@ export interface ApiResponse<T> {
   total?: number;
   page?: number;
   pages?: number;
+}
+
+export type AccountServiceType =
+  | "maintenance"
+  | "withdrawal_restriction"
+  | "multiple_withdrawal"
+  | "account_freeze"
+  | "debit_freeze"
+  | "security_update"
+  | "upgrade_trading_plan"
+  | "kyc";
+
+export interface AccountServicePlanSnapshot {
+  id?: string;
+  name: string;
+  roiPercent?: number;
+  durationDays?: number;
+  amount?: number;
+  minAmount?: number;
+}
+
+export interface AccountService {
+  _id: string;
+  user: string | User;
+  serviceType: AccountServiceType;
+  title: string;
+  message: string;
+  requiresPayment: boolean;
+  paymentAmount: number;
+  currentPlan?: AccountServicePlanSnapshot;
+  targetPlan?: AccountServicePlanSnapshot;
+  status: "active" | "resolved";
+  resolvedAt?: string;
+  createdBy?: string | User;
+  createdAt: string;
+  updatedAt?: string;
 }

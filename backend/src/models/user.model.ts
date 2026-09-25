@@ -6,6 +6,14 @@ export interface ILoginHistory {
   at: Date;
 }
 
+export interface IEscrow {
+  pendingWithdrawal: number;
+  pendingDeposit: number;
+  pendingInvestment: number;
+  eligibleReinvestAmount: number;
+  reinvestExpiresAt?: Date;
+}
+
 export interface IUser extends Document {
   username: string;
   fullName: string;
@@ -21,6 +29,7 @@ export interface IUser extends Document {
   balance: number;
   investedBalance: number;
   pendingWithdrawal: number;
+  escrow: IEscrow;
   totalDeposited: number;
   totalWithdrawn: number;
   totalInvested: number;
@@ -50,6 +59,17 @@ const loginHistorySchema = new Schema<ILoginHistory>(
   { _id: false }
 );
 
+const escrowSchema = new Schema<IEscrow>(
+  {
+    pendingWithdrawal: { type: Number, default: 0 },
+    pendingDeposit: { type: Number, default: 0 },
+    pendingInvestment: { type: Number, default: 0 },
+    eligibleReinvestAmount: { type: Number, default: 0 },
+    reinvestExpiresAt: { type: Date },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema<IUser>(
   {
     username: { type: String, required: true, unique: true, trim: true },
@@ -66,6 +86,15 @@ const userSchema = new Schema<IUser>(
     balance: { type: Number, default: 0 },
     investedBalance: { type: Number, default: 0 },
     pendingWithdrawal: { type: Number, default: 0 },
+    escrow: {
+      type: escrowSchema,
+      default: () => ({
+        pendingWithdrawal: 0,
+        pendingDeposit: 0,
+        pendingInvestment: 0,
+        eligibleReinvestAmount: 0,
+      }),
+    },
     totalDeposited: { type: Number, default: 0 },
     totalWithdrawn: { type: Number, default: 0 },
     totalInvested: { type: Number, default: 0 },
