@@ -25,6 +25,7 @@ export interface User {
   totalEarnings: number;
   creditScore: number;
   loanLimit: number;
+  canReinvest?: boolean;
   lastLogin?: string;
   profile?: Profile;
   createdAt: string;
@@ -209,6 +210,7 @@ export interface DashboardSummary {
   loanLimit: number;
   kycStatus: string;
   isVerified: boolean;
+  canReinvest?: boolean;
   activeInvestments: number;
   openPositions: number;
   activeLoans: number;

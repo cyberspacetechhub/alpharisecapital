@@ -29,7 +29,7 @@ export const getMyProfile = async (userId: string) => {
 export const getMyDashboard = async (userId: string) => {
   const [user, profile, activeInvestments, openPositions, activeLoans] = await Promise.all([
     User.findById(userId)
-      .select("username email balance investedBalance pendingWithdrawal escrow totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified")
+      .select("username email balance investedBalance pendingWithdrawal escrow totalDeposited totalWithdrawn totalInvested totalEarnings bonus creditScore loanLimit kycStatus isVerified canReinvest")
       .lean(),
     Profile.findOne({ user: userId }).lean(),
     Transaction.countDocuments({ user: userId, type: { $in: ["investment", "reinvestment"] }, status: "approved" }),
@@ -48,6 +48,7 @@ export const getMyDashboard = async (userId: string) => {
       eligibleReinvestAmount: 0,
     },
     bonus: user.bonus || 0,
+    canReinvest: (user as any).canReinvest !== false,
     referralCode: (profile as any)?.referralCode || user.username,
     referredBy: (profile as any)?.referredBy || null,
     totalReferrals: (profile as any)?.totalReferrals || 0,
@@ -276,6 +277,27 @@ export const toggleUserActive = async (userId: string) => {
   user.isActive = !user.isActive;
   await user.save();
   return { isActive: user.isActive };
+};
+
+// ─── Executor: Toggle Trader Reinvestment Permission ─────────────────────────
+
+export const toggleTraderReinvestment = async (userId: string, canReinvest?: boolean) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("Trader not found", 404);
+
+  if (typeof canReinvest === "boolean") {
+    user.canReinvest = canReinvest;
+  } else {
+    user.canReinvest = !(user.canReinvest ?? true);
+  }
+
+  // If reinvestment is disabled, clear eligibleReinvestAmount in escrow to prevent any pending prompt
+  if (user.canReinvest === false && user.escrow) {
+    user.escrow.eligibleReinvestAmount = 0;
+  }
+
+  await user.save();
+  return { canReinvest: user.canReinvest };
 };
 
 // ─── Executor: Get Dashboard Stats ──────────────────────────────────────────

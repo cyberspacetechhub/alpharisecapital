@@ -109,3 +109,8 @@ export const manageTraderBalance = asyncHandler(async (req: AuthRequest, res: Re
   const result = await userService.manageTraderBalance(req.params.id, req.userId!, req.body);
   res.json({ success: true, data: result });
 });
+
+export const toggleReinvestment = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await userService.toggleTraderReinvestment(req.params.id, req.body.canReinvest);
+  res.json({ success: true, data: result });
+});

@@ -38,6 +38,7 @@ export interface IUser extends Document {
   creditScore: number;
   loanLimit: number;
   isCustomLoanLimit: boolean;
+  canReinvest: boolean;
   lastLogin?: Date;
   lastIp?: string;
   loginHistory: ILoginHistory[];
@@ -103,6 +104,7 @@ const userSchema = new Schema<IUser>(
     creditScore: { type: Number, default: 100 },
     loanLimit: { type: Number, default: 0 },
     isCustomLoanLimit: { type: Boolean, default: false },
+    canReinvest: { type: Boolean, default: true },
     lastLogin: { type: Date },
     lastIp: { type: String },
     loginHistory: { type: [loginHistorySchema], default: [] },

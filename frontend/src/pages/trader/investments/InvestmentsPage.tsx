@@ -239,14 +239,14 @@ export default function TraderInvestmentsPage() {
               Reinvest Escrow
             </span>
             <span className="text-2xl lg:text-3xl font-black text-amber-300 font-mono block">
-              {dashLoading ? "..." : formatCurrency(dashData?.escrow?.eligibleReinvestAmount ?? 0)}
+              {dashLoading ? "..." : formatCurrency((dashData?.canReinvest !== false) ? (dashData?.escrow?.eligibleReinvestAmount ?? 0) : 0)}
             </span>
           </div>
         </div>
       </div>
 
       {/* 48-Hour Reinvestment Eligibility Alert */}
-      {(dashData?.escrow?.eligibleReinvestAmount ?? 0) > 0 && (
+      {(dashData?.canReinvest !== false) && (dashData?.escrow?.eligibleReinvestAmount ?? 0) > 0 && (
         <div className="p-4 bg-emerald-500/10 border border-[#00c076]/40 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-[#00c076]/20 border border-[#00c076]/40 flex items-center justify-center text-[#00e676] shrink-0">
@@ -289,7 +289,7 @@ export default function TraderInvestmentsPage() {
                 const isCompleted = tx.status === "completed" || tx.status === "matured";
                 const completedAt = tx.meta?.completedAt || tx.updatedAt;
                 const timePassed = completedAt ? Date.now() - new Date(completedAt).getTime() : 0;
-                const isEligibleForReinvest = isCompleted && timePassed <= 48 * 60 * 60 * 1000;
+                const isEligibleForReinvest = (dashData?.canReinvest !== false) && isCompleted && timePassed <= 48 * 60 * 60 * 1000;
                 const hoursLeft = Math.max(0, Math.ceil((48 * 60 * 60 * 1000 - timePassed) / (1000 * 60 * 60)));
                 const duration = tx.planSnapshot?.durationDays ?? 30;
                 const dailyRoi = tx.planSnapshot?.roiPercent ?? 0;

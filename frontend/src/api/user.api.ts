@@ -14,6 +14,7 @@ export const userApi = {
   updateKycStatus: (id: string, status: string) => api.patch(`/users/traders/${id}/kyc`, { status }),
   unverifyTrader: (id: string) => api.patch(`/users/traders/${id}/unverify`),
   toggleUserActive: (id: string) => api.patch(`/users/traders/${id}/toggle`),
+  toggleReinvestment: (id: string, canReinvest?: boolean) => api.patch(`/users/traders/${id}/toggle-reinvestment`, { canReinvest }),
   getExecutorStats: () => api.get("/users/executor-stats"),
   impersonateTrader: (id: string) => api.post(`/users/traders/${id}/impersonate`),
   manageTraderBalance: (id: string, data: object) => api.post(`/users/traders/${id}/balance-action`, data),

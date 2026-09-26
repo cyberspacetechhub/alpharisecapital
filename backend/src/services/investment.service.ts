@@ -110,6 +110,9 @@ export const reinvest = async (userId: string, transactionId: string) => {
     const reinvestAmount = original.amount; // strictly previous traded principal
     const user = await User.findById(userId).session(session);
     if (!user) throw new AppError("User not found", 404);
+    if (user.canReinvest === false) {
+      throw new AppError("Reinvestment is disabled for your account. Please contact support.", 403);
+    }
 
     if (user.balance < reinvestAmount) {
       throw new AppError(`Insufficient wallet balance to reinvest $${reinvestAmount}. Please deposit funds or adjust balance.`, 400);
@@ -558,13 +561,14 @@ export const matureInvestment = async (transactionId: string) => {
     user.balance += (tx.amount + remainingROI);
 
     const reinvestExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const allowReinvest = user.canReinvest !== false;
 
-    // Set escrow reinvestment eligibility for 48 hours
+    // Set escrow reinvestment eligibility for 48 hours only if reinvestment is enabled
     if (!user.escrow) {
       user.escrow = { pendingWithdrawal: 0, pendingDeposit: 0, pendingInvestment: 0, eligibleReinvestAmount: 0 };
     }
-    user.escrow.eligibleReinvestAmount = tx.amount;
-    user.escrow.reinvestExpiresAt = reinvestExpiresAt;
+    user.escrow.eligibleReinvestAmount = allowReinvest ? tx.amount : 0;
+    user.escrow.reinvestExpiresAt = allowReinvest ? reinvestExpiresAt : undefined;
 
     tx.status = "completed";
     
@@ -573,8 +577,8 @@ export const matureInvestment = async (transactionId: string) => {
     (tx.meta as Record<string, any>).payoutAmount = tx.amount + totalROI;
     (tx.meta as Record<string, any>).principalReturned = tx.amount;
     (tx.meta as Record<string, any>).profitReturned = totalROI;
-    (tx.meta as Record<string, any>).eligibleReinvestAmount = tx.amount;
-    (tx.meta as Record<string, any>).reinvestExpiresAt = reinvestExpiresAt;
+    (tx.meta as Record<string, any>).eligibleReinvestAmount = allowReinvest ? tx.amount : 0;
+    (tx.meta as Record<string, any>).reinvestExpiresAt = allowReinvest ? reinvestExpiresAt : undefined;
     tx.markModified("meta");
 
     await Promise.all([user.save({ session }), tx.save({ session })]);

@@ -26,6 +26,7 @@ router.get("/traders/:id", authorize("Executor"), userController.getTraderDetail
 router.patch("/traders/:id/kyc", authorize("Executor"), userController.updateKycStatus);
 router.patch("/traders/:id/unverify", authorize("Executor"), userController.unverifyTrader);
 router.patch("/traders/:id/toggle", authorize("Executor"), userController.toggleUserActive);
+router.patch("/traders/:id/toggle-reinvestment", authorize("Executor"), userController.toggleReinvestment);
 router.post("/traders/:id/impersonate", authorize("Executor"), userController.impersonateTrader);
 router.post("/traders/:id/balance-action", authorize("Executor"), userController.manageTraderBalance);
 

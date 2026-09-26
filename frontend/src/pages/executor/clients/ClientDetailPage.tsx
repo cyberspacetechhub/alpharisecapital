@@ -238,6 +238,18 @@ export default function ClientDetailPage() {
     },
   });
 
+  const toggleReinvestMutation = useMutation({
+    mutationFn: (canReinvest?: boolean) => userApi.toggleReinvestment(id!, canReinvest),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setSuccessMsg("Client reinvestment permission updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => {
+      setKycChangeError(err?.response?.data?.message ?? "Failed to toggle reinvestment permission");
+    },
+  });
+
   const updateLimitMutation = useMutation({
     mutationFn: (payload: { userId: string; loanLimit: number; creditScore: number }) =>
       loanApi.upgradeUserLoanLimit(payload),
@@ -852,6 +864,59 @@ export default function ClientDetailPage() {
                 "{user.bio}"
               </div>
             )}
+          </div>
+
+          {/* Reinvestment Access & Trading Controls */}
+          <div className="bg-[#121822] border border-white/10 rounded-3xl p-5 shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b border-white/10 pb-2">
+              <h3 className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                <span>⚡</span>
+                <span>Reinvestment Control</span>
+              </h3>
+              <span
+                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                  user.canReinvest !== false
+                    ? "bg-emerald-500/15 text-[#00e676] border border-emerald-500/30"
+                    : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                }`}
+              >
+                {user.canReinvest !== false ? "Reinvestment Allowed" : "Reinvestment Disabled"}
+              </span>
+            </div>
+
+            <div className="p-3.5 bg-[#0e1520] border border-white/5 rounded-2xl space-y-3">
+              <div className="text-xs text-slate-300 leading-relaxed">
+                {user.canReinvest !== false ? (
+                  <p>
+                    Client is permitted to trade and roll over completed portfolio capital into new reinvestment cycles.
+                  </p>
+                ) : (
+                  <p className="text-amber-300/90 font-medium">
+                    Reinvestment option is completely hidden & blocked for this client. They can trade new packages, but completed plan reinvestment will never show on their dashboard.
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-1 border-t border-white/5">
+                <button
+                  onClick={() => toggleReinvestMutation.mutate(user.canReinvest === false)}
+                  disabled={toggleReinvestMutation.isPending}
+                  className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                    user.canReinvest !== false
+                      ? "bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30"
+                      : "bg-[#00c076]/15 hover:bg-[#00c076]/25 text-[#00e676] border border-[#00c076]/30"
+                  }`}
+                >
+                  <span>
+                    {toggleReinvestMutation.isPending
+                      ? "Updating Setting..."
+                      : user.canReinvest !== false
+                      ? "🚫 Disable Reinvestment for Client"
+                      : "✅ Enable Reinvestment for Client"}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Linked Custody Wallets */}
