@@ -551,14 +551,15 @@ export const matureInvestment = async (transactionId: string) => {
     const remainingROI = Math.max(0, totalROI - distributedDailyROI);
     const earnings = totalROI;
 
-    // Credit lifetime earnings
+    // Credit any remaining undistributed ROI (days not yet processed by cron)
     if (remainingROI > 0) {
+      user.balance += remainingROI;
       user.totalEarnings += remainingROI;
     }
 
-    // ── RETURN BOTH PRINCIPAL AND PROFIT DIRECTLY TO USER MAIN BALANCE ──
+    // Return principal only — daily profits were already credited to balance each day
     user.investedBalance = Math.max(0, user.investedBalance - tx.amount);
-    user.balance += (tx.amount + remainingROI);
+    user.balance += tx.amount;
 
     const reinvestExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     const allowReinvest = user.canReinvest !== false;
@@ -717,7 +718,8 @@ export const distributeDailyProfits = async () => {
       // Exact Daily Profit based on current invested capital
       const dailyProfit = Number((tx.amount * (dailyRoiPercent / 100)).toFixed(2));
 
-      // Credit daily profit into user's total earnings
+      // Credit daily profit to spendable balance AND lifetime earnings tracker
+      user.balance += dailyProfit;
       user.totalEarnings += dailyProfit;
 
       if (!meta.profitLogs) meta.profitLogs = [];
