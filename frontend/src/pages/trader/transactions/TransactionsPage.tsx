@@ -6,7 +6,7 @@ import Pagination from "../../../components/common/Pagination";
 import AssetLogo from "../../../components/common/AssetLogo";
 import type { Transaction, ApiResponse } from "../../../types";
 
-const TYPE_OPTS = ["", "deposit", "withdrawal", "investment", "reinvestment", "loan_disbursement", "loan_repayment", "bonus"];
+const TYPE_OPTS = ["", "deposit", "withdrawal", "investment", "reinvestment", "loan_disbursement", "loan_repayment", "bonus", "admin_credit"];
 const STATUS_OPTS = ["", "pending", "approved", "rejected", "completed", "matured"];
 
 const typeLabel: Record<string, string> = {
@@ -17,6 +17,7 @@ const typeLabel: Record<string, string> = {
   loan_disbursement: "Loan Disbursement",
   loan_repayment: "Loan Repayment",
   bonus: "Referral Bonus",
+  admin_credit: "Alpha Rise Global Credit",
 };
 
 export default function TraderTransactionsPage() {
@@ -34,7 +35,7 @@ export default function TraderTransactionsPage() {
         .then((r) => r.data as ApiResponse<Transaction[]> & { total: number; pages: number }),
   });
 
-  const txs = data?.data ?? [];
+  const txs = (data?.data ?? []).filter((tx) => tx.type !== "admin_debit");
   const pages = data?.pages ?? 1;
 
   return (
@@ -119,10 +120,10 @@ export default function TraderTransactionsPage() {
             {/* ── Responsive Card Feed (Visible in Cards mode OR on mobile in Auto mode) ── */}
             <div className={`p-4 sm:p-6 space-y-3 ${viewMode === "table" ? "hidden" : viewMode === "cards" ? "block" : "block md:hidden"}`}>
               {txs.map((tx) => {
-                const isOutflow = tx.type === "withdrawal" || tx.type === "loan_repayment" || tx.type === "admin_debit";
+                const isOutflow = tx.type === "withdrawal" || tx.type === "loan_repayment";
                 const isSuccess = tx.status === "approved" || tx.status === "completed";
                 const isPending = tx.status === "pending";
-                const methodName = tx.meta?.methodName || tx.planSnapshot?.name;
+                const methodName = tx.meta?.methodName || tx.planSnapshot?.name || (tx.type === "admin_credit" ? "Alpha Rise Global" : undefined);
 
                 return (
                   <button

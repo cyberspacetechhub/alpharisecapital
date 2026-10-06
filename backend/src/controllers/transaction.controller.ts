@@ -83,8 +83,8 @@ const enrichTransactions = async (txs: any[]) => {
 
 export const getMyTransactions = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { type, status, page = "1", limit = "20" } = req.query as Record<string, string>;
-  const filter: Record<string, unknown> = { user: req.userId };
-  if (type) filter.type = type;
+  const filter: Record<string, unknown> = { user: req.userId, type: { $ne: "admin_debit" } };
+  if (type && type !== "admin_debit") filter.type = type;
   if (status) filter.status = status;
 
   const [rawDocs, total] = await Promise.all([

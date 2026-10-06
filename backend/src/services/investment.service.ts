@@ -80,7 +80,7 @@ export const invest = async (userId: string, planId: string, amount: number) => 
   }
 };
 
-// ─── Reinvest (Strictly previous traded amount within 48 hours) ──────────────
+// ─── Reinvest (Auto-approved on trigger, no timing window) ──────────────────
 
 export const reinvest = async (userId: string, transactionId: string) => {
   const session = await mongoose.startSession();
@@ -95,19 +95,10 @@ export const reinvest = async (userId: string, transactionId: string) => {
 
     if (!original) throw new AppError("Completed investment transaction not found", 404);
 
-    // Enforce 48-hour reinvestment limit from the completion time
-    const completedAt = (original.meta as Record<string, any>)?.completedAt || original.updatedAt;
-    if (completedAt) {
-      const timePassed = Date.now() - new Date(completedAt as any).getTime();
-      if (timePassed > 48 * 60 * 60 * 1000) {
-        throw new AppError("Reinvestment period of 48 hours has expired for this investment", 400);
-      }
-    }
-
     const plan = await InvestmentPlan.findById(original.planId).session(session);
     if (!plan || !plan.isActive) throw new AppError("Original plan is no longer active", 400);
 
-    const reinvestAmount = original.amount; // strictly previous traded principal
+    const reinvestAmount = original.amount;
     const user = await User.findById(userId).session(session);
     if (!user) throw new AppError("User not found", 404);
     if (user.canReinvest === false) {
@@ -118,17 +109,22 @@ export const reinvest = async (userId: string, transactionId: string) => {
       throw new AppError(`Insufficient wallet balance to reinvest $${reinvestAmount}. Please deposit funds or adjust balance.`, 400);
     }
 
-    // Deduct from balance to fund the new reinvestment
+    // Deduct from balance and move directly to investedBalance (auto-approved)
     user.balance -= reinvestAmount;
+    user.investedBalance += reinvestAmount;
+    user.totalInvested += reinvestAmount;
     if (!user.escrow) {
       user.escrow = { pendingWithdrawal: 0, pendingDeposit: 0, pendingInvestment: 0, eligibleReinvestAmount: 0 };
     }
-    user.escrow.pendingInvestment = (user.escrow.pendingInvestment || 0) + reinvestAmount;
     user.escrow.eligibleReinvestAmount = Math.max(0, (user.escrow.eligibleReinvestAmount || 0) - reinvestAmount);
+    user.escrow.reinvestExpiresAt = undefined;
 
-    // Mark original completed transaction as reinvested to prevent double actions
+    // Mark original as reinvested to prevent double actions
     original.status = "reinvested";
     await Promise.all([original.save({ session }), user.save({ session })]);
+
+    const durationDays = plan.durationDays;
+    const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
 
     const tx = await Transaction.create(
       [
@@ -136,7 +132,7 @@ export const reinvest = async (userId: string, transactionId: string) => {
           user: userId,
           type: "reinvestment",
           amount: reinvestAmount,
-          status: "pending",
+          status: "approved",
           reference: generateReference(),
           planId: plan._id,
           planSnapshot: {
@@ -148,7 +144,15 @@ export const reinvest = async (userId: string, transactionId: string) => {
           },
           isReinvestment: true,
           reinvestedAmount: reinvestAmount,
-          meta: { originalTransactionId: original._id },
+          expiresAt,
+          reviewedAt: new Date(),
+          meta: {
+            originalTransactionId: original._id,
+            cycleStartAt: new Date(),
+            profitLogs: [],
+            daysProcessed: 0,
+            lastProfitDropAt: null,
+          },
         },
       ],
       { session }
@@ -156,10 +160,29 @@ export const reinvest = async (userId: string, transactionId: string) => {
 
     await session.commitTransaction();
 
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const maturityDate = expiresAt.toDateString();
+    const dailyRoi = plan.roiPercent;
+    const totalEarnings = (reinvestAmount * (dailyRoi / 100) * durationDays).toFixed(2);
+
+    await sendEmail(
+      user.email,
+      `Reinvestment Activated — ${plan.name}`,
+      reinvestmentConfirmedEmail(
+        user.username,
+        plan.name,
+        `$${reinvestAmount.toFixed(2)}`,
+        `${dailyRoi}% Daily ($${totalEarnings} Total ROI)`,
+        durationDays,
+        maturityDate,
+        `${clientUrl}/trader/investments`
+      )
+    ).catch((e) => console.error("Reinvestment confirmation email failed:", e));
+
     await sendSystemMessage(
       userId,
-      "Reinvestment Submitted",
-      `Your reinvestment of $${reinvestAmount.toFixed(2)} into ${plan.name} has been initiated and is pending activation.`,
+      "Reinvestment Activated ✓",
+      `Your reinvestment of $${reinvestAmount.toFixed(2)} into ${plan.name} is now active and compounding daily yield.`,
       "Transaction",
       tx[0]._id.toString()
     ).catch((e) => console.error("System message failed:", e));
@@ -605,7 +628,7 @@ export const matureInvestment = async (transactionId: string) => {
     await sendSystemMessage(
       user._id.toString(),
       `Trade Completed — Funds Credited 🎉`,
-      `Your investment in ${tx.planSnapshot?.name ?? "Plan"} has concluded! Your principal ($${tx.amount.toFixed(2)}) and total profit ($${earnings.toFixed(2)}) have been credited directly to your balance. You have 48 hours to reinvest your previous trading amount ($${tx.amount.toFixed(2)}) if desired.`,
+      `Your investment in ${tx.planSnapshot?.name ?? "Plan"} has concluded! Your principal ($${tx.amount.toFixed(2)}) and total profit ($${earnings.toFixed(2)}) have been credited directly to your balance. You can reinvest your previous trading amount ($${tx.amount.toFixed(2)}) at any time.`,
       "Transaction",
       tx._id.toString()
     ).catch((e) => console.error("[MatureJob] In-app message failed:", e));
@@ -619,12 +642,11 @@ export const matureInvestment = async (transactionId: string) => {
   }
 };
 
-// ─── Clean Expired Escrows (48hr Cleanup — called by scheduler) ──────────────
+// ─── Clean Expired Escrows (called by scheduler) ─────────────────────────────
 
 export const cleanExpiredEscrows = async () => {
   const now = new Date();
 
-  // 1. Clear expired eligible reinvestment escrow on users past 48 hours
   const expiredUsers = await User.find({
     "escrow.reinvestExpiresAt": { $lte: now },
     "escrow.eligibleReinvestAmount": { $gt: 0 },
@@ -635,37 +657,6 @@ export const cleanExpiredEscrows = async () => {
     u.escrow.reinvestExpiresAt = undefined;
     await u.save();
     console.log(`[EscrowCleanup] Cleared expired reinvestment eligibility for user ${u.username}`);
-  }
-
-  // 2. Decline/cancel any pending reinvestments that sat past 48 hours without approval
-  const stalePendingReinvestments = await Transaction.find({
-    type: "reinvestment",
-    status: "pending",
-    createdAt: { $lte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
-  });
-
-  for (const tx of stalePendingReinvestments) {
-    const user = await User.findById(tx.user);
-    if (user) {
-      user.balance += tx.amount;
-      if (user.escrow?.pendingInvestment) {
-        user.escrow.pendingInvestment = Math.max(0, user.escrow.pendingInvestment - tx.amount);
-      }
-      tx.status = "rejected";
-      tx.rejectionReason = "48-hour reinvestment approval window expired";
-      if (!tx.meta) tx.meta = {};
-      (tx.meta as Record<string, any>).expiredAt = new Date();
-      tx.markModified("meta");
-      await Promise.all([user.save(), tx.save()]);
-
-      await sendSystemMessage(
-        String(user._id),
-        "Pending Reinvestment Expired",
-        `Your pending reinvestment request of $${tx.amount.toFixed(2)} was cancelled due to expiration. The amount remains available in your balance.`,
-        "Transaction",
-        tx._id.toString()
-      ).catch((e) => console.error("System message error:", e));
-    }
   }
 };
 
