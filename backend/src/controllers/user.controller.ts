@@ -114,3 +114,13 @@ export const toggleReinvestment = asyncHandler(async (req: AuthRequest, res: Res
   const result = await userService.toggleTraderReinvestment(req.params.id, req.body.canReinvest);
   res.json({ success: true, data: result });
 });
+
+export const updateTraderDetails = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const result = await userService.updateTraderDetails(req.params.id, req.body);
+  res.json({ success: true, data: result });
+});
+
+export const deleteTrader = asyncHandler(async (req: AuthRequest, res: Response) => {
+  await userService.deleteTrader(req.params.id);
+  res.json({ success: true, message: "Trader account deleted" });
+});

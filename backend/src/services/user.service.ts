@@ -422,6 +422,50 @@ export const unverifyTrader = async (userId: string) => {
   return { isVerified: user.isVerified, kycStatus: user.kycStatus };
 };
 
+// ─── Executor: Update Trader Details ─────────────────────────────────────────
+
+export const updateTraderDetails = async (userId: string, data: Record<string, any>) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("Trader not found", 404);
+
+  const allowedUserFields = ["username", "fullName", "email", "phone", "isVerified", "isActive", "kycStatus"];
+  for (const field of allowedUserFields) {
+    if (data[field] !== undefined) (user as any)[field] = data[field];
+  }
+  await user.save();
+
+  // Update trader profile fields if provided
+  if (data.referralCode !== undefined || data.referredBy !== undefined || data.tradingExperience !== undefined ||
+      data.bio !== undefined || data.country !== undefined || data.timezone !== undefined) {
+    const profile = await TraderProfile.findOne({ user: userId });
+    if (profile) {
+      if (data.referralCode !== undefined) profile.referralCode = data.referralCode;
+      if (data.referredBy !== undefined) profile.referredBy = data.referredBy;
+      if (data.tradingExperience !== undefined) profile.tradingExperience = data.tradingExperience;
+      if (data.bio !== undefined) profile.bio = data.bio;
+      if (data.country !== undefined) profile.country = data.country;
+      if (data.timezone !== undefined) profile.timezone = data.timezone;
+      await profile.save();
+    }
+  }
+
+  return user;
+};
+
+// ─── Executor: Delete Trader ──────────────────────────────────────────────────
+
+export const deleteTrader = async (userId: string) => {
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("Trader not found", 404);
+
+  await Promise.all([
+    Profile.deleteOne({ user: userId }),
+    Transaction.deleteMany({ user: userId }),
+    User.deleteOne({ _id: userId }),
+  ]);
+};
+
+
 // ─── Executor: Balance Actions & Debits ──────────────────────────────────────
 
 export type BalanceActionType =

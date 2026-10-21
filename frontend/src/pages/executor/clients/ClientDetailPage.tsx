@@ -100,6 +100,14 @@ export default function ClientDetailPage() {
   const [refPage, setRefPage] = useState(1);
   const [txPage, setTxPage] = useState(1);
 
+  // Edit client details modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [editError, setEditError] = useState("");
+
+  // Delete client modal
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   // Edit limit modal state
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [newLimit, setNewLimit] = useState("");
@@ -248,6 +256,22 @@ export default function ClientDetailPage() {
     onError: (err: any) => {
       setKycChangeError(err?.response?.data?.message ?? "Failed to toggle reinvestment permission");
     },
+  });
+
+  const updateDetailsMutation = useMutation({
+    mutationFn: (data: object) => userApi.updateTraderDetails(id!, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["executor-trader-detail", id] });
+      setEditModalOpen(false);
+      setSuccessMsg("Client details updated successfully!");
+      setTimeout(() => setSuccessMsg(""), 5000);
+    },
+    onError: (err: any) => setEditError(err?.response?.data?.message ?? "Failed to update details"),
+  });
+
+  const deleteTraderMutation = useMutation({
+    mutationFn: () => userApi.deleteTrader(id!),
+    onSuccess: () => navigate("/executor/clients"),
   });
 
   const updateLimitMutation = useMutation({
@@ -521,6 +545,37 @@ export default function ClientDetailPage() {
             {isImpersonating ? "Logging in..." : "Login as Trader"}
           </button>
 
+          <button
+            onClick={() => {
+              const p = user.profile as any ?? {};
+              setEditForm({
+                username: user.username ?? "",
+                fullName: user.fullName ?? "",
+                email: user.email ?? "",
+                phone: user.phone ?? "",
+                country: p.country ?? "",
+                bio: p.bio ?? "",
+                timezone: p.timezone ?? "",
+                tradingExperience: p.tradingExperience ?? "beginner",
+                referralCode: p.referralCode ?? user.username ?? "",
+                referredBy: p.referredBy ?? "",
+                kycStatus: user.kycStatus ?? "none",
+                isVerified: String(user.isVerified ?? false),
+                isActive: String(user.isActive ?? true),
+              });
+              setEditError("");
+              setEditModalOpen(true);
+            }}
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white border border-white/10 text-xs font-bold rounded-xl transition-all"
+          >
+            Edit Details
+          </button>
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            className="px-4 py-2.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-bold rounded-xl transition-all"
+          >
+            Delete Client
+          </button>
           <button
             onClick={() => {
               setNewLimit(String(user.loanLimit ?? 0));
@@ -1723,6 +1778,121 @@ export default function ClientDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Client Details Modal ── */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setEditModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto z-10 text-white">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h3 className="text-sm font-bold text-white">Edit Client Details — {user.username}</h3>
+              <button onClick={() => setEditModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setEditError("");
+                const payload: Record<string, any> = { ...editForm };
+                payload.isVerified = editForm.isVerified === "true";
+                payload.isActive = editForm.isActive === "true";
+                updateDetailsMutation.mutate(payload);
+              }}
+              className="p-6 space-y-4"
+            >
+              {editError && (
+                <div className="p-3 bg-rose-500/15 border border-rose-500/30 text-xs text-rose-400 rounded-xl font-bold">{editError}</div>
+              )}
+              {([
+                ["username", "Username", "text"],
+                ["fullName", "Full Name", "text"],
+                ["email", "Email", "email"],
+                ["phone", "Phone", "text"],
+                ["country", "Country", "text"],
+                ["timezone", "Timezone", "text"],
+                ["bio", "Bio", "text"],
+                ["referralCode", "Referral Code", "text"],
+                ["referredBy", "Referred By (username)", "text"],
+              ] as [string, string, string][]).map(([field, label, type]) => (
+                <div key={field}>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">{label}</label>
+                  <input
+                    type={type}
+                    value={editForm[field] ?? ""}
+                    onChange={(e) => setEditForm((f) => ({ ...f, [field]: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  />
+                </div>
+              ))}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">KYC Status</label>
+                  <select
+                    value={editForm.kycStatus ?? "none"}
+                    onChange={(e) => setEditForm((f) => ({ ...f, kycStatus: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  >
+                    {["none", "pending", "approved", "rejected"].map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Verified</label>
+                  <select
+                    value={editForm.isVerified ?? "false"}
+                    onChange={(e) => setEditForm((f) => ({ ...f, isVerified: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  >
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Trading Exp.</label>
+                  <select
+                    value={editForm.tradingExperience ?? "beginner"}
+                    onChange={(e) => setEditForm((f) => ({ ...f, tradingExperience: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-[#0e1520] text-white text-xs focus:outline-none focus:border-[#00c076]"
+                  >
+                    {["beginner", "intermediate", "expert"].map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2.5 pt-2">
+                <button type="button" onClick={() => setEditModalOpen(false)} className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5">
+                  Cancel
+                </button>
+                <button type="submit" disabled={updateDetailsMutation.isPending} className="flex-1 py-2.5 bg-[#00c076] hover:bg-[#00e676] text-[#080c10] text-xs font-black rounded-xl disabled:opacity-50">
+                  {updateDetailsMutation.isPending ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete Client Modal ── */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setDeleteModalOpen(false)} />
+          <div className="relative bg-[#121822] border border-white/10 rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 space-y-4 text-white">
+            <h3 className="text-sm font-bold text-rose-400 border-b border-white/10 pb-3">Delete Client Account</h3>
+            <div className="p-3.5 bg-rose-500/20 border border-rose-500/40 rounded-2xl text-xs text-rose-200 leading-relaxed">
+              🚨 This will permanently delete <strong>{user.username}</strong>'s account, profile, and all transaction history. This action cannot be undone.
+            </div>
+            <div className="flex gap-2.5 pt-2">
+              <button onClick={() => setDeleteModalOpen(false)} className="flex-1 py-2.5 border border-white/10 text-xs font-bold text-slate-400 rounded-xl hover:bg-white/5">
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteTraderMutation.mutate()}
+                disabled={deleteTraderMutation.isPending}
+                className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-black rounded-xl disabled:opacity-50"
+              >
+                {deleteTraderMutation.isPending ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

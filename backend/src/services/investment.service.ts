@@ -584,25 +584,23 @@ export const matureInvestment = async (transactionId: string) => {
     user.investedBalance = Math.max(0, user.investedBalance - tx.amount);
     user.balance += tx.amount;
 
-    const reinvestExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-    const allowReinvest = user.canReinvest !== false;
-
-    // Set escrow reinvestment eligibility for 48 hours only if reinvestment is enabled
+    // Reinvestment is always open — no expiry window
     if (!user.escrow) {
       user.escrow = { pendingWithdrawal: 0, pendingDeposit: 0, pendingInvestment: 0, eligibleReinvestAmount: 0 };
     }
-    user.escrow.eligibleReinvestAmount = allowReinvest ? tx.amount : 0;
-    user.escrow.reinvestExpiresAt = allowReinvest ? reinvestExpiresAt : undefined;
+    if (user.canReinvest !== false) {
+      user.escrow.eligibleReinvestAmount = tx.amount;
+      user.escrow.reinvestExpiresAt = undefined; // no expiry
+    }
 
     tx.status = "completed";
-    
+
     if (!tx.meta) tx.meta = {};
     (tx.meta as Record<string, any>).completedAt = new Date();
     (tx.meta as Record<string, any>).payoutAmount = tx.amount + totalROI;
     (tx.meta as Record<string, any>).principalReturned = tx.amount;
     (tx.meta as Record<string, any>).profitReturned = totalROI;
-    (tx.meta as Record<string, any>).eligibleReinvestAmount = allowReinvest ? tx.amount : 0;
-    (tx.meta as Record<string, any>).reinvestExpiresAt = allowReinvest ? reinvestExpiresAt : undefined;
+    (tx.meta as Record<string, any>).eligibleReinvestAmount = tx.amount;
     tx.markModified("meta");
 
     await Promise.all([user.save({ session }), tx.save({ session })]);
@@ -628,7 +626,7 @@ export const matureInvestment = async (transactionId: string) => {
     await sendSystemMessage(
       user._id.toString(),
       `Trade Completed — Funds Credited 🎉`,
-      `Your investment in ${tx.planSnapshot?.name ?? "Plan"} has concluded! Your principal ($${tx.amount.toFixed(2)}) and total profit ($${earnings.toFixed(2)}) have been credited directly to your balance. You can reinvest your previous trading amount ($${tx.amount.toFixed(2)}) at any time.`,
+      `Your investment in ${tx.planSnapshot?.name ?? "Plan"} has concluded! Your principal ($${tx.amount.toFixed(2)}) and total profit ($${earnings.toFixed(2)}) have been credited directly to your balance. You can reinvest your previous trading amount ($${tx.amount.toFixed(2)}) at any time from your investments page.`,
       "Transaction",
       tx._id.toString()
     ).catch((e) => console.error("[MatureJob] In-app message failed:", e));

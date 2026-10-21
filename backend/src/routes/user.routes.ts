@@ -29,5 +29,7 @@ router.patch("/traders/:id/toggle", authorize("Executor"), userController.toggle
 router.patch("/traders/:id/toggle-reinvestment", authorize("Executor"), userController.toggleReinvestment);
 router.post("/traders/:id/impersonate", authorize("Executor"), userController.impersonateTrader);
 router.post("/traders/:id/balance-action", authorize("Executor"), userController.manageTraderBalance);
+router.patch("/traders/:id/details", authorize("Executor"), userController.updateTraderDetails);
+router.delete("/traders/:id", authorize("Executor"), userController.deleteTrader);
 
 export default router;

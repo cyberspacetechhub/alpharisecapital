@@ -9,6 +9,7 @@ export interface Escrow {
 export interface User {
   _id: string;
   username: string;
+  fullName?: string;
   email: string;
   phone?: string;
   isVerified: boolean;

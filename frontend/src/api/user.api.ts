@@ -18,4 +18,6 @@ export const userApi = {
   getExecutorStats: () => api.get("/users/executor-stats"),
   impersonateTrader: (id: string) => api.post(`/users/traders/${id}/impersonate`),
   manageTraderBalance: (id: string, data: object) => api.post(`/users/traders/${id}/balance-action`, data),
+  updateTraderDetails: (id: string, data: object) => api.patch(`/users/traders/${id}/details`, data),
+  deleteTrader: (id: string) => api.delete(`/users/traders/${id}`),
 };
