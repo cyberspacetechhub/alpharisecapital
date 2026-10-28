@@ -73,7 +73,7 @@ export const registerUser = async (data: RegisterInput, type: ProfileType, ip: s
 
   const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
   await sendEmail(user.email, `Verify your email`, emailVerificationEmail(user.username, verifyUrl));
-  await sendEmail(user.email, `Welcome to VerdexTrade`, welcomeEmail(user.username, `${process.env.CLIENT_URL}/dashboard`));
+  await sendEmail(user.email, `Welcome to Alpha Rise Global`, welcomeEmail(user.username, `${process.env.CLIENT_URL}/dashboard`));
 
   const accessToken = generateAccessToken(String(user._id));
   const refreshToken = generateRefreshToken(String(user._id));
