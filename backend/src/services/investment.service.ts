@@ -160,7 +160,7 @@ export const reinvest = async (userId: string, transactionId: string) => {
 
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
     const maturityDate = expiresAt.toDateString();
     const dailyRoi = plan.roiPercent;
     const totalEarnings = (reinvestAmount * (dailyRoi / 100) * durationDays).toFixed(2);
@@ -261,7 +261,7 @@ export const topUpInvestment = async (
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
     const dailyRoi = tx.planSnapshot?.roiPercent ?? 0;
     const newDailyYield = (newAmount * (dailyRoi / 100)).toFixed(2);
 
@@ -371,7 +371,7 @@ export const adminCreateInvestment = async (
     await Promise.all([user.save({ session }), tx[0].save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
     const maturityDate = expiresAt.toDateString();
     const totalEarnings = ((amount * (plan.roiPercent / 100) * durationDays)).toFixed(2);
 
@@ -445,7 +445,7 @@ export const adminCancelInvestment = async (adminId: string, transactionId: stri
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
 
     await sendEmail(
       user.email,
@@ -507,7 +507,7 @@ export const clientForfeitInvestment = async (userId: string, transactionId: str
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
 
     await sendEmail(
       user.email,
@@ -606,7 +606,7 @@ export const matureInvestment = async (transactionId: string) => {
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
 
     // ── Email: Trade Completed, Principal & Profits Returned ──
     await sendEmail(
@@ -798,7 +798,7 @@ export const approveInvestment = async (transactionId: string, executorId: strin
     await Promise.all([user.save({ session }), tx.save({ session })]);
     await session.commitTransaction();
 
-    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.com";
+    const clientUrl = process.env.CLIENT_URL || "https://alphariseglobal.vercel.app";
     const maturityDate = expiresAt.toDateString();
     const dailyRoi = tx.planSnapshot?.roiPercent ?? plan.roiPercent;
     const totalEarnings = ((tx.amount * (dailyRoi / 100) * durationDays)).toFixed(2);

@@ -68,6 +68,6 @@ export const withdrawalRejectedEmail = (
       emailInfoRow("Status", "Rejected")
     )}
     ${emailAlert("The amount has been returned to your account balance.", "danger")}
-    ${emailButton("Contact Support", "mailto:support@alphariseglobal.com")}
+    ${emailButton("Contact Support", "mailto:info.alphariseglobal@gmail.com")}
     `
   );

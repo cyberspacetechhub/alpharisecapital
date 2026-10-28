@@ -70,6 +70,6 @@ export const depositRejectedEmail = (
       emailInfoRow("Status", "Rejected")
     )}
     ${emailAlert("If you believe this is an error, please contact our support team.", "danger")}
-    ${emailButton("Contact Support", "mailto:support@alphariseglobal.com")}
+    ${emailButton("Contact Support", "mailto:info.alphariseglobal@gmail.com")}
     `
   );

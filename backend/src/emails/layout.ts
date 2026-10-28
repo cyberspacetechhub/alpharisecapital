@@ -2,8 +2,8 @@ const BRAND_NAME = "Alpha Rise Global";
 const BRAND_COLOR = "#1a3a2a";
 const BRAND_ACCENT = "#2d6a4f";
 const BRAND_LIGHT = "#f0f7f4";
-const SUPPORT_EMAIL = "support@alphariseglobal.com";
-const WEBSITE_URL = "https://alphariseglobal.com";
+const SUPPORT_EMAIL = "support@alphariseglobal.vercel.app";
+const WEBSITE_URL = "https://alphariseglobal.vercel.app";
 
 export const emailLayout = (title: string, content: string): string => `
 <!DOCTYPE html>

@@ -37,7 +37,7 @@ export default function SupportPage() {
                 </div>
                 <div>
                   <strong className="block text-white">Support Email:</strong>
-                  <span className="text-slate-400 font-mono">support@alphariseglobal.com</span>
+                  <span className="text-slate-400 font-mono">support@alphariseglobal.vercel.app</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">

@@ -60,7 +60,7 @@ export default function PublicFooter() {
             <li className="text-[10px] text-slate-500">Registered Office:</li>
             <li className="font-mono text-slate-200">London City, UK EC2V 6DL</li>
             <li className="text-[10px] text-slate-500 mt-2">Email:</li>
-            <li className="font-mono text-[#00e676]">support@alphariseglobal.com</li>
+            <li className="font-mono text-[#00e676]">support@alphariseglobal.vercel.app</li>
           </ul>
         </div>
 

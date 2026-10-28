@@ -731,7 +731,7 @@ export default function TraderDashboard() {
           <div className="flex-1 min-w-0 px-2 font-mono text-xs text-gray-300 truncate">
             {typeof window !== "undefined"
               ? `${window.location.origin}/register?ref=${dashData?.referralCode || user?.username || ""}`
-              : `https://alphariseglobal.com/register?ref=${dashData?.referralCode || user?.username || ""}`}
+              : `https://alphariseglobal.vercel.app/register?ref=${dashData?.referralCode || user?.username || ""}`}
           </div>
           <button
             type="button"
