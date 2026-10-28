@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Resend } from "resend";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
+import { sendEmail as dispatchEmail } from "../services/email.service";
 
 const resend = new Resend(process.env.RESEND_API_KEY) as any;
 const emailFrom = process.env.EMAIL_FROM || "onboarding@resend.dev";
@@ -86,6 +87,17 @@ export const sendEmail = asyncHandler(async (req: Request, res: Response) => {
   const { to, subject, html, text } = req.body;
   if (!to || !subject) throw new AppError("to and subject are required", 400);
   if (!html && !text) throw new AppError("html or text body is required", 400);
+
+  if (process.env.MAIL_SERVICE_API_KEY) {
+    const data = await dispatchEmail(
+      Array.isArray(to) ? to : [to],
+      subject,
+      html || `<pre style="font-family: sans-serif;">${text}</pre>`,
+      { text }
+    );
+    res.json({ success: true, data });
+    return;
+  }
 
   const { data, error } = await resend.emails.send({
     from: emailFrom,
