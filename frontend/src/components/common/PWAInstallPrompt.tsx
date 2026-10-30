@@ -77,7 +77,7 @@ export default function PWAInstallPrompt() {
           {/* Header */}
           <div className="flex items-start gap-4">
             <img
-              src="/branding/arglogo1.png"
+              src="/branding/arglogo.png"
               alt="Alpha Rise Global"
               className="w-14 h-14 rounded-2xl border border-white/10 shrink-0 object-cover"
             />
