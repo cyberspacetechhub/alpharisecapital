@@ -27,14 +27,11 @@ export const emailLayout = (title: string, content: string): string => `
 
           <!-- HEADER -->
           <tr>
-            <td style="background:${BRAND_COLOR}; padding: 28px 40px; text-align:center; display: flex; flex-direction: row; align-items: center;">
+            <td style="background:${BRAND_COLOR}; padding: 16px 40px; text-align:center; display: flex; flex-direction: row; justify-content:center; align-items: center; gap: 12px;">
               <img src="https://res.cloudinary.com/dsci8agen/image/upload/v1793227495/arglogo_lhxpqr.jpg" alt="${BRAND_NAME}" width="40" height="40" style="display:block; margin:0 auto 12px; border-radius:50%; object-fit:cover;" />
               <h1 style="color:#ffffff; font-size:14px; font-weight:700; letter-spacing:1.5px; margin:0 0 4px 0;">
                 ${BRAND_NAME}
               </h1>
-              // <p style="color:#a8c5b5; font-size:12px; margin:0; letter-spacing:0.5px;">
-              //   SECURE CRYPTO TRADING PLATFORM
-              // </p>
             </td>
           </tr>
 
